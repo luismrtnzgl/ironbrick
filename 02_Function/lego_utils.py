@@ -2,70 +2,78 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 
-def limpiar_df(df):
-    """
-    Realiza la limpieza del dataset de sets de LEGO:
-    - Rellena valores nulos en columnas categóricas.
-    - Sustituye valores nulos por 0 en columnas numéricas clave.
-    - Convierte las fechas de lanzamiento y retiro a solo el año.
-    - Asegura la consistencia de los tipos de datos.
+def clean_lego_data(df_lego):
+    # Reemplazo los valores nulos en 'Subtheme' por 'Unknown'
+    df_lego['Subtheme'] = df_lego['Subtheme'].fillna('Unknown')
     
-    Parámetros:
-        df (pd.DataFrame): DataFrame de LEGO sin limpiar.
-        
-    Retorna:
-        pd.DataFrame: DataFrame limpio.
-    """
-    # Rellenamos valores nulos en columnas categóricas
-    df['Subtheme'] = df['Subtheme'].fillna('Unknown')
-    df['ImageFilename'] = df['ImageFilename'].fillna('Unknown')
-
-    # En las columnas numéricas a reemplazamos valores nulos por 0
-    columnas_a_cero = [
-        'Pieces', 'BrickLinkSoldPriceNew', 'USRetailPrice', 
-        'BrickLinkSoldPriceUsed', 'Depth', 'Height', 'Width', 'Weight', 
-        'Minifigs', 'AgeMin', 'AgeMax'
+    # Reemplazo nulos por 0 en las columnas numéricas seleccionadas
+    columns_zero = [
+        'Pieces', 'BrickLinkSoldPriceNew', 'BrickLinkSoldPriceNewUS', 'USRetailPrice', 
+        'BrickLinkSoldPriceUsed', 'Depth', 'Height', 'Width', 'Weight', 'Minifigs', 'AgeMin', 'AgeMax'
     ]
-
-    for col in columnas_a_cero:
-        if col in df.columns:
-            df[col] = df[col].fillna(0)
-
-    # Convertimos LaunchDate y ExitDate a solo el año en formato numérico
-    if 'LaunchDate' in df.columns:
-        df['LaunchDate'] = pd.to_datetime(df['LaunchDate'], errors='coerce').dt.year
-        df['LaunchDate'] = df['LaunchDate'].fillna(0).astype(int).replace(0, None)
     
-    if 'ExitDate' in df.columns:
-        df['ExitDate'] = pd.to_datetime(df['ExitDate'], errors='coerce').dt.year
-        df['ExitDate'] = df['ExitDate'].fillna(0).astype(int).replace(0, None)
-
-    return df
-
-def normalizar_df(df):
-    """
-    Normaliza el dataset de sets de LEGO:
-    - Convierte 'LaunchDate' y 'ExitDate' a enteros manteniendo valores nulos.
-    - Elimina la columna 'Released' por no aportar información útil.
-    - Normaliza 'PackagingType' agrupando valores similares.
-    - Normaliza 'Availability' simplificando categorías.
+    for col in columns_zero:
+        if col in df_lego.columns:
+            df_lego[col] = df_lego[col].fillna(0)
     
-    Parámetros:
-        df (pd.DataFrame): DataFrame de LEGO sin normalizar.
-        
-    Retorna:
-        pd.DataFrame: DataFrame normalizado.
-    """
-    # Convertir LaunchDate y ExitDate a enteros manteniendo los valores nulos
-    df['LaunchDate'] = pd.to_numeric(df['LaunchDate'], errors='coerce').astype('Int64')
-    df['ExitDate'] = pd.to_numeric(df['ExitDate'], errors='coerce').astype('Int64')
+    # Reemplazo los valores nulos en 'ImageFilename' por 'Unknown'
+    df_lego['ImageFilename'] = df_lego['ImageFilename'].fillna('Unknown')
     
-    # Eliminar la columna 'Released' si existe
-    if 'Released' in df.columns:
-        df.drop(columns=['Released'], inplace=True)
+    # Convierto a formato de fecha para manejar valores nulos
+    df_lego['LaunchDate'] = pd.to_datetime(df_lego['LaunchDate'], errors='coerce')
+    df_lego['ExitDate'] = pd.to_datetime(df_lego['ExitDate'], errors='coerce')
     
-    # Normalizar 'PackagingType'
-    df['PackagingType'] = df['PackagingType'].replace({
+    # Calcula la duración en años de los sets con datos disponibles
+    df_lego['Duration'] = (df_lego['ExitDate'] - df_lego['LaunchDate']).dt.days / 365.25
+    
+    # Calcular la mediana de duración por Theme
+    theme_median_duration = df_lego.groupby('Theme')['Duration'].median()
+    
+    # Relleno ExitDate usando la mediana de duración por Theme
+    for theme, median_duration in theme_median_duration.items():
+        mask = (df_lego['Theme'] == theme) & df_lego['ExitDate'].isna() & df_lego['LaunchDate'].notna()
+        df_lego.loc[mask, 'ExitDate'] = df_lego.loc[mask, 'LaunchDate'] + pd.to_timedelta(median_duration * 365.25, unit='D')
+    
+    # Relleno LaunchDate usando YearFrom para los valores NaN
+    mask_launch = df_lego['LaunchDate'].isna() & df_lego['YearFrom'].notna()
+    df_lego.loc[mask_launch, 'LaunchDate'] = pd.to_datetime(df_lego.loc[mask_launch, 'YearFrom'].astype(int).astype(str) + '-01-01')
+    
+    # Extraigo año y mes en nuevas columnas
+    df_lego['LaunchYear'] = df_lego['LaunchDate'].dt.year
+    df_lego['LaunchMonth'] = df_lego['LaunchDate'].dt.month
+    df_lego['ExitYear'] = df_lego['ExitDate'].dt.year
+    df_lego['ExitMonth'] = df_lego['ExitDate'].dt.month
+    
+    # Elimino las columnas originales y la auxiliar
+    df_lego.drop(columns=['LaunchDate', 'ExitDate', 'Duration'], inplace=True)
+    
+    # Calculamos la duración en años de los sets con datos disponibles
+    df_lego['Duration'] = df_lego['ExitYear'] - df_lego['LaunchYear']
+    
+    # Calculo la duración media por tema, ignorando NaN
+    theme_avg_duration = df_lego.groupby('Theme')['Duration'].mean()
+    
+    # Calculo la duración media por año de lanzamiento, ignorando NaN
+    year_avg_duration = df_lego.groupby('LaunchYear')['Duration'].mean()
+    
+    # Relleno los valores nulos de ExitYear y ExitMonth usando valores calculados
+    for index, row in df_lego.iterrows():
+        if pd.isna(row['ExitYear']) and not pd.isna(row['LaunchYear']):
+            theme_duration = theme_avg_duration.get(row['Theme'], None)
+            year_duration = year_avg_duration.get(row['LaunchYear'], None)
+    
+            # Usar la duración del tema si está disponible, si no, la del año de lanzamiento
+            estimated_duration = theme_duration if pd.notna(theme_duration) else year_duration
+    
+            if pd.notna(estimated_duration):  # Solo asignar si hay un valor válido
+                df_lego.at[index, 'ExitYear'] = int(row['LaunchYear'] + round(estimated_duration))
+                df_lego.at[index, 'ExitMonth'] = 12  # Usar diciembre como mes estimado de retiro
+    
+    # Elimino de nuevo la columna auxiliar de duración
+    df_lego.drop(columns=['Duration'], inplace=True)
+    
+    # Normalizo 'PackagingType'
+    df_lego['PackagingType'] = df_lego['PackagingType'].replace({
         '{Not specified}': 'Unknown',
         'Plastic canister': 'Canister',
         'Plastic box': 'Box',
@@ -75,16 +83,19 @@ def normalizar_df(df):
         'None (loose parts)': 'None'
     })
     
-    # Normalizar 'Availability'
-    df['Availability'] = df['Availability'].replace({
+    # Normalizo 'Availability'
+    df_lego['Availability'] = df_lego['Availability'].replace({
         '{Not specified}': 'Unknown',
         'Promotional (Airline)': 'Promotional'
     })
-    
-    return df
+
+    return df_lego
 
 
-def process_lego_data(df):
+
+
+
+def process_lego_data(df_lego):
     """
     Script para procesar datos de sets de LEGO y calcular métricas de inversión.
     
@@ -94,64 +105,47 @@ def process_lego_data(df):
     Retorna:
         pd.DataFrame: DataFrame completo.
     """    
-    # Convertir LaunchDate y ExitDate a enteros manteniendo los valores nulos
-    df['LaunchDate'] = pd.to_numeric(df['LaunchDate'], errors='coerce').astype('Int64')
-    df['ExitDate'] = pd.to_numeric(df['ExitDate'], errors='coerce').astype('Int64')
-    
-    # Calcular la duración de los sets en venta
-    df['Lifespan'] = df['ExitDate'] - df['YearFrom']
-    
-    # Calcular la mediana de Lifespan por Theme, excluyendo valores nulos
-    median_lifespan_by_theme = df.groupby('Theme')['Lifespan'].median()
-    
-    # Rellenar valores nulos en ExitDate con YearFrom + mediana del Theme correspondiente
-    df['ExitDate'] = df.apply(
-        lambda row: row['YearFrom'] + median_lifespan_by_theme[row['Theme']]
-        if pd.isnull(row['ExitDate']) and row['Theme'] in median_lifespan_by_theme
-        else row['ExitDate'],
-        axis=1
-    )
-    
-    # Redondear valores con decimales en ExitDate y convertir a enteros
-    df['ExitDate'] = df['ExitDate'].apply(lambda x: round(x) if pd.notnull(x) else x)
-    df['ExitDate'] = pd.to_numeric(df['ExitDate'], errors='coerce').astype('Int64')
     
     # Obtener el año actual y calcular los años desde la retirada del set
     current_year = datetime.now().year
-    df['YearsSinceExit'] = current_year - df['ExitDate']
-    df['YearsSinceExit'] = df['YearsSinceExit'].apply(lambda x: max(x, 0))
-    df['YearsSinceExit'] = df['YearsSinceExit'].fillna(0).astype(int)
+    df_lego['YearsSinceExit'] = current_year - df_lego['ExitYear']
+    df_lego['YearsSinceExit'] = df_lego['YearsSinceExit'].fillna(0).astype(int)
+    df_lego['YearsSinceExit'] = df_lego['YearsSinceExit'].fillna(0).astype(int)
+
+    
+    # Calcular la mediana de Lifespan por Theme, excluyendo valores nulos
+    median_lifespan_by_theme = df_lego.groupby('Theme')['Lifespan'].median().replace(0, np.nan)
     
     # Calcular el porcentaje de cambio de precio entre el precio de venta en BrickLink y en la web de LEGO
-    df['PriceChange'] = ((df['BrickLinkSoldPriceNew'] - df['USRetailPrice']) / df['USRetailPrice']) * 100
-    df['PriceChange'] = df['PriceChange'].fillna(0)
+    df_lego['PriceChange'] = ((df_lego['BrickLinkSoldPriceNew'] - df_lego['USRetailPrice']) / df_lego['USRetailPrice']) * 100
+    df_lego['PriceChange'] = df_lego['PriceChange'].fillna(0)
     
     # Calcular la demanda de reventa
-    df['ResaleDemand'] = df.apply(lambda row: row['BrickLinkSoldPriceNew'] / row['BrickLinkSoldPriceUsed'] 
+    df_lego['ResaleDemand'] = df_lego.apply(lambda row: row['BrickLinkSoldPriceNew'] / row['BrickLinkSoldPriceUsed'] 
                                              if row['BrickLinkSoldPriceUsed'] > 0 else 0, axis=1)
     
     # Calcular la tendencia de apreciación
-    df['AppreciationTrend'] = df.apply(lambda row: row['PriceChange'] / row['YearsSinceExit']
+    df_lego['AppreciationTrend'] = df_lego.apply(lambda row: row['PriceChange'] / row['YearsSinceExit']
                                                  if row['YearsSinceExit'] > 0 else 0, axis=1)
     
     # Clasificar los sets por tamaño
     size_labels = ['Small', 'Medium', 'Large']
-    df['SizeCategory'] = pd.cut(df['Pieces'], bins=[0, 249, 1000, float('inf')], labels=size_labels, include_lowest=True)
+    df_lego['SizeCategory'] = pd.cut(df['Pieces'], bins=[0, 249, 1000, float('inf')], labels=size_labels, include_lowest=True)
     
     # Definir sets exclusivos
     exclusive_themes = ['Star Wars', 'Modular Buildings', 'Ideas', 'Creator Expert', 'Harry Potter', 
                         'Marvel Super Heroes', 'Ghostbusters', 'Icons', 'The Lord of the Rings',
                         'Pirates of the Caribbean', 'Pirates', 'Trains', 'Architecture']
-    df['Exclusivity'] = df['Theme'].apply(lambda x: 'Exclusive' if x in exclusive_themes else 'Regular')
+    df_lego['Exclusivity'] = df_lego['Theme'].apply(lambda x: 'Exclusive' if x in exclusive_themes else 'Regular')
     
     # Calcular popularidad del tema
-    theme_popularity = df.groupby('Theme')['PriceChange'].mean().replace([np.inf, -np.inf], np.nan)
-    df['ThemePopularity'] = df['Theme'].map(theme_popularity).fillna(0)
+    theme_popularity = df_lego.groupby('Theme')['PriceChange'].mean().replace([np.inf, -np.inf], np.nan)
+    df_lego['ThemePopularity'] = df_lego['Theme'].map(theme_popularity).fillna(0)
     
     # Calcular InvestmentScore
-    df['InvestmentScore'] = df.apply(lambda row: (row['PriceChange'] * 0.4) +
+    df_lego['InvestmentScore'] = df_lego.apply(lambda row: (row['PriceChange'] * 0.4) +
                                                          (row['AppreciationTrend'] * 0.3) +
                                                          (row['ThemePopularity'] * 0.2) +
                                                          (10 if row['Exclusivity'] == 'Exclusive' else 0), axis=1)
     
-    return df
+    return df_lego
