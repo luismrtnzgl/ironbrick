@@ -88,6 +88,8 @@ def clean_lego_data(df_lego):
         '{Not specified}': 'Unknown',
         'Promotional (Airline)': 'Promotional'
     })
+    # Reasigno los sets de "Creator Expert" al tema "Icons". Es una serie que ha cambiado de nombre últimamente y puede hacer que los datos no sean consistentes.
+    df_lego.loc[df_lego['Theme'] == 'Creator Expert', 'Theme'] = 'Icons'
 
     return df_lego
 
