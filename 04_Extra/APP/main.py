@@ -58,6 +58,10 @@ def main():
         st.write("No hay sets disponibles dentro de este presupuesto.")
         return
     
+    st.write("Columnas esperadas por el modelo:", model_xgb_2y.get_booster().feature_names)
+    st.write("Columnas actuales en el DataFrame:", list(X_budget.columns))
+
+    
     # Realizamos las predicciones para todos los sets dentro del presupuesto
     price_columns = [col for col in df.columns if col.startswith("Price_")]
     X_budget = df_budget[price_columns + ["RetailPriceUSD"]]
