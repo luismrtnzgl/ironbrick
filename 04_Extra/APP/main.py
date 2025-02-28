@@ -14,8 +14,8 @@ def load_model(filename):
     with open(filename, 'rb') as file:
         return pickle.load(file)
 
-model_2y = load_model("models/xgb_model_2y.pkl")
-model_5y = load_model("models/xgb_model_5y.pkl")
+model_2y = load_model("models/xgb_2y.pkl")
+model_5y = load_model("models/xgb_5y.pkl")
 
 # 📌 3. Cargar y procesar el dataset desde GitHub
 @st.cache_data
