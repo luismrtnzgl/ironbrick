@@ -89,7 +89,7 @@ def find_best_investments(df, budget, num_options=3):
 st.title("💰 Recomendador de Inversiones en LEGO (desde GitHub)")
 
 # 📌 Cargar y procesar el dataset desde GitHub
-df_identification, df_model = load_and_process_github_csv(GITHUB_CSV_URL)
+df_identification, df_model = load_and_process_csv(CSV_PATH)
 st.success("✅ Datos cargados correctamente")
 
 # 📌 Hacer predicciones
