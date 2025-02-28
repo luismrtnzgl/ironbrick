@@ -17,8 +17,8 @@ def load_model(file_path):
         return None
 
 # Cargar modelos con rutas absolutas
-model_xgb_2y = load_model(os.path.join(BASE_DIR, "xgb_2y.pkl"))
-model_xgb_5y = load_model(os.path.join(BASE_DIR, "xgb_5y.pkl"))
+model_xgb_2y = load_model(os.path.join(BASE_DIR, "models/xgb_2y.pkl"))
+model_xgb_5y = load_model(os.path.join(BASE_DIR, "models/xgb_5y.pkl"))
 
 def find_best_combinations(df, budget, top_n=3):
     """
