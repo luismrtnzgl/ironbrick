@@ -1,8 +1,8 @@
 streamlit
 pandas
+python-dotenv
 numpy
 scikit-learn
 joblib
 requests
 xgboost
-python-dotenv
