@@ -6,13 +6,15 @@ import pickle
 import itertools
 import requests
 
+BASE_DIR = os.getcwd()
+st.write(f"📂 Directorio actual: {BASE_DIR}")
 
 # 📌 1. URL del dataset en GitHub (REEMPLAZA CON TU ENLACE RAW)
 GITHUB_CSV_URL = "https://github.com/luismrtnzgl/ironbrick/blob/39a91c139ba3da906cd2ae6c6c9575c3161e72ab/04_Extra/APP/data/scraped_lego_data.csv"
 
 # 📌 2. Verificar si los modelos existen antes de cargarlos
-pkl_path_2y = "models/xgb_2y.pkl"
-pkl_path_5y = "models/xgb_5y.pkl"
+pkl_path_2y = os.path.join(BASE_DIR, "models/xgb_2y.pkl")
+pkl_path_5y = os.path.join(BASE_DIR, "models/xgb_5y.pkl")
 
 if not os.path.exists(pkl_path_2y) or not os.path.exists(pkl_path_5y):
     st.error("❌ No se encontraron los modelos .pkl en la carpeta 'models/'. Asegúrate de que los archivos existen.")
