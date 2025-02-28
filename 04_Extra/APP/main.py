@@ -1,26 +1,40 @@
+import os
 import streamlit as st
 import pandas as pd
 import numpy as np
 import pickle
-import os
 import itertools
 import requests
+
 
 # 📌 1. URL del dataset en GitHub (REEMPLAZA CON TU ENLACE RAW)
 GITHUB_CSV_URL = "https://github.com/luismrtnzgl/ironbrick/blob/39a91c139ba3da906cd2ae6c6c9575c3161e72ab/04_Extra/APP/data/scraped_lego_data.csv"
 
-# 📌 2. Función para cargar los modelos entrenados de XGBoost
+# 📌 2. Verificar si los modelos existen antes de cargarlos
+pkl_path_2y = "models/xgb_model_2y.pkl"
+pkl_path_5y = "models/xgb_model_5y.pkl"
+
+if not os.path.exists(pkl_path_2y) or not os.path.exists(pkl_path_5y):
+    st.error("❌ No se encontraron los modelos .pkl en la carpeta 'models/'. Asegúrate de que los archivos existen.")
+    st.stop()
+
+# 📌 3. Función para cargar modelos pre-entrenados
 @st.cache_resource
 def load_model(filename):
     with open(filename, 'rb') as file:
         return pickle.load(file)
 
-model_2y = load_model(os.path.join(os.getcwd(), "models/xgb_2y.pkl"))
-model_5y = load_model(os.path.join(os.getcwd(), "models/xgb_5y.pkl"))
+# 📌 4. Cargar los modelos
+model_2y = load_model(pkl_path_2y)
+model_5y = load_model(pkl_path_5y)
+st.success("✅ Modelos cargados correctamente.")
 
-# 📌 3. Cargar y procesar el dataset desde GitHub
+# 📌 5. Función para cargar y procesar el dataset desde GitHub
 @st.cache_data
 def load_and_process_github_csv(url):
+    st.write("📥 Descargando datos desde GitHub...")
+    
+    # Descargar archivo desde GitHub
     df = pd.read_csv(url)
 
     # 📌 Guardar identificadores
@@ -33,7 +47,7 @@ def load_and_process_github_csv(url):
     # 📌 Crear copia sin identificadores
     df_model = df.drop(columns=['Number', 'SetName', 'Theme'], errors='ignore')
 
-    # 📌 Convertir variables categóricas en dummies (si hay nuevas categorías, alinearlas con el modelo)
+    # 📌 Convertir variables categóricas en dummies (alinearlas con el modelo entrenado)
     df_model = pd.get_dummies(df_model, drop_first=True)
 
     # 📌 Asegurar que las columnas coincidan con las del modelo
@@ -46,7 +60,7 @@ def load_and_process_github_csv(url):
 
     return df_identification, df_model
 
-# 📌 4. Función para encontrar combinaciones óptimas de inversión
+# 📌 6. Función para encontrar combinaciones óptimas de inversión
 def find_best_investments(df, budget, num_options=3):
     sets_list = df[['SetName', 'CurrentValueNew', 'PredictedValue2Y', 'PredictedValue5Y']].values.tolist()
     
@@ -67,11 +81,10 @@ def find_best_investments(df, budget, num_options=3):
 
     return best_combinations[:num_options]  # Devolver las 3 mejores combinaciones
 
-# 📌 5. Interfaz de Streamlit
+# 📌 7. Interfaz de Streamlit
 st.title("💰 Recomendador de Inversiones en LEGO (desde GitHub)")
 
 # 📌 Cargar y procesar el dataset desde GitHub
-st.write("📥 Cargando datos desde GitHub...")
 df_identification, df_model = load_and_process_github_csv(GITHUB_CSV_URL)
 st.success("✅ Datos cargados correctamente")
 
