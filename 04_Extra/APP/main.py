@@ -32,31 +32,62 @@ st.success("✅ Modelos cargados correctamente.")
 # 📌 5. Función para cargar y procesar el dataset
 @st.cache_data
 def process_csv(csv_path):
-    df = pd.read_csv(csv_path)
-    
-    # 📌 Guardar identificadores
+    df_lego_scrap_brickeco = pd.read_csv(csv_path)
+
+    # 📌 1. Ordenamos por 'Number' y 'PriceDate' para garantizar el orden cronológico
+    df_sorted = df_lego_scrap_brickeco.sort_values(by=['Number', 'PriceDate'], ascending=[True, True])
+
+    # 📌 2. Asignamos un índice secuencial correcto para cada set sin saltos en los precios
+    df_sorted['PriceIndex'] = df_sorted.groupby('Number').cumcount()
+
+    # 📌 3. Hacemos un pivotable para reorganizar los precios correctamente
+    df_transformed = df_sorted.pivot(index=['Number', 'SetName', 'Theme', 'Year', 'Pieces', 
+                                            'RetailPriceUSD', 'CurrentValueNew', 'ForecastValueNew2Y', 
+                                            'ForecastValueNew5Y'],
+                                     columns='PriceIndex', values='PriceValue').reset_index()
+
+    # 📌 4. Renombramos las columnas de precios correctamente
+    df_transformed.columns = [f'Price_{col+1}' if isinstance(col, int) else col for col in df_transformed.columns]
+
+    # 📌 5. Identificamos las columnas de precios
+    price_columns = [col for col in df_transformed.columns if col.startswith("Price_")]
+
+    # 📌 6. Reordenamos los precios dentro de cada fila para eliminar espacios vacíos
+    def reorder_prices(row):
+        prices = row[price_columns].dropna().values
+        new_row = [None] * len(price_columns)
+        new_row[:len(prices)] = prices
+        return pd.Series(new_row, index=price_columns)
+
+    df_transformed[price_columns] = df_transformed.apply(reorder_prices, axis=1)
+
+    # 📌 7. Eliminamos las columnas innecesarias
+    columns_to_drop = ['Minifigs', 'RollingGrowthLastYear', 'RollingGrowth12M', 'CurrentValueUsed', 'Currency', 'URL', 'PriceType']
+    price_columns_to_drop = [col for col in df_transformed.columns if col.startswith('Price_') and 13 <= int(col.split('_')[1]) <= 24]
+    columns_to_drop.extend(price_columns_to_drop)
+
+    df_transformed_limpia = df_transformed.drop(columns=[col for col in columns_to_drop if col in df_transformed.columns])
+
+    # 📌 8. Eliminamos filas con valores nulos
+    df_transformed_limpia = df_transformed_limpia.dropna()
+
+    # 📌 9. Guardar identificadores para después
     id_columns = ['Number', 'SetName', 'Theme', 'CurrentValueNew']
-    df_identification = df[id_columns]
+    df_identification = df_transformed_limpia[id_columns]
 
-    # 📌 Mantener las columnas de precios históricos Price_1 a Price_12
-    price_columns = [col for col in df.columns if col.startswith('Price_')]
+    # 📌 10. Preparamos `df_model` para el modelo de predicción
+    df_model = df_transformed_limpia.drop(columns=['Number', 'SetName', 'Theme'], errors='ignore')
+    df_model = pd.get_dummies(df_model, drop_first=True)  # Convertir variables categóricas
 
-    # 📌 Crear copia sin identificadores
-    df_model = df.drop(columns=['Number', 'SetName', 'Theme'], errors='ignore')
-
-    # 📌 Convertir variables categóricas en dummies (alinearlas con el modelo entrenado)
-    df_model = pd.get_dummies(df_model, drop_first=True)
-
-    # 📌 Asegurar que las columnas coincidan con las del modelo
+    # 📌 11. Asegurar que `df_model` tenga las mismas columnas que el modelo
     expected_columns = model_2y.feature_names_in_
-    
     for col in expected_columns:
         if col not in df_model.columns:
-            df_model[col] = 0  # Añadir columnas faltantes con ceros
-
-    df_model = df_model[expected_columns]  # Reordenar las columnas
+            df_model[col] = 0
+    df_model = df_model[expected_columns]  # Ordenar las columnas correctamente
 
     return df_identification, df_model
+
 # 📌 Procesar el CSV antes de predecir
 df_identification, df_model = process_csv(CSV_PATH)
 
