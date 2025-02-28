@@ -56,12 +56,19 @@ def main():
     
     if df_budget.empty:
         st.write("No hay sets disponibles dentro de este presupuesto.")
-        return
-    
-    st.write("Columnas esperadas por el modelo:", model_xgb_2y.get_booster().feature_names)
+        return  # Detener la ejecución antes de llegar a X_budget
+
+    # Extraer características para la predicción
+    price_columns = [col for col in df_budget.columns if col.startswith("Price_")]
+    X_budget = df_budget[price_columns + ["RetailPriceUSD"]]
+
+    # Verificación para evitar el error
+    if X_budget.empty:
+        st.write("No hay datos suficientes para hacer la predicción.")
+        return  # Detener la ejecución antes de predecir
+
     st.write("Columnas actuales en el DataFrame:", list(X_budget.columns))
 
-    
     # Realizamos las predicciones para todos los sets dentro del presupuesto
     price_columns = [col for col in df.columns if col.startswith("Price_")]
     X_budget = df_budget[price_columns + ["RetailPriceUSD"]]
