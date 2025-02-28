@@ -29,16 +29,23 @@ def load_and_clean_data(file_name):
     df_transformed.columns = [f'Price_{col+1}' if isinstance(col, int) else col for col in df_transformed.columns]
     
     # Identificar columnas de precios
-    price_columns = [col for col in df_transformed.columns if col.startswith("Price_")]
+    price_columns_sorted = [col for col in df_transformed.columns if col.startswith("Price_")]
     
     # Reordenar los precios para eliminar valores nulos en la secuencia
     def reorder_prices(row):
-        prices = row[price_columns].dropna().values
-        new_row = [None] * len(price_columns)
+        prices = row[price_columns_sorted].dropna().values
+        new_row = [None] * len(price_columns_sorted)
         new_row[:len(prices)] = prices
-        return pd.Series(new_row, index=price_columns)
+        return pd.Series(new_row, index=price_columns_sorted)
     
-    df_transformed[price_columns] = df_transformed.apply(reorder_prices, axis=1)
+    df_transformed[price_columns_sorted] = df_transformed.apply(reorder_prices, axis=1)
+    
+    # Imputación de valores nulos en las columnas de precios con la mediana
+    for col in price_columns_sorted:
+        df_transformed[col].fillna(df_transformed[col].median(), inplace=True)
+    
+    # Imputación de valores nulos en RetailPriceUSD con la mediana
+    df_transformed["RetailPriceUSD"].fillna(df_transformed["RetailPriceUSD"].median(), inplace=True)
     
     # Eliminar columnas irrelevantes
     columns_to_drop = ['Currency', 'PriceType']
