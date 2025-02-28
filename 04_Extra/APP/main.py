@@ -13,11 +13,12 @@ def load_model(file_path):
     try:
         return joblib.load(file_path)
     except FileNotFoundError:
-        print(f"⚠️ Archivo no encontrado: {file_path}")
+        print(f"\u26a0\ufe0f Archivo no encontrado: {file_path}")
         return None
 
-model_xgb_2y = load_model(os.path.join(BASE_DIR, "models/xgb_2y.pkl"))
-model_xgb_5y = load_model(os.path.join(BASE_DIR, "models/xgb_5y.pkl"))
+# Cargar modelos con rutas absolutas
+model_xgb_2y = load_model(os.path.join(BASE_DIR, "xgb_2y.pkl"))
+model_xgb_5y = load_model(os.path.join(BASE_DIR, "xgb_5y.pkl"))
 
 def find_best_combinations(df, budget, top_n=3):
     """
@@ -26,7 +27,6 @@ def find_best_combinations(df, budget, top_n=3):
     best_combinations = []
     df_sorted = df.sort_values(by=["Pred_2Y"], ascending=False)
     
-    # Aquí definimos que queremos probar combinaciones de hasta 3 sets
     for r in range(1, min(4, len(df_sorted) + 1)):  
         for combo in combinations(df_sorted.index, r):
             combo_df = df_sorted.loc[list(combo)]
@@ -44,7 +44,7 @@ def main():
     st.title("Recomendación de Inversión en Sets de LEGO")
     
     # Cargamos y limpiamos el dataset descargado de la API
-    df = load_and_clean_data("scraped_lego_data.csv")
+    df = load_and_clean_data(os.path.join(BASE_DIR, "scraped_lego_data.csv"))
     st.write("### Datos Procesados")
     st.dataframe(df.head())
     
@@ -56,27 +56,26 @@ def main():
     
     if df_budget.empty:
         st.write("No hay sets disponibles dentro de este presupuesto.")
-        return  # Detener la ejecución antes de llegar a X_budget
+        return  # Detener la ejecución
 
     # Extraer características para la predicción
     price_columns = [col for col in df_budget.columns if col.startswith("Price_")]
-    X_budget = df_budget[price_columns + ["RetailPriceUSD"]]
-
-    # Verificación para evitar el error
+    columns_needed = price_columns + ["RetailPriceUSD"]
+    X_budget = df_budget[[col for col in columns_needed if col in df_budget.columns]]
+    
     if X_budget.empty:
         st.write("No hay datos suficientes para hacer la predicción.")
-        return  # Detener la ejecución antes de predecir
-
+        return  # Detener la ejecución
+    
     st.write("Columnas actuales en el DataFrame:", list(X_budget.columns))
-
+    
     # Realizamos las predicciones para todos los sets dentro del presupuesto
-    price_columns = [col for col in df.columns if col.startswith("Price_")]
-    X_budget = df_budget[price_columns + ["RetailPriceUSD"]]
     df_budget["Pred_2Y"] = model_xgb_2y.predict(X_budget)
     df_budget["Pred_5Y"] = model_xgb_5y.predict(X_budget)
     
     # Filtramos los sets con alta probabilidad de revalorización
-    df_invest = df_budget[(df_budget["Pred_2Y"] > df_budget["CurrentValueNew"] * 1.3) | (df_budget["Pred_5Y"] > df_budget["CurrentValueNew"] * 1.5)]
+    df_invest = df_budget[(df_budget["Pred_2Y"] > df_budget["CurrentValueNew"] * 1.3) | 
+                          (df_budget["Pred_5Y"] > df_budget["CurrentValueNew"] * 1.5)]
     
     if df_invest.empty:
         st.write("Lo sentimos, no hay sets recomendados para inversión dentro del presupuesto que nos has facilitado.")
