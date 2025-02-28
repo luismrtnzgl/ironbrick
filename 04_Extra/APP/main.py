@@ -44,7 +44,7 @@ def main():
     st.title("Recomendación de Inversión en Sets de LEGO")
     
     # Cargamos y limpiamos el dataset descargado de la API
-    df = load_and_clean_data("data/scraped_lego_data.csv")
+    df = load_and_clean_data(os.path.join(BASE_DIR, "data/scraped_lego_data.csv")
     st.write("### Datos Procesados")
     st.dataframe(df.head())
     
