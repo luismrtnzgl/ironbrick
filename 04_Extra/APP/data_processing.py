@@ -42,13 +42,13 @@ def load_and_clean_data(file_name):
     
     # Imputación de valores nulos en las columnas de precios con la mediana
     for col in price_columns_sorted:
-        df_transformed[col].fillna(df_transformed[col].median(), inplace=True)
+        df_transformed[col] = df_transformed[col].fillna(df_transformed[col].median())
     
     # Imputación de valores nulos en RetailPriceUSD con la mediana
-    df_transformed["RetailPriceUSD"].fillna(df_transformed["RetailPriceUSD"].median(), inplace=True)
+    df_transformed["RetailPriceUSD"] = df_transformed["RetailPriceUSD"].fillna(df_transformed["RetailPriceUSD"].median())
     
     # Eliminar columnas irrelevantes
     columns_to_drop = ['Currency', 'PriceType']
-    df_clean = df_transformed.drop(columns=columns_to_drop, errors='ignore')
+    df_clean = df_transformed.drop(columns=columns_to_drop, errors='ignore').copy()
     
     return df_clean
