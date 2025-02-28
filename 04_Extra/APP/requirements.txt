@@ -1,9 +1,6 @@
 streamlit
 pandas
-python-dotenv
 numpy
-pickle
 scikit-learn
-joblib
-requests
 xgboost
+requests
