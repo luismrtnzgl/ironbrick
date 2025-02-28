@@ -5,3 +5,4 @@ scikit-learn
 joblib
 requests
 xgboost
+python-dotenv
