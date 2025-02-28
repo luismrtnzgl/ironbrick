@@ -9,8 +9,42 @@ import requests
 BASE_DIR = os.getcwd()
 st.write(f"📂 Directorio actual: {BASE_DIR}")
 
-# 📌 1. URL del dataset en GitHub (REEMPLAZA CON TU ENLACE RAW)
-GITHUB_CSV_URL = "https://github.com/luismrtnzgl/ironbrick/blob/39a91c139ba3da906cd2ae6c6c9575c3161e72ab/04_Extra/APP/data/scraped_lego_data.csv"
+import os
+import pandas as pd
+
+# 📌 Obtener la ruta absoluta del CSV en la carpeta 'data/'
+BASE_DIR = os.getcwd()
+CSV_PATH = os.path.join(BASE_DIR, "04_Extra/APP/data/scraped_lego_data.csv")
+
+# 📌 Función para cargar y procesar el dataset desde la ruta absoluta
+@st.cache_data
+def load_and_process_csv(csv_path):
+    if not os.path.exists(csv_path):
+        st.error(f"❌ No se encontró el archivo CSV en {csv_path}.")
+        st.stop()
+
+    # 📌 Cargar CSV desde la ruta absoluta
+    df = pd.read_csv(csv_path)
+    st.success("✅ CSV cargado correctamente desde ruta absoluta.")
+
+    # 📌 Procesamiento del dataset
+    id_columns = ['Number', 'SetName', 'Theme', 'RetailPriceUSD', 'CurrentValueNew']
+    df_identification = df[id_columns]
+
+    # 📌 Mantener las columnas de precios históricos Price_1 a Price_12
+    price_columns = [col for col in df.columns if col.startswith('Price_')]
+
+    # 📌 Crear copia sin identificadores
+    df_model = df.drop(columns=['Number', 'SetName', 'Theme'], errors='ignore')
+
+    # 📌 Convertir variables categóricas en dummies (alinearlas con el modelo entrenado)
+    df_model = pd.get_dummies(df_model, drop_first=True)
+
+    return df_identification, df_model
+
+# 📌 Llamar a la función con la ruta absoluta
+df_identification, df_model = load_and_process_csv(CSV_PATH)
+
 
 # 📌 2. Verificar si los modelos existen antes de cargarlos
 pkl_path_2y = os.path.join(BASE_DIR, "04_Extra/APP/models/xgb_2y.pkl")
