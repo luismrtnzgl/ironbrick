@@ -1,95 +1,103 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import joblib
-import os
-from itertools import combinations
-from data_processing import load_and_clean_data
-from alerts import send_telegram_alert
+import pickle
+import itertools
+import requests
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# 📌 1. URL del dataset en GitHub (REEMPLAZA CON TU ENLACE RAW)
+GITHUB_CSV_URL = "https://github.com/luismrtnzgl/ironbrick/blob/39a91c139ba3da906cd2ae6c6c9575c3161e72ab/04_Extra/APP/data/scraped_lego_data.csv"
 
-def load_model(file_path):
-    try:
-        return joblib.load(file_path)
-    except FileNotFoundError:
-        print(f"\u26a0\ufe0f Archivo no encontrado: {file_path}")
-        return None
+# 📌 2. Función para cargar los modelos entrenados de XGBoost
+@st.cache_resource
+def load_model(filename):
+    with open(filename, 'rb') as file:
+        return pickle.load(file)
 
-# Cargar modelos con rutas absolutas
-model_xgb_2y = load_model(os.path.join(BASE_DIR, "models/xgb_2y.pkl"))
-model_xgb_5y = load_model(os.path.join(BASE_DIR, "models/xgb_5y.pkl"))
+model_2y = load_model("models/xgb_model_2y.pkl")
+model_5y = load_model("models/xgb_model_5y.pkl")
 
-def find_best_combinations(df, budget, top_n=3):
-    """
-    Función para encontrar las mejores combinaciones de sets que maximicen la rentabilidad dentro del presupuesto.
-    """
+# 📌 3. Cargar y procesar el dataset desde GitHub
+@st.cache_data
+def load_and_process_github_csv(url):
+    df = pd.read_csv(url)
+
+    # 📌 Guardar identificadores
+    id_columns = ['Number', 'SetName', 'Theme', 'CurrentValueNew']
+    df_identification = df[id_columns]
+
+    # 📌 Mantener las columnas de precios históricos Price_1 a Price_12
+    price_columns = [col for col in df.columns if col.startswith('Price_')]
+
+    # 📌 Crear copia sin identificadores
+    df_model = df.drop(columns=['Number', 'SetName', 'Theme'], errors='ignore')
+
+    # 📌 Convertir variables categóricas en dummies (si hay nuevas categorías, alinearlas con el modelo)
+    df_model = pd.get_dummies(df_model, drop_first=True)
+
+    # 📌 Asegurar que las columnas coincidan con las del modelo
+    expected_columns = model_2y.feature_names_in_
+    for col in expected_columns:
+        if col not in df_model.columns:
+            df_model[col] = 0  # Añadir columna faltante con ceros
+    
+    df_model = df_model[expected_columns]  # Ordenar columnas como el modelo espera
+
+    return df_identification, df_model
+
+# 📌 4. Función para encontrar combinaciones óptimas de inversión
+def find_best_investments(df, budget, num_options=3):
+    sets_list = df[['SetName', 'CurrentValueNew', 'PredictedValue2Y', 'PredictedValue5Y']].values.tolist()
+    
     best_combinations = []
-    df_sorted = df.sort_values(by=["Pred_2Y"], ascending=False)
     
-    for r in range(1, min(4, len(df_sorted) + 1)):  
-        for combo in combinations(df_sorted.index, r):
-            combo_df = df_sorted.loc[list(combo)]
-            total_cost = combo_df["CurrentValueNew"].sum()
-            total_pred_2y = combo_df["Pred_2Y"].sum()
-            total_pred_5y = combo_df["Pred_5Y"].sum()
-            
-            if total_cost <= budget:
-                best_combinations.append((combo_df, total_cost, total_pred_2y, total_pred_5y))
-    
-    best_combinations = sorted(best_combinations, key=lambda x: x[2], reverse=True)[:top_n]
-    return best_combinations
+    # 📌 Generamos combinaciones de 1 hasta 4 sets
+    for r in range(1, 5):
+        for combination in itertools.combinations(sets_list, r):
+            total_price = sum(item[1] for item in combination)
+            total_return_2y = sum(item[2] for item in combination)
+            total_return_5y = sum(item[3] for item in combination)
 
-def main():
-    st.title("Recomendación de Inversión en Sets de LEGO")
-    
-    # Cargamos y limpiamos el dataset descargado de la API
-    df = load_and_clean_data(os.path.join(BASE_DIR, "data/scraped_lego_data.csv"))
-    st.write("### Datos Procesados")
-    st.dataframe(df.head())
-    
-    # Seleccionamos el presupuesto
-    budget = st.number_input("Introduce tu presupuesto en USD", min_value=0, value=100)
-    
-    # Filtramos los sets dentro del presupuesto
-    df_budget = df[df["CurrentValueNew"] <= budget]
-    
-    if df_budget.empty:
-        st.write("No hay sets disponibles dentro de este presupuesto.")
-        return  # Detener la ejecución
+            if total_price <= budget:
+                best_combinations.append((combination, total_return_2y, total_return_5y, total_price))
 
-    # Extraer características para la predicción
-    price_columns = [col for col in df_budget.columns if col.startswith("Price_")]
-    columns_needed = price_columns + ["RetailPriceUSD"]
-    X_budget = df_budget[[col for col in columns_needed if col in df_budget.columns]]
-    
-    if X_budget.empty:
-        st.write("No hay datos suficientes para hacer la predicción.")
-        return  # Detener la ejecución
-    
-    st.write("Columnas actuales en el DataFrame:", list(X_budget.columns))
-    
-    # Realizamos las predicciones para todos los sets dentro del presupuesto
-    df_budget["Pred_2Y"] = model_xgb_2y.predict(X_budget)
-    df_budget["Pred_5Y"] = model_xgb_5y.predict(X_budget)
-    
-    # Filtramos los sets con alta probabilidad de revalorización
-    df_invest = df_budget[(df_budget["Pred_2Y"] > df_budget["CurrentValueNew"] * 1.3) | 
-                          (df_budget["Pred_5Y"] > df_budget["CurrentValueNew"] * 1.5)]
-    
-    if df_invest.empty:
-        st.write("Lo sentimos, no hay sets recomendados para inversión dentro del presupuesto que nos has facilitado.")
+    # 📌 Ordenamos por mejor rentabilidad a 5 años
+    best_combinations.sort(key=lambda x: x[2], reverse=True)
+
+    return best_combinations[:num_options]  # Devolver las 3 mejores combinaciones
+
+# 📌 5. Interfaz de Streamlit
+st.title("💰 Recomendador de Inversiones en LEGO (desde GitHub)")
+
+# 📌 Cargar y procesar el dataset desde GitHub
+st.write("📥 Cargando datos desde GitHub...")
+df_identification, df_model = load_and_process_github_csv(GITHUB_CSV_URL)
+st.success("✅ Datos cargados correctamente")
+
+# 📌 Hacer predicciones
+df_identification['PredictedValue2Y'] = model_2y.predict(df_model)
+df_identification['PredictedValue5Y'] = model_5y.predict(df_model)
+
+# 📌 Mostrar el dataframe con predicciones
+st.subheader("📊 Sets de LEGO con Predicción de Revalorización")
+st.dataframe(df_identification)
+
+# 📌 Selección de presupuesto
+budget = st.number_input("Introduce tu presupuesto ($)", min_value=10, value=200)
+
+if st.button("🔍 Buscar inversiones óptimas"):
+    best_options = find_best_investments(df_identification, budget)
+
+    if not best_options:
+        st.warning("⚠️ No se encontraron combinaciones dentro de tu presupuesto.")
     else:
-        st.write("### Mejores combinaciones de inversión")
-        best_combos = find_best_combinations(df_invest, budget)
-        
-        for i, (combo_df, total_cost, total_pred_2y, total_pred_5y) in enumerate(best_combos):
-            st.write(f"#### Opción {i+1} (Costo Total: ${total_cost:.2f})")
-            st.dataframe(combo_df[["SetName", "Year", "Theme", "CurrentValueNew", "Pred_2Y", "Pred_5Y"]])
-            
-            # Envío de alertas para cada set en la combinación
-            for _, row in combo_df.iterrows():
-                send_telegram_alert(row["SetName"], row["Pred_2Y"], row["Pred_5Y"])  
-    
-if __name__ == "__main__":
-    main()
+        st.subheader("💡 Mejores opciones de inversión")
+        for i, (combo, ret_2y, ret_5y, price) in enumerate(best_options, 1):
+            st.write(f"**Opción {i}:**")
+            st.write(f"💵 **Precio Total:** ${price:.2f}")
+            st.write(f"📈 **Valor estimado en 2 años:** ${ret_2y:.2f}")
+            st.write(f"🚀 **Valor estimado en 5 años:** ${ret_5y:.2f}")
+            st.write("🧩 **Sets incluidos:**")
+            for set_name, price, _, _ in combo:
+                st.write(f"- {set_name} (${price:.2f})")
+            st.write("---")
