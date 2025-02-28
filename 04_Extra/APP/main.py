@@ -6,12 +6,6 @@ import pickle
 import itertools
 import requests
 
-BASE_DIR = os.getcwd()
-st.write(f"📂 Directorio actual: {BASE_DIR}")
-
-import os
-import pandas as pd
-
 # 📌 Obtener la ruta absoluta del CSV en la carpeta 'data/'
 BASE_DIR = os.getcwd()
 CSV_PATH = os.path.join(BASE_DIR, "04_Extra/APP/data/scraped_lego_data.csv")
@@ -37,17 +31,11 @@ st.success("✅ Modelos cargados correctamente.")
 
 # 📌 5. Función para cargar y procesar el dataset
 @st.cache_data
-def load_and_process_csv(csv_path):
-    if not os.path.exists(csv_path):
-        st.error(f"❌ No se encontró el archivo CSV en {csv_path}.")
-        st.stop()
-
-    # 📌 Cargar CSV desde la ruta absoluta
+def process_csv(csv_path):
     df = pd.read_csv(csv_path)
-    st.success("✅ CSV cargado correctamente desde ruta absoluta.")
-
-    # 📌 Procesamiento del dataset
-    id_columns = ['Number', 'SetName', 'Theme', 'RetailPriceUSD', 'CurrentValueNew']
+    
+    # 📌 Guardar identificadores
+    id_columns = ['Number', 'SetName', 'Theme', 'CurrentValueNew']
     df_identification = df[id_columns]
 
     # 📌 Mantener las columnas de precios históricos Price_1 a Price_12
@@ -59,12 +47,33 @@ def load_and_process_csv(csv_path):
     # 📌 Convertir variables categóricas en dummies (alinearlas con el modelo entrenado)
     df_model = pd.get_dummies(df_model, drop_first=True)
 
+    # 📌 Asegurar que las columnas coincidan con las del modelo
+    expected_columns = model_2y.feature_names_in_
+    
+    for col in expected_columns:
+        if col not in df_model.columns:
+            df_model[col] = 0  # Añadir columnas faltantes con ceros
+
+    df_model = df_model[expected_columns]  # Reordenar las columnas
+
     return df_identification, df_model
+# 📌 Procesar el CSV antes de predecir
+df_identification, df_model = process_csv(CSV_PATH)
 
-# 📌 Llamar a la función con la ruta absoluta
-df_identification, df_model = load_and_process_csv(CSV_PATH)
+# 📌 Generar predicciones
+df_identification['PredictedValue2Y'] = model_2y.predict(df_model)
+df_identification['PredictedValue5Y'] = model_5y.predict(df_model)
 
-# 📌 6. Función para encontrar combinaciones óptimas de inversión
+st.success("✅ Predicciones generadas correctamente.")
+
+# 📌 Mostrar resultados en Streamlit
+st.subheader("📊 Predicción de revalorización de Sets LEGO")
+st.dataframe(df_identification)
+
+# 📌 Selección de presupuesto
+budget = st.number_input("Introduce tu presupuesto ($)", min_value=10, value=200)
+
+# 📌 Función para encontrar combinaciones óptimas de inversión
 def find_best_investments(df, budget, num_options=3):
     sets_list = df[['SetName', 'CurrentValueNew', 'PredictedValue2Y', 'PredictedValue5Y']].values.tolist()
     
@@ -84,24 +93,6 @@ def find_best_investments(df, budget, num_options=3):
     best_combinations.sort(key=lambda x: x[2], reverse=True)
 
     return best_combinations[:num_options]  # Devolver las 3 mejores combinaciones
-
-# 📌 7. Interfaz de Streamlit
-st.title("💰 Recomendador de Inversiones en LEGO (desde GitHub)")
-
-# 📌 Cargar y procesar el dataset desde GitHub
-df_identification, df_model = load_and_process_csv(CSV_PATH)
-st.success("✅ Datos cargados correctamente")
-
-# 📌 Hacer predicciones
-df_identification['PredictedValue2Y'] = model_2y.predict(df_model)
-df_identification['PredictedValue5Y'] = model_5y.predict(df_model)
-
-# 📌 Mostrar el dataframe con predicciones
-st.subheader("📊 Sets de LEGO con Predicción de Revalorización")
-st.dataframe(df_identification)
-
-# 📌 Selección de presupuesto
-budget = st.number_input("Introduce tu presupuesto ($)", min_value=10, value=200)
 
 if st.button("🔍 Buscar inversiones óptimas"):
     best_options = find_best_investments(df_identification, budget)
