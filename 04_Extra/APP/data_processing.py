@@ -1,9 +1,15 @@
 import pandas as pd
 
-def load_and_clean_data(file_path):
+def load_and_clean_data(file_name):
     """
     Cargamos y limpiamos los datos del archivo CSV extraído de la API.
     """
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(BASE_DIR, "data", file_name)
+
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"El archivo {file_path} no fue encontrado. Verifica la ruta.")
+    
     df = pd.read_csv(file_path)
     
     # Ordenar por número de set y fecha de precio
