@@ -1,9 +1,12 @@
+import os
 import pandas as pd
 
 def load_and_clean_data(file_name):
     """
     Cargamos y limpiamos los datos del archivo CSV extraído de la API.
     """
+    import os  # Asegurar que os está importado
+    
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(BASE_DIR, "data", file_name)
 
