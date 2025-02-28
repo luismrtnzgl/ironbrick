@@ -6,9 +6,17 @@ from itertools import combinations
 from data_processing import load_and_clean_data
 from alerts import send_telegram_alert
 
-# Cargamos los modelos optimizados
-model_xgb_2y = joblib.load("/models/xgb_2y.pkl")
-model_xgb_5y = joblib.load("/models/xgb_5y.pkl")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+def load_model(file_path):
+    try:
+        return joblib.load(file_path)
+    except FileNotFoundError:
+        print(f"⚠️ Archivo no encontrado: {file_path}")
+        return None
+
+model_xgb_2y = load_model(os.path.join(BASE_DIR, "models/xgb_2y.pkl"))
+model_xgb_5y = load_model(os.path.join(BASE_DIR, "models/xgb_5y.pkl"))
 
 def find_best_combinations(df, budget, top_n=3):
     """
