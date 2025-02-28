@@ -16,7 +16,26 @@ import pandas as pd
 BASE_DIR = os.getcwd()
 CSV_PATH = os.path.join(BASE_DIR, "04_Extra/APP/data/scraped_lego_data.csv")
 
-# 📌 Función para cargar y procesar el dataset desde la ruta absoluta
+# 📌 2. Verificar si los modelos existen antes de cargarlos
+pkl_path_2y = os.path.join(BASE_DIR, "04_Extra/APP/models/xgb_2y.pkl")
+pkl_path_5y = os.path.join(BASE_DIR, "04_Extra/APP/models/xgb_5y.pkl")
+
+if not os.path.exists(pkl_path_2y) or not os.path.exists(pkl_path_5y):
+    st.error("❌ No se encontraron los modelos .pkl en la carpeta 'models/'. Asegúrate de que los archivos existen.")
+    st.stop()
+
+# 📌 3. Función para cargar modelos pre-entrenados
+@st.cache_resource
+def load_model(filename):
+    with open(filename, 'rb') as file:
+        return pickle.load(file)
+
+# 📌 4. Cargar los modelos
+model_2y = load_model(pkl_path_2y)
+model_5y = load_model(pkl_path_5y)
+st.success("✅ Modelos cargados correctamente.")
+
+# 📌 5. Función para cargar y procesar el dataset
 @st.cache_data
 def load_and_process_csv(csv_path):
     if not os.path.exists(csv_path):
@@ -44,57 +63,6 @@ def load_and_process_csv(csv_path):
 
 # 📌 Llamar a la función con la ruta absoluta
 df_identification, df_model = load_and_process_csv(CSV_PATH)
-
-
-# 📌 2. Verificar si los modelos existen antes de cargarlos
-pkl_path_2y = os.path.join(BASE_DIR, "04_Extra/APP/models/xgb_2y.pkl")
-pkl_path_5y = os.path.join(BASE_DIR, "04_Extra/APP/models/xgb_5y.pkl")
-
-if not os.path.exists(pkl_path_2y) or not os.path.exists(pkl_path_5y):
-    st.error("❌ No se encontraron los modelos .pkl en la carpeta 'models/'. Asegúrate de que los archivos existen.")
-    st.stop()
-
-# 📌 3. Función para cargar modelos pre-entrenados
-@st.cache_resource
-def load_model(filename):
-    with open(filename, 'rb') as file:
-        return pickle.load(file)
-
-# 📌 4. Cargar los modelos
-model_2y = load_model(pkl_path_2y)
-model_5y = load_model(pkl_path_5y)
-st.success("✅ Modelos cargados correctamente.")
-
-# 📌 5. Función para cargar y procesar el dataset desde GitHub
-@st.cache_data
-def load_and_process_github_csv(url):
-    st.write("📥 Descargando datos desde GitHub...")
-    
-    # Descargar archivo desde GitHub
-    df = pd.read_csv(url)
-
-    # 📌 Guardar identificadores
-    id_columns = ['Number', 'SetName', 'Theme', 'CurrentValueNew']
-    df_identification = df[id_columns]
-
-    # 📌 Mantener las columnas de precios históricos Price_1 a Price_12
-    price_columns = [col for col in df.columns if col.startswith('Price_')]
-
-    # 📌 Crear copia sin identificadores
-    df_model = df.drop(columns=['Number', 'SetName', 'Theme'], errors='ignore')
-
-    # 📌 Convertir variables categóricas en dummies (alinearlas con el modelo entrenado)
-    df_model = pd.get_dummies(df_model, drop_first=True)
-
-    # 📌 Asegurar que las columnas coincidan con las del modelo
-    expected_columns = model_2y.feature_names_in_
-    for col in expected_columns:
-        if col not in df_model.columns:
-            df_model[col] = 0  # Añadir columna faltante con ceros
-    
-    df_model = df_model[expected_columns]  # Ordenar columnas como el modelo espera
-
-    return df_identification, df_model
 
 # 📌 6. Función para encontrar combinaciones óptimas de inversión
 def find_best_investments(df, budget, num_options=3):
