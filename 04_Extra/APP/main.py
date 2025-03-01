@@ -63,10 +63,19 @@ def process_csv(csv_path):
 
     # 📌 7. Eliminamos las columnas innecesarias
     columns_to_drop = ['Minifigs', 'RollingGrowthLastYear', 'RollingGrowth12M', 'CurrentValueUsed', 'Currency', 'URL', 'PriceType']
-    price_columns_to_drop = [col for col in df_transformed.columns if col.startswith('Price_') and 13 <= int(col.split('_')[1]) <= 24]
+    price_columns_to_drop = [col for col in df_transformed.columns if col.startswith('Price_') and 13 <= int(col.split('_')[1]) <= 280]
     columns_to_drop.extend(price_columns_to_drop)
 
     df_transformed_limpia = df_transformed.drop(columns=[col for col in columns_to_drop if col in df_transformed.columns])
+
+    columns_to_fill = [f'Price_{i}' for i in range(1, 13)]
+    df_transformed_limpia[columns_to_fill] = df_transformed_limpia[columns_to_fill].fillna(0)
+
+    df_transformed_limpia['Pieces'] = df_transformed_limpia['Pieces'].fillna(0)
+
+    df_transformed_limpia['RetailPriceUSD'] = df_transformed_limpia['RetailPriceUSD'].fillna(0)
+
+    df_transformed_limpia.loc[df_transformed_limpia['CurrentValueNew'] == 0, 'CurrentValueNew'] = df_transformed_limpia['RetailPriceUSD']
 
     # 📌 8. Eliminamos filas con valores nulos
     df_transformed_limpia = df_transformed_limpia.dropna()
