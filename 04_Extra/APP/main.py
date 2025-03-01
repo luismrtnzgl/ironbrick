@@ -68,17 +68,9 @@ def process_csv(csv_path):
 
     df_transformed_limpia = df_transformed.drop(columns=[col for col in columns_to_drop if col in df_transformed.columns])
 
-    columns_to_fill = [f'Price_{i}' for i in range(1, 13)]
-    df_transformed_limpia[columns_to_fill] = df_transformed_limpia[columns_to_fill].fillna(0)
-
-    df_transformed_limpia['Pieces'] = df_transformed_limpia['Pieces'].fillna(0)
-
-    df_transformed_limpia['RetailPriceUSD'] = df_transformed_limpia['RetailPriceUSD'].fillna(0)
-
-    df_transformed_limpia.loc[df_transformed_limpia['CurrentValueNew'] == 0, 'CurrentValueNew'] = df_transformed_limpia['RetailPriceUSD']
 
     # 📌 8. Eliminamos filas con valores nulos
-    #df_transformed_limpia = df_transformed_limpia.dropna()
+    df_transformed_limpia = df_transformed_limpia.dropna()
 
     # 📌 9. Guardar identificadores para después
     id_columns = ['Number', 'SetName', 'Theme', 'CurrentValueNew']
