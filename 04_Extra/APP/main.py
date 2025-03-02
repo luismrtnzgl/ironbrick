@@ -33,9 +33,7 @@ df_transformed = df_sorted.pivot(index=['Number', 'SetName', 'Theme', 'Year', 'P
                                  columns='PriceIndex', values='PriceValue').reset_index()
 df_transformed.columns = [f'Price_{col+1}' if isinstance(col, int) else col for col in df_transformed.columns]
 price_columns = [f'Price_{i}' for i in range(1, 13)]
-df_transformed = df_transformed[['Number', 'SetName', 'Theme', 'Year', 'Pieces', 
-                                 'RetailPriceUSD', 'CurrentValueNew', 'ForecastValueNew2Y', 
-                                 'ForecastValueNew5Y'] + price_columns]
+df_transformed = df_transformed[['Number', 'SetName', 'Theme', 'Year', 'Pieces', 'RetailPriceUSD', 'CurrentValueNew', 'ForecastValueNew2Y', 'ForecastValueNew5Y'] + price_columns]
 df_transformed[price_columns] = df_transformed[price_columns].fillna(0)
 df_transformed.loc[:, 'Pieces'] = df_transformed['Pieces'].fillna(0)
 df_transformed.loc[:, 'RetailPriceUSD'] = df_transformed['RetailPriceUSD'].fillna(0)
@@ -72,20 +70,20 @@ df_identification.loc[:, 'PredictedValue2Y'] = model_2y.predict(df_model)
 df_identification.loc[:, 'PredictedValue5Y'] = model_5y.predict(df_model)
 st.success("✅ Predicciones generadas correctamente.")
 
-# 📌 Interfaz de usuario en Streamlit
-st.title("🔍 Análisis de Revalorización de Sets LEGO")
-st.sidebar.header("Filtros de búsqueda")
+# 📌 Título y descripción
+title = "🎯 Recomendador de inversión en sets de LEGO retirados"
+st.title(title)
+st.write("Este recomendador te ayuda a encontrar las mejores combinaciones de sets de LEGO retirados para invertir, basándose en su revalorización futura estimada. Puedes seleccionar los temas que más te interesan y un presupuesto, y recibirás las mejores combinaciones de inversión optimizadas.")
 
-# 📌 Filtro por tema
-tema_seleccionado = st.sidebar.selectbox("Selecciona un tema", ["Todos"] + sorted(df_identification["Theme"].unique()))
+# 📌 Selección múltiple de temas
+temas_disponibles = sorted(df_identification["Theme"].unique())
+temas_seleccionados = st.multiselect("Selecciona los temas de interés", temas_disponibles, default=temas_disponibles[:3])
 
 # 📌 Filtro por presupuesto
-presupuesto = st.sidebar.slider("Presupuesto máximo ($)", min_value=10, max_value=1000, value=200)
+presupuesto = st.slider("Presupuesto máximo ($)", min_value=10, max_value=1000, value=200)
 
 # 📌 Filtrar el dataframe
-df_filtrado = df_identification.copy()
-if tema_seleccionado != "Todos":
-    df_filtrado = df_filtrado[df_filtrado["Theme"] == tema_seleccionado]
+df_filtrado = df_identification[df_identification["Theme"].isin(temas_seleccionados)]
 df_filtrado = df_filtrado[df_filtrado["CurrentValueNew"] <= presupuesto]
 
 # 📌 Optimización: Seleccionar los 10 mejores sets primero
@@ -109,7 +107,7 @@ def encontrar_mejores_inversiones(df, presupuesto, num_opciones=3):
     return mejores_combinaciones[:num_opciones]
 
 # 📌 Mostrar las mejores opciones de inversión
-if st.sidebar.button("🔍 Buscar inversiones óptimas"):
+if st.button("🔍 Buscar inversiones óptimas"):
     opciones = encontrar_mejores_inversiones(df_top_sets, presupuesto)
     
     if not opciones:
