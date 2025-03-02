@@ -32,13 +32,13 @@ df_transformed = df_sorted.pivot(index=['Number', 'SetName', 'Theme', 'Year', 'P
                                         'ForecastValueNew5Y'],
                                  columns='PriceIndex', values='PriceValue').reset_index()
 df_transformed.columns = [f'Price_{col+1}' if isinstance(col, int) else col for col in df_transformed.columns]
-
-# 📌 Seleccionar las columnas de precios
 price_columns = [f'Price_{i}' for i in range(1, 13)]
-dias = [-15 * i for i in range(1, 13)]  # -15, -30, -45, ..., -180
-renamed_columns = {f'Price_{i}': f"{dias[i-1]} días" for i in range(1, 13)}
-
-df_transformed.fillna(0, inplace=True)
+df_transformed = df_transformed[['Number', 'SetName', 'Theme', 'Year', 'Pieces', 'RetailPriceUSD', 'CurrentValueNew', 'ForecastValueNew2Y', 'ForecastValueNew5Y'] + price_columns]
+df_transformed[price_columns] = df_transformed[price_columns].fillna(0)
+df_transformed.loc[:, 'Pieces'] = df_transformed['Pieces'].fillna(0)
+df_transformed.loc[:, 'RetailPriceUSD'] = df_transformed['RetailPriceUSD'].fillna(0)
+df_transformed.loc[df_transformed['CurrentValueNew'] == 0, 'CurrentValueNew'] = df_transformed['RetailPriceUSD']
+df_transformed = df_transformed.dropna()
 
 # 📌 Cargar modelos de predicción
 pkl_path_2y = os.path.join(BASE_DIR, "04_Extra/APP/models/xgb_2y.pkl")
@@ -80,11 +80,25 @@ df_rentabilidad_temas = df_identification.groupby("Theme").agg(
 
 df_rentabilidad_temas = df_rentabilidad_temas.sort_values(by="Rentabilidad5Y", ascending=False)
 
+# 📌 Título y descripción
+st.title("🎯 Recomendador de inversión en sets de LEGO retirados")
+st.write("Este recomendador te ayuda a encontrar las mejores combinaciones de sets de LEGO retirados para invertir, basándose en su rentabilidad futura.")
+
 # 📌 Mostrar rentabilidad media porcentual por tema con total de sets
 st.subheader("📊 Rentabilidad media porcentual por tema")
 st.write("Este gráfico muestra la rentabilidad porcentual estimada en 2 y 5 años para cada tema de LEGO, junto con el número total de sets disponibles en cada tema.")
 
 st.dataframe(df_rentabilidad_temas.style.format({"Rentabilidad2Y": "{:.2f}%", "Rentabilidad5Y": "{:.2f}%", "TotalSets": "{:.0f}"}))
+
+# 📌 Gráfico de rentabilidad por tema
+st.subheader("📈 Rentabilidad porcentual media por tema")
+fig, ax = plt.subplots(figsize=(10, 5))
+ax.barh(df_rentabilidad_temas["Theme"], df_rentabilidad_temas["Rentabilidad5Y"], color='lightblue')
+ax.set_xlabel("Rentabilidad estimada en 5 años (%)")
+ax.set_ylabel("Tema")
+ax.set_title("Rentabilidad estimada en 5 años por tema")
+ax.invert_yaxis()
+st.pyplot(fig)
 
 # 📌 Selección de temas
 st.subheader("🎯 Selecciona tus temas de interés")
@@ -98,32 +112,15 @@ if "Todos" in temas_seleccionados:
 presupuesto = st.slider("Presupuesto máximo ($)", min_value=100, max_value=2000, value=200, step=10)
 
 # 📌 Filtrar el dataframe
-df_filtrado = df_transformed[df_transformed["Theme"].isin(temas_seleccionados)]
+df_filtrado = df_identification[df_identification["Theme"].isin(temas_seleccionados)]
 df_filtrado = df_filtrado[df_filtrado["CurrentValueNew"] <= presupuesto]
 
-# 📌 Mostrar gráfico de evolución de precios solo con nombres alternativos en el gráfico
-if not df_filtrado.empty:
-    st.subheader("📈 Evolución de precios de sets seleccionados")
-
-    fig, ax = plt.subplots(figsize=(10, 6))
-
-    for index, row in df_filtrado.iterrows():
-        precios = row[price_columns].values
-        ax.plot(dias, precios, marker='o', label=row["SetName"])
-
-    ax.set_xlabel("Días en el pasado")
-    ax.set_ylabel("Precio ($)")
-    ax.set_title("Evolución de precios de los sets seleccionados")
-    ax.legend(loc="upper left", fontsize="small", bbox_to_anchor=(1, 1))
-    ax.grid(True)
-    st.pyplot(fig)
-
 # 📌 Optimización: Seleccionar los 10 mejores sets primero
-df_top_sets = df_filtrado.sort_values(by="ForecastValueNew5Y", ascending=False).head(10)
+df_top_sets = df_filtrado.sort_values(by="PredictedValue5Y", ascending=False).head(10)
 
 # 📌 Buscar combinaciones óptimas de inversión
 def encontrar_mejores_inversiones(df, presupuesto, num_opciones=3):
-    sets_lista = df[['SetName', 'CurrentValueNew', 'ForecastValueNew2Y', 'ForecastValueNew5Y']].values.tolist()
+    sets_lista = df[['SetName', 'CurrentValueNew', 'PredictedValue2Y', 'PredictedValue5Y']].values.tolist()
     mejores_combinaciones = []
     
     for r in range(1, 5):  
