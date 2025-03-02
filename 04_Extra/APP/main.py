@@ -38,8 +38,8 @@ df_transformed = df_transformed[['Number', 'SetName', 'Theme', 'Year', 'Pieces',
                                  'RetailPriceUSD', 'CurrentValueNew', 'ForecastValueNew2Y', 
                                  'ForecastValueNew5Y'] + price_columns]
 df_transformed[price_columns] = df_transformed[price_columns].fillna(0)
-df_transformed['Pieces'] = df_transformed['Pieces'].fillna(0)
-df_transformed['RetailPriceUSD'] = df_transformed['RetailPriceUSD'].fillna(0)
+df_transformed.loc[:, 'Pieces'] = df_transformed['Pieces'].fillna(0)
+df_transformed.loc[:, 'RetailPriceUSD'] = df_transformed['RetailPriceUSD'].fillna(0)
 df_transformed.loc[df_transformed['CurrentValueNew'] == 0, 'CurrentValueNew'] = df_transformed['RetailPriceUSD']
 df_transformed = df_transformed.dropna()
 
@@ -61,16 +61,16 @@ model_5y = load_model(pkl_path_5y)
 st.success("✅ Modelos cargados correctamente.")
 
 # 📌 Generar predicciones
-df_identification = df_transformed[['Number', 'SetName', 'Theme', 'CurrentValueNew']]
-df_model = df_transformed.drop(columns=['Number', 'SetName', 'Theme'], errors='ignore')
+df_identification = df_transformed[['Number', 'SetName', 'Theme', 'CurrentValueNew']].copy()
+df_model = df_transformed.drop(columns=['Number', 'SetName', 'Theme'], errors='ignore').copy()
 df_model = pd.get_dummies(df_model, drop_first=True)
 expected_columns = model_2y.feature_names_in_
 for col in expected_columns:
     if col not in df_model.columns:
         df_model[col] = 0
 df_model = df_model[expected_columns]
-df_identification['PredictedValue2Y'] = model_2y.predict(df_model)
-df_identification['PredictedValue5Y'] = model_5y.predict(df_model)
+df_identification.loc[:, 'PredictedValue2Y'] = model_2y.predict(df_model)
+df_identification.loc[:, 'PredictedValue5Y'] = model_5y.predict(df_model)
 st.success("✅ Predicciones generadas correctamente.")
 
 # 📌 Interfaz de usuario en Streamlit
