@@ -81,9 +81,6 @@ def process_csv(csv_path):
     # Reemplazamos valores 0 en 'CurrentValueNew' con el valor de 'RetailPriceUSD'
     df_transformed_limpia.loc[df_transformed_limpia['CurrentValueNew'] == 0, 'CurrentValueNew'] = df_transformed_limpia['RetailPriceUSD']
 
-    # 📌 8. Eliminamos filas con valores nulos
-    df_transformed_limpia = df_transformed_limpia.dropna()
-
     # 📌 9. Guardar identificadores para después
     id_columns = ['Number', 'SetName', 'Theme', 'CurrentValueNew']
     df_identification = df_transformed_limpia[id_columns]
