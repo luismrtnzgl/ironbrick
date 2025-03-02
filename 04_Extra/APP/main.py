@@ -33,7 +33,9 @@ df_transformed = df_sorted.pivot(index=['Number', 'SetName', 'Theme', 'Year', 'P
                                  columns='PriceIndex', values='PriceValue').reset_index()
 df_transformed.columns = [f'Price_{col+1}' if isinstance(col, int) else col for col in df_transformed.columns]
 price_columns = [f'Price_{i}' for i in range(1, 13)]
-df_transformed = df_transformed[['Number', 'SetName', 'Theme', 'Year', 'Pieces', 'RetailPriceUSD', 'CurrentValueNew', 'ForecastValueNew2Y', 'ForecastValueNew5Y'] + price_columns]
+df_transformed = df_transformed[['Number', 'SetName', 'Theme', 'Year', 'Pieces', 
+                                 'RetailPriceUSD', 'CurrentValueNew', 'ForecastValueNew2Y', 
+                                 'ForecastValueNew5Y'] + price_columns]
 df_transformed[price_columns] = df_transformed[price_columns].fillna(0)
 df_transformed.loc[:, 'Pieces'] = df_transformed['Pieces'].fillna(0)
 df_transformed.loc[:, 'RetailPriceUSD'] = df_transformed['RetailPriceUSD'].fillna(0)
@@ -68,22 +70,33 @@ for col in expected_columns:
 df_model = df_model[expected_columns]
 df_identification.loc[:, 'PredictedValue2Y'] = model_2y.predict(df_model)
 df_identification.loc[:, 'PredictedValue5Y'] = model_5y.predict(df_model)
-
-# 📌 Calcular rentabilidad en porcentaje
-df_identification["ROI_2Y"] = ((df_identification["PredictedValue2Y"] - df_identification["CurrentValueNew"]) / df_identification["CurrentValueNew"]) * 100
-df_identification["ROI_5Y"] = ((df_identification["PredictedValue5Y"] - df_identification["CurrentValueNew"]) / df_identification["CurrentValueNew"]) * 100
-
 st.success("✅ Predicciones generadas correctamente.")
 
-# 📌 Filtro por presupuesto en la barra lateral
-presupuesto = st.sidebar.slider("💰 Presupuesto máximo ($)", min_value=10, max_value=1000, value=200)
+# 📌 Interfaz de usuario en Streamlit
+st.title("🔍 Análisis de Revalorización de Sets LEGO")
+st.sidebar.header("Filtros de búsqueda")
 
-# 📌 Función para generar combinaciones de inversión
+# 📌 Filtro por tema
+tema_seleccionado = st.sidebar.selectbox("Selecciona un tema", ["Todos"] + sorted(df_identification["Theme"].unique()))
+
+# 📌 Filtro por presupuesto
+presupuesto = st.sidebar.slider("Presupuesto máximo ($)", min_value=10, max_value=1000, value=200)
+
+# 📌 Filtrar el dataframe
+df_filtrado = df_identification.copy()
+if tema_seleccionado != "Todos":
+    df_filtrado = df_filtrado[df_filtrado["Theme"] == tema_seleccionado]
+df_filtrado = df_filtrado[df_filtrado["CurrentValueNew"] <= presupuesto]
+
+# 📌 Optimización: Seleccionar los 10 mejores sets primero
+df_top_sets = df_filtrado.sort_values(by="PredictedValue5Y", ascending=False).head(10)
+
+# 📌 Generar combinaciones de inversión más eficientes
 def encontrar_mejores_inversiones(df, presupuesto, num_opciones=3):
-    sets_lista = df[['SetName', 'CurrentValueNew', 'PredictedValue2Y', 'PredictedValue5Y', 'ROI_2Y', 'ROI_5Y']].values.tolist()
+    sets_lista = df[['SetName', 'CurrentValueNew', 'PredictedValue2Y', 'PredictedValue5Y']].values.tolist()
     mejores_combinaciones = []
     
-    for r in [1, 3, 5]:  # Combinaciones de 1, 3 y 5 sets
+    for r in range(1, 4):  # Limitar a combinaciones de 1 a 3 sets para optimizar tiempo
         for combinacion in itertools.combinations(sets_lista, r):
             total_precio = sum(item[1] for item in combinacion)
             retorno_2y = sum(item[2] for item in combinacion)
@@ -97,7 +110,7 @@ def encontrar_mejores_inversiones(df, presupuesto, num_opciones=3):
 
 # 📌 Mostrar las mejores opciones de inversión
 if st.sidebar.button("🔍 Buscar inversiones óptimas"):
-    opciones = encontrar_mejores_inversiones(df_identification, presupuesto)
+    opciones = encontrar_mejores_inversiones(df_top_sets, presupuesto)
     
     if not opciones:
         st.warning("⚠️ No se encontraron combinaciones dentro de tu presupuesto.")
@@ -106,9 +119,9 @@ if st.sidebar.button("🔍 Buscar inversiones óptimas"):
         for i, (combo, ret_2y, ret_5y, precio) in enumerate(opciones, 1):
             st.write(f"**Opción {i}:**")
             st.write(f"💵 **Precio Total:** ${precio:.2f}")
-            st.write(f"📈 **Rentabilidad estimada en 2 años:** {((ret_2y - precio) / precio) * 100:.2f}%")
-            st.write(f"🚀 **Rentabilidad estimada en 5 años:** {((ret_5y - precio) / precio) * 100:.2f}%")
+            st.write(f"📈 **Valor estimado en 2 años:** ${ret_2y:.2f}")
+            st.write(f"🚀 **Valor estimado en 5 años:** ${ret_5y:.2f}")
             st.write("🧩 **Sets incluidos:**")
-            for set_name, price, _, _, roi_2y, roi_5y in combo:
-                st.write(f"- {set_name} (${price:.2f}) | ROI 2Y: {roi_2y:.2f}% | ROI 5Y: {roi_5y:.2f}%")
+            for set_name, price, _, _ in combo:
+                st.write(f"- {set_name} (${price:.2f})")
             st.write("---")
