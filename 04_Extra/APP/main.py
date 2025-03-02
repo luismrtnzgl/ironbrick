@@ -69,17 +69,23 @@ def process_csv(csv_path):
     df_transformed = df_transformed.dropna()
     st.write("📊 Dataframe después de eliminar nulos:", df_transformed.shape)
     
+    # Guardar un CSV temporal en Streamlit para verificar el dataframe final
+    df_transformed.to_csv("df_debug.csv", index=False)
+    st.write("📂 Se ha guardado un archivo CSV llamado 'df_debug.csv' para depuración.")
+    
     return df_transformed
 
 # 📌 Procesar el dataset
 df_identification = process_csv(CSV_PATH)
 
-st.write("✅ Dataframe final de identificación:", df_identification.head())
+st.write("✅ Dataframe final de identificación (primeras filas):", df_identification.head())
+st.write("📏 Dimensiones finales:", df_identification.shape)
 
 if df_identification.empty:
     st.error("❌ El dataframe de identificación está vacío después del procesamiento.")
 else:
     st.success("✅ El dataframe tiene datos correctamente.")
+    st.dataframe(df_identification)  # Mostrar en pantalla
 
 # 📌 Generar predicciones
 df_model = df_identification.drop(columns=['Number', 'SetName', 'Theme'], errors='ignore')
