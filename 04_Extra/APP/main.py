@@ -17,6 +17,7 @@ if not os.path.exists(CSV_PATH):
 # 📌 Cargar el archivo CSV
 try:
     df = pd.read_csv(CSV_PATH)
+    st.success("✅ Archivo CSV cargado correctamente.")
 except Exception as e:
     st.error(f"❌ ERROR al leer el archivo CSV: {e}")
     st.stop()
@@ -54,6 +55,7 @@ def load_model(filename):
 
 model_2y = load_model(pkl_path_2y)
 model_5y = load_model(pkl_path_5y)
+st.success("✅ Modelos cargados correctamente.")
 
 # 📌 Generar predicciones
 df_identification = df_transformed[['Number', 'SetName', 'Theme', 'CurrentValueNew']].copy()
@@ -67,43 +69,34 @@ df_model = df_model[expected_columns]
 df_identification.loc[:, 'PredictedValue2Y'] = model_2y.predict(df_model)
 df_identification.loc[:, 'PredictedValue5Y'] = model_5y.predict(df_model)
 
-# 📌 Título y descripción
-title = "🎯 Recomendador de inversión en sets de LEGO retirados"
-st.title(title)
-st.write("Este recomendador te ayuda a encontrar las mejores combinaciones de sets de LEGO retirados para invertir, basándose en su revalorización futura estimada. Puedes seleccionar los temas que más te interesan y un presupuesto, y recibirás las mejores combinaciones de inversión optimizadas.")
+# 📌 Calcular rentabilidad en porcentaje
+df_identification["ROI_2Y"] = ((df_identification["PredictedValue2Y"] - df_identification["CurrentValueNew"]) / df_identification["CurrentValueNew"]) * 100
+df_identification["ROI_5Y"] = ((df_identification["PredictedValue5Y"] - df_identification["CurrentValueNew"]) / df_identification["CurrentValueNew"]) * 100
 
-# 📌 Selección múltiple de temas con opción de seleccionar todos
-temas_disponibles = sorted(df_identification["Theme"].unique())
-temas_seleccionados = st.multiselect("Selecciona los temas de interés", ["Todos"] + temas_disponibles, default=["Todos"])
+st.success("✅ Predicciones generadas correctamente.")
 
-if "Todos" in temas_seleccionados:
-    temas_seleccionados = temas_disponibles  # Si el usuario selecciona "Todos", incluir todos los temas
-
-# 📌 Filtro por presupuesto
+# 📌 Filtro por presupuesto en la barra principal
 presupuesto = st.slider("Presupuesto máximo ($)", min_value=10, max_value=1000, value=200)
 
-# 📌 Filtrar el dataframe
-df_filtrado = df_identification[df_identification["Theme"].isin(temas_seleccionados)]
-df_filtrado = df_filtrado[df_filtrado["CurrentValueNew"] <= presupuesto]
+# 📌 Optimización: Seleccionar los 10 mejores sets por ROI_5Y antes de generar combinaciones
+df_top_sets = df_identification.sort_values(by="ROI_5Y", ascending=False).head(10)
 
-# 📌 Optimización: Seleccionar los 10 mejores sets primero
-df_top_sets = df_filtrado.sort_values(by="PredictedValue5Y", ascending=False).head(10)
-
-# 📌 Generar combinaciones de inversión más eficientes
+# 📌 Función optimizada para generar combinaciones de inversión
 def encontrar_mejores_inversiones(df, presupuesto, num_opciones=3):
-    sets_lista = df[['SetName', 'CurrentValueNew', 'PredictedValue2Y', 'PredictedValue5Y']].values.tolist()
+    sets_lista = df[['SetName', 'CurrentValueNew', 'PredictedValue2Y', 'PredictedValue5Y', 'ROI_2Y', 'ROI_5Y']].values.tolist()
     mejores_combinaciones = []
     
-    for r in range(1, 4):  # Limitar a combinaciones de 1 a 3 sets para optimizar tiempo
+    for r in range(1, 4):  # Combinaciones de 1, 2 y 3 sets
         for combinacion in itertools.combinations(sets_lista, r):
             total_precio = sum(item[1] for item in combinacion)
             retorno_2y = sum(item[2] for item in combinacion)
             retorno_5y = sum(item[3] for item in combinacion)
+            beneficio_5y = ((retorno_5y - total_precio) / total_precio) * 100
             
             if total_precio <= presupuesto:
-                mejores_combinaciones.append((combinacion, retorno_2y, retorno_5y, total_precio))
+                mejores_combinaciones.append((combinacion, retorno_2y, retorno_5y, total_precio, beneficio_5y))
     
-    mejores_combinaciones.sort(key=lambda x: x[2], reverse=True)
+    mejores_combinaciones.sort(key=lambda x: x[4], reverse=True)
     return mejores_combinaciones[:num_opciones]
 
 # 📌 Mostrar las mejores opciones de inversión
@@ -114,12 +107,13 @@ if st.button("🔍 Buscar inversiones óptimas"):
         st.warning("⚠️ No se encontraron combinaciones dentro de tu presupuesto.")
     else:
         st.subheader("💡 Mejores opciones de inversión")
-        for i, (combo, ret_2y, ret_5y, precio) in enumerate(opciones, 1):
+        for i, (combo, ret_2y, ret_5y, precio, beneficio_5y) in enumerate(opciones, 1):
             st.write(f"**Opción {i}:**")
             st.write(f"💵 **Precio Total:** ${precio:.2f}")
-            st.write(f"📈 **Valor estimado en 2 años:** ${ret_2y:.2f}")
-            st.write(f"🚀 **Valor estimado en 5 años:** ${ret_5y:.2f}")
+            st.write(f"📈 **Rentabilidad estimada en 2 años:** {((ret_2y - precio) / precio) * 100:.2f}%")
+            st.write(f"🚀 **Rentabilidad estimada en 5 años:** {((ret_5y - precio) / precio) * 100:.2f}%")
+            st.write(f"💰 **Beneficio porcentual total en 5 años:** {beneficio_5y:.2f}%")
             st.write("🧩 **Sets incluidos:**")
-            for set_name, price, _, _ in combo:
-                st.write(f"- {set_name} (${price:.2f})")
+            for set_name, price, _, _, roi_2y, roi_5y in combo:
+                st.write(f"- {set_name} (${price:.2f}) | ROI 2Y: {roi_2y:.2f}% | ROI 5Y: {roi_5y:.2f}%")
             st.write("---")
