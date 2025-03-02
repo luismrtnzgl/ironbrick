@@ -123,16 +123,19 @@ def encontrar_mejores_inversiones(df, presupuesto, num_opciones=3):
     sets_lista = df[['SetName', 'CurrentValueNew', 'PredictedValue2Y', 'PredictedValue5Y']].values.tolist()
     mejores_combinaciones = []
     
-    for r in range(1, 5):  
+    for r in range(1, 5):  # Limitar combinaciones a 1-4 sets para optimizar
         for combinacion in itertools.combinations(sets_lista, r):
             total_precio = sum(item[1] for item in combinacion)
+            retorno_2y = sum(item[2] for item in combinacion)
             retorno_5y = sum(item[3] for item in combinacion)
             
             if total_precio <= presupuesto:
-                mejores_combinaciones.append((combinacion, retorno_5y, total_precio))
-    
-    mejores_combinaciones.sort(key=lambda x: x[1], reverse=True)
+                mejores_combinaciones.append((combinacion, retorno_2y, retorno_5y, total_precio))
+
+    # Ordenar por rentabilidad en 5 años (descendente)
+    mejores_combinaciones.sort(key=lambda x: x[2], reverse=True)
     return mejores_combinaciones[:num_opciones]
+
 
 # 📌 Mostrar inversiones óptimas
 if st.button("🔍 Buscar inversiones óptimas"):
@@ -147,6 +150,7 @@ if st.button("🔍 Buscar inversiones óptimas"):
             st.write(f"💵 **Total de la inversión:** ${precio:.2f}")
             st.write(f"📈 **Valor estimado en 2 años:** ${ret_2y:.2f}")
             st.write(f"🚀 **Valor estimado en 5 años:** ${ret_5y:.2f}")
+            st.write("🧩 **Sets incluidos:**")
             for set_name, price, _, _ in combo:
                 st.write(f"- {set_name} (${price:.2f})")
             st.write("---")
