@@ -31,6 +31,8 @@ st.success("✅ Modelos cargados correctamente.")
 @st.cache_data
 def process_csv(csv_path):
     df = pd.read_csv(csv_path)
+    st.write("🔍 Dataframe cargado:", df.head())  # Debug 1: Mostrar el CSV cargado
+    
     df["PriceDate"] = pd.to_datetime(df["PriceDate"], errors='coerce')
     df = df.dropna(subset=["PriceDate"])  # Eliminar solo fechas inválidas
     
@@ -43,6 +45,8 @@ def process_csv(csv_path):
                                             'RetailPriceUSD', 'CurrentValueNew', 'ForecastValueNew2Y', 
                                             'ForecastValueNew5Y'],
                                      columns='PriceIndex', values='PriceValue').reset_index()
+    
+    st.write("🔍 Dataframe después del pivotado:", df_transformed.head())  # Debug 2: Ver el resultado del pivotado
     
     # Renombrar columnas de precios correctamente
     df_transformed.columns = [f'Price_{col+1}' if isinstance(col, int) else col for col in df_transformed.columns]
@@ -59,8 +63,9 @@ def process_csv(csv_path):
     df_transformed['RetailPriceUSD'] = df_transformed['RetailPriceUSD'].fillna(0)
     df_transformed.loc[df_transformed['CurrentValueNew'] == 0, 'CurrentValueNew'] = df_transformed['RetailPriceUSD']
     
-    # Eliminar filas con valores nulos restantes
+    st.write("📊 Dataframe antes de eliminar nulos:", df_transformed.shape)  # Debug 3: Ver tamaño antes de eliminar nulos
     df_transformed = df_transformed.dropna()
+    st.write("📊 Dataframe después de eliminar nulos:", df_transformed.shape)  # Debug 4: Ver tamaño después de eliminar nulos
     
     return df_transformed
 
