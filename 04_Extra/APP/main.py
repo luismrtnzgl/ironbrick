@@ -31,7 +31,8 @@ st.success("✅ Modelos cargados correctamente.")
 @st.cache_data
 def process_csv(csv_path):
     df = pd.read_csv(csv_path)
-    st.write("🔍 Dataframe cargado:", df.head())  # Debug 1: Mostrar el CSV cargado
+    st.write("🔍 Dataframe cargado (primeras filas):", df.head())
+    st.write("📏 Dimensiones iniciales:", df.shape)
     
     df["PriceDate"] = pd.to_datetime(df["PriceDate"], errors='coerce')
     df = df.dropna(subset=["PriceDate"])  # Eliminar solo fechas inválidas
@@ -46,7 +47,8 @@ def process_csv(csv_path):
                                             'ForecastValueNew5Y'],
                                      columns='PriceIndex', values='PriceValue').reset_index()
     
-    st.write("🔍 Dataframe después del pivotado:", df_transformed.head())  # Debug 2: Ver el resultado del pivotado
+    st.write("🔄 Dataframe después del pivotado:", df_transformed.head())
+    st.write("📏 Dimensiones después del pivotado:", df_transformed.shape)
     
     # Renombrar columnas de precios correctamente
     df_transformed.columns = [f'Price_{col+1}' if isinstance(col, int) else col for col in df_transformed.columns]
@@ -63,14 +65,21 @@ def process_csv(csv_path):
     df_transformed['RetailPriceUSD'] = df_transformed['RetailPriceUSD'].fillna(0)
     df_transformed.loc[df_transformed['CurrentValueNew'] == 0, 'CurrentValueNew'] = df_transformed['RetailPriceUSD']
     
-    st.write("📊 Dataframe antes de eliminar nulos:", df_transformed.shape)  # Debug 3: Ver tamaño antes de eliminar nulos
+    st.write("📊 Dataframe antes de eliminar nulos:", df_transformed.shape)
     df_transformed = df_transformed.dropna()
-    st.write("📊 Dataframe después de eliminar nulos:", df_transformed.shape)  # Debug 4: Ver tamaño después de eliminar nulos
+    st.write("📊 Dataframe después de eliminar nulos:", df_transformed.shape)
     
     return df_transformed
 
 # 📌 Procesar el dataset
 df_identification = process_csv(CSV_PATH)
+
+st.write("✅ Dataframe final de identificación:", df_identification.head())
+
+if df_identification.empty:
+    st.error("❌ El dataframe de identificación está vacío después del procesamiento.")
+else:
+    st.success("✅ El dataframe tiene datos correctamente.")
 
 # 📌 Generar predicciones
 df_model = df_identification.drop(columns=['Number', 'SetName', 'Theme'], errors='ignore')
@@ -82,6 +91,7 @@ for col in expected_columns:
         df_model[col] = 0
 
 df_model = df_model[expected_columns]
+
 df_identification['PredictedValue2Y'] = model_2y.predict(df_model)
 df_identification['PredictedValue5Y'] = model_5y.predict(df_model)
 
