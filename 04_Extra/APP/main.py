@@ -31,35 +31,28 @@ st.success("✅ Modelos cargados correctamente.")
 @st.cache_data
 def process_csv(csv_path):
     df = pd.read_csv(csv_path)
-    st.write("🔍 Dataframe cargado (primeras filas):", df.head())
-    st.write("📏 Dimensiones iniciales:", df.shape)
+    df.to_csv("df_raw.csv", index=False)  # Guardar el CSV original
+    st.write("🔍 Dataframe RAW cargado (primeras filas):", df.head(10))
+    st.write("📏 Dimensiones iniciales (sin procesar):", df.shape)
     
     df["PriceDate"] = pd.to_datetime(df["PriceDate"], errors='coerce')
-    df = df.dropna(subset=["PriceDate"])  # Eliminar solo fechas inválidas
+    df = df.dropna(subset=["PriceDate"])
     
-    # Ordenar y asignar índices
     df_sorted = df.sort_values(by=['Number', 'PriceDate'])
     df_sorted['PriceIndex'] = df_sorted.groupby('Number').cumcount()
     
-    # Pivotar precios
     df_transformed = df_sorted.pivot(index=['Number', 'SetName', 'Theme', 'Year', 'Pieces', 
                                             'RetailPriceUSD', 'CurrentValueNew', 'ForecastValueNew2Y', 
                                             'ForecastValueNew5Y'],
                                      columns='PriceIndex', values='PriceValue').reset_index()
     
-    st.write("🔄 Dataframe después del pivotado:", df_transformed.head())
-    st.write("📏 Dimensiones después del pivotado:", df_transformed.shape)
-    
-    # Renombrar columnas de precios correctamente
     df_transformed.columns = [f'Price_{col+1}' if isinstance(col, int) else col for col in df_transformed.columns]
     
-    # Seleccionar solo las primeras 12 columnas de precios
     price_columns = [f'Price_{i}' for i in range(1, 13)]
     df_transformed = df_transformed[['Number', 'SetName', 'Theme', 'Year', 'Pieces', 
                                      'RetailPriceUSD', 'CurrentValueNew', 'ForecastValueNew2Y', 
                                      'ForecastValueNew5Y'] + price_columns]
     
-    # Reemplazar valores nulos en las columnas de precios por 0
     df_transformed[price_columns] = df_transformed[price_columns].fillna(0)
     df_transformed['Pieces'] = df_transformed['Pieces'].fillna(0)
     df_transformed['RetailPriceUSD'] = df_transformed['RetailPriceUSD'].fillna(0)
@@ -69,20 +62,19 @@ def process_csv(csv_path):
     df_transformed = df_transformed.dropna()
     st.write("📊 Dataframe después de eliminar nulos:", df_transformed.shape)
     
-    # Guardar un CSV temporal en Streamlit para verificar el dataframe final
-    df_transformed.to_csv("df_debug.csv", index=False)
-    st.write("📂 Se ha guardado un archivo CSV llamado 'df_debug.csv' para depuración.")
+    df_transformed.to_csv("df_cleaned.csv", index=False)  # Guardar CSV después de la limpieza
+    st.write("📂 Se han guardado dos archivos para depuración: 'df_raw.csv' y 'df_cleaned.csv'.")
     
     return df_transformed
 
 # 📌 Procesar el dataset
 df_identification = process_csv(CSV_PATH)
 
-st.write("✅ Dataframe final de identificación (primeras filas):", df_identification.head())
+st.write("✅ Dataframe final de identificación (primeras filas):", df_identification.head(10))
 st.write("📏 Dimensiones finales:", df_identification.shape)
 
 if df_identification.empty:
-    st.error("❌ El dataframe  de identificación está vacío después del procesamiento.")
+    st.error("❌ El dataframe de identificación está vacío después del procesamiento.")
 else:
     st.success("✅ El dataframe tiene datos correctamente.")
     st.dataframe(df_identification)  # Mostrar en pantalla
