@@ -9,20 +9,25 @@ import itertools
 BASE_DIR = os.getcwd()
 CSV_PATH = os.path.join(BASE_DIR, "04_Extra/APP/data/scraped_lego_data.csv")
 
-# 📌 Verificar si el archivo CSV existe
+# 📌 Mostrar la ruta del archivo CSV
 st.write("📂 Ruta del archivo CSV:", CSV_PATH)
+
+# 📌 Listar archivos en la carpeta para verificar si el CSV está disponible
+st.write("📂 Archivos en la carpeta data:", os.listdir(os.path.dirname(CSV_PATH)))
+
+# 📌 Verificar si el archivo existe
 if not os.path.exists(CSV_PATH):
-    st.error("❌ ERROR: El archivo CSV no existe en la ruta especificada.")
+    st.error("❌ ERROR: El archivo CSV NO EXISTE en la ruta especificada.")
     st.stop()
 
 # 📌 Intentar abrir el archivo manualmente
-st.write("📖 Intentando leer el archivo manualmente...")
+st.write("📖 Intentando abrir el archivo CSV...")
 try:
     with open(CSV_PATH, "r", encoding="utf-8") as f:
         lines = [next(f) for _ in range(5)]  # Leer las primeras 5 líneas
     st.write("📄 Primeras líneas del archivo CSV:", lines)
 except Exception as e:
-    st.error(f"❌ ERROR al leer el archivo: {e}")
+    st.error(f"❌ ERROR al leer el archivo manualmente: {e}")
     st.stop()
 
 # 📌 Cargar modelos
