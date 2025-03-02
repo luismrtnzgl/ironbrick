@@ -94,7 +94,7 @@ def encontrar_mejores_inversiones(df, presupuesto, num_opciones=3):
     sets_lista = df[['SetName', 'CurrentValueNew', 'PredictedValue2Y', 'PredictedValue5Y']].values.tolist()
     mejores_combinaciones = []
     
-    for r in range(1, 4):  # Limitar a combinaciones de 1 a 3 sets para optimizar tiempo
+    for r in range(1, 6):  # Limitar a combinaciones de 1 a 5 sets para optimizar tiempo
         for combinacion in itertools.combinations(sets_lista, r):
             total_precio = sum(item[1] for item in combinacion)
             retorno_2y = sum(item[2] for item in combinacion)
@@ -116,7 +116,7 @@ if st.button("🔍 Buscar inversiones óptimas"):
         st.subheader("💡 Mejores opciones de inversión")
         for i, (combo, ret_2y, ret_5y, precio) in enumerate(opciones, 1):
             st.write(f"**Opción {i}:**")
-            st.write(f"💵 **Precio Total:** ${precio:.2f}")
+            st.write(f"💵 **Total de la inversión:** ${precio:.2f}")
             st.write(f"📈 **Valor estimado en 2 años:** ${ret_2y:.2f}")
             st.write(f"🚀 **Valor estimado en 5 años:** ${ret_5y:.2f}")
             st.write("🧩 **Sets incluidos:**")
