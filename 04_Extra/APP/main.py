@@ -88,7 +88,11 @@ st.write("Este recomendador te ayuda a encontrar las mejores combinaciones de se
 st.subheader("📊 Rentabilidad media porcentual por tema")
 st.write("Este gráfico muestra la rentabilidad porcentual estimada en 2 y 5 años para cada tema de LEGO, junto con el número total de sets disponibles en cada tema.")
 
-st.dataframe(df_rentabilidad_temas.style.format({"Rentabilidad2Y": "{:.2f}%", "Rentabilidad5Y": "{:.2f}%", "TotalSets": "{:.0f}"}))
+st.dataframe(
+    df_rentabilidad_temas.style.format({"Rentabilidad2Y": "{:.2f}%", "Rentabilidad5Y": "{:.2f}%", "TotalSets": "{:.0f}"}),
+    height=300,  # Altura ajustable para permitir el scroll
+    use_container_width=True  # Hace que la tabla ocupe todo el ancho
+)
 
 # 📌 Selección de temas
 st.subheader("🎯 Selecciona tus temas de interés")
