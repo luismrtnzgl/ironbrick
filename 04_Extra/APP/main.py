@@ -10,7 +10,6 @@ BASE_DIR = os.getcwd()
 CSV_PATH = os.path.join(BASE_DIR, "04_Extra/APP/data/scraped_lego_data.csv")
 
 # 📌 Verificar si el archivo existe
-st.write("📂 Ruta del archivo CSV:", CSV_PATH)
 if not os.path.exists(CSV_PATH):
     st.error("❌ ERROR: El archivo CSV NO EXISTE en la ruta especificada.")
     st.stop()
@@ -89,12 +88,15 @@ if tema_seleccionado != "Todos":
     df_filtrado = df_filtrado[df_filtrado["Theme"] == tema_seleccionado]
 df_filtrado = df_filtrado[df_filtrado["CurrentValueNew"] <= presupuesto]
 
-# 📌 Función para encontrar combinaciones óptimas de inversión
+# 📌 Optimización: Seleccionar los 10 mejores sets primero
+df_top_sets = df_filtrado.sort_values(by="PredictedValue5Y", ascending=False).head(10)
+
+# 📌 Generar combinaciones de inversión más eficientes
 def encontrar_mejores_inversiones(df, presupuesto, num_opciones=3):
     sets_lista = df[['SetName', 'CurrentValueNew', 'PredictedValue2Y', 'PredictedValue5Y']].values.tolist()
     mejores_combinaciones = []
     
-    for r in range(1, 5):
+    for r in range(1, 4):  # Limitar a combinaciones de 1 a 3 sets para optimizar tiempo
         for combinacion in itertools.combinations(sets_lista, r):
             total_precio = sum(item[1] for item in combinacion)
             retorno_2y = sum(item[2] for item in combinacion)
@@ -108,7 +110,7 @@ def encontrar_mejores_inversiones(df, presupuesto, num_opciones=3):
 
 # 📌 Mostrar las mejores opciones de inversión
 if st.sidebar.button("🔍 Buscar inversiones óptimas"):
-    opciones = encontrar_mejores_inversiones(df_filtrado, presupuesto)
+    opciones = encontrar_mejores_inversiones(df_top_sets, presupuesto)
     
     if not opciones:
         st.warning("⚠️ No se encontraron combinaciones dentro de tu presupuesto.")
