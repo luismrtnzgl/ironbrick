@@ -72,18 +72,23 @@ df_identification.loc[:, 'PredictedValue5Y'] = model_5y.predict(df_model)
 df_identification["Rentabilidad2Y"] = ((df_identification["PredictedValue2Y"] - df_identification["CurrentValueNew"]) / df_identification["CurrentValueNew"]) * 100
 df_identification["Rentabilidad5Y"] = ((df_identification["PredictedValue5Y"] - df_identification["CurrentValueNew"]) / df_identification["CurrentValueNew"]) * 100
 
-df_rentabilidad_temas = df_identification.groupby("Theme")[["Rentabilidad2Y", "Rentabilidad5Y"]].mean().reset_index()
+df_rentabilidad_temas = df_identification.groupby("Theme").agg(
+    TotalSets=('Theme', 'count'),  
+    Rentabilidad2Y=('Rentabilidad2Y', 'mean'),
+    Rentabilidad5Y=('Rentabilidad5Y', 'mean')
+).reset_index()
+
 df_rentabilidad_temas = df_rentabilidad_temas.sort_values(by="Rentabilidad5Y", ascending=False)
 
 # 📌 Título y descripción
 st.title("🎯 Recomendador de inversión en sets de LEGO retirados")
 st.write("Este recomendador te ayuda a encontrar las mejores combinaciones de sets de LEGO retirados para invertir, basándose en su rentabilidad futura.")
 
-# 📌 Mostrar rentabilidad media porcentual por tema
+# 📌 Mostrar rentabilidad media porcentual por tema con total de sets
 st.subheader("📊 Rentabilidad media porcentual por tema")
-st.write("Este gráfico muestra la rentabilidad porcentual estimada en 2 y 5 años para cada tema de LEGO.")
+st.write("Este gráfico muestra la rentabilidad porcentual estimada en 2 y 5 años para cada tema de LEGO, junto con el número total de sets disponibles en cada tema.")
 
-st.dataframe(df_rentabilidad_temas.style.format({"Rentabilidad2Y": "{:.2f}%", "Rentabilidad5Y": "{:.2f}%"}))
+st.dataframe(df_rentabilidad_temas.style.format({"Rentabilidad2Y": "{:.2f}%", "Rentabilidad5Y": "{:.2f}%", "TotalSets": "{:.0f}"}))
 
 # 📌 Gráfico de rentabilidad por tema
 st.subheader("📈 Rentabilidad porcentual media por tema")
