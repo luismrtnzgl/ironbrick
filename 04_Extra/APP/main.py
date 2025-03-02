@@ -4,7 +4,6 @@ import pandas as pd
 import numpy as np
 import pickle
 import itertools
-import plotly.express as px
 
 # 📌 Obtener la ruta del archivo CSV
 BASE_DIR = os.getcwd()
@@ -89,11 +88,38 @@ df_filtrado = df_identification.copy()
 if tema_seleccionado != "Todos":
     df_filtrado = df_filtrado[df_filtrado["Theme"] == tema_seleccionado]
 df_filtrado = df_filtrado[df_filtrado["CurrentValueNew"] <= presupuesto]
-st.write("📊 Resultados filtrados:", df_filtrado.shape)
-st.dataframe(df_filtrado)
 
-# 📌 Gráfico de evolución de precios
-st.subheader("📈 Evolución de precios")
-fig = px.line(df_transformed.melt(id_vars=['Number', 'SetName'], value_vars=price_columns, var_name='Tiempo', value_name='Precio'),
-              x='Tiempo', y='Precio', color='SetName', title="Evolución de precios en el tiempo")
-st.plotly_chart(fig)
+# 📌 Función para encontrar combinaciones óptimas de inversión
+def encontrar_mejores_inversiones(df, presupuesto, num_opciones=3):
+    sets_lista = df[['SetName', 'CurrentValueNew', 'PredictedValue2Y', 'PredictedValue5Y']].values.tolist()
+    mejores_combinaciones = []
+    
+    for r in range(1, 5):
+        for combinacion in itertools.combinations(sets_lista, r):
+            total_precio = sum(item[1] for item in combinacion)
+            retorno_2y = sum(item[2] for item in combinacion)
+            retorno_5y = sum(item[3] for item in combinacion)
+            
+            if total_precio <= presupuesto:
+                mejores_combinaciones.append((combinacion, retorno_2y, retorno_5y, total_precio))
+    
+    mejores_combinaciones.sort(key=lambda x: x[2], reverse=True)
+    return mejores_combinaciones[:num_opciones]
+
+# 📌 Mostrar las mejores opciones de inversión
+if st.sidebar.button("🔍 Buscar inversiones óptimas"):
+    opciones = encontrar_mejores_inversiones(df_filtrado, presupuesto)
+    
+    if not opciones:
+        st.warning("⚠️ No se encontraron combinaciones dentro de tu presupuesto.")
+    else:
+        st.subheader("💡 Mejores opciones de inversión")
+        for i, (combo, ret_2y, ret_5y, precio) in enumerate(opciones, 1):
+            st.write(f"**Opción {i}:**")
+            st.write(f"💵 **Precio Total:** ${precio:.2f}")
+            st.write(f"📈 **Valor estimado en 2 años:** ${ret_2y:.2f}")
+            st.write(f"🚀 **Valor estimado en 5 años:** ${ret_5y:.2f}")
+            st.write("🧩 **Sets incluidos:**")
+            for set_name, price, _, _ in combo:
+                st.write(f"- {set_name} (${price:.2f})")
+            st.write("---")
