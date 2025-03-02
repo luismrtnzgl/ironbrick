@@ -90,16 +90,6 @@ st.write("Este gráfico muestra la rentabilidad porcentual estimada en 2 y 5 añ
 
 st.dataframe(df_rentabilidad_temas.style.format({"Rentabilidad2Y": "{:.2f}%", "Rentabilidad5Y": "{:.2f}%", "TotalSets": "{:.0f}"}))
 
-# 📌 Gráfico de rentabilidad por tema
-st.subheader("📈 Rentabilidad porcentual media por tema")
-fig, ax = plt.subplots(figsize=(10, 5))
-ax.barh(df_rentabilidad_temas["Theme"], df_rentabilidad_temas["Rentabilidad5Y"], color='lightblue')
-ax.set_xlabel("Rentabilidad estimada en 5 años (%)")
-ax.set_ylabel("Tema")
-ax.set_title("Rentabilidad estimada en 5 años por tema")
-ax.invert_yaxis()
-st.pyplot(fig)
-
 # 📌 Selección de temas
 st.subheader("🎯 Selecciona tus temas de interés")
 temas_disponibles = sorted(df_identification["Theme"].unique())
