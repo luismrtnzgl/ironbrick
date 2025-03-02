@@ -17,7 +17,6 @@ if not os.path.exists(CSV_PATH):
 # 📌 Cargar el archivo CSV
 try:
     df = pd.read_csv(CSV_PATH)
-    st.success("✅ Archivo CSV cargado correctamente.")
 except Exception as e:
     st.error(f"❌ ERROR al leer el archivo CSV: {e}")
     st.stop()
@@ -55,7 +54,6 @@ def load_model(filename):
 
 model_2y = load_model(pkl_path_2y)
 model_5y = load_model(pkl_path_5y)
-st.success("✅ Modelos cargados correctamente.")
 
 # 📌 Generar predicciones
 df_identification = df_transformed[['Number', 'SetName', 'Theme', 'CurrentValueNew']].copy()
@@ -68,16 +66,18 @@ for col in expected_columns:
 df_model = df_model[expected_columns]
 df_identification.loc[:, 'PredictedValue2Y'] = model_2y.predict(df_model)
 df_identification.loc[:, 'PredictedValue5Y'] = model_5y.predict(df_model)
-st.success("✅ Predicciones generadas correctamente.")
 
 # 📌 Título y descripción
 title = "🎯 Recomendador de inversión en sets de LEGO retirados"
 st.title(title)
 st.write("Este recomendador te ayuda a encontrar las mejores combinaciones de sets de LEGO retirados para invertir, basándose en su revalorización futura estimada. Puedes seleccionar los temas que más te interesan y un presupuesto, y recibirás las mejores combinaciones de inversión optimizadas.")
 
-# 📌 Selección múltiple de temas
+# 📌 Selección múltiple de temas con opción de seleccionar todos
 temas_disponibles = sorted(df_identification["Theme"].unique())
-temas_seleccionados = st.multiselect("Selecciona los temas de interés", temas_disponibles, default=temas_disponibles[:3])
+temas_seleccionados = st.multiselect("Selecciona los temas de interés", ["Todos"] + temas_disponibles, default=["Todos"])
+
+if "Todos" in temas_seleccionados:
+    temas_seleccionados = temas_disponibles  # Si el usuario selecciona "Todos", incluir todos los temas
 
 # 📌 Filtro por presupuesto
 presupuesto = st.slider("Presupuesto máximo ($)", min_value=10, max_value=1000, value=200)
