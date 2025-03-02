@@ -9,7 +9,23 @@ import itertools
 BASE_DIR = os.getcwd()
 CSV_PATH = os.path.join(BASE_DIR, "04_Extra/APP/data/scraped_lego_data.csv")
 
-# 📌 Verificar modelos
+# 📌 Verificar si el archivo CSV existe
+st.write("📂 Ruta del archivo CSV:", CSV_PATH)
+if not os.path.exists(CSV_PATH):
+    st.error("❌ ERROR: El archivo CSV no existe en la ruta especificada.")
+    st.stop()
+
+# 📌 Intentar abrir el archivo manualmente
+st.write("📖 Intentando leer el archivo manualmente...")
+try:
+    with open(CSV_PATH, "r", encoding="utf-8") as f:
+        lines = [next(f) for _ in range(5)]  # Leer las primeras 5 líneas
+    st.write("📄 Primeras líneas del archivo CSV:", lines)
+except Exception as e:
+    st.error(f"❌ ERROR al leer el archivo: {e}")
+    st.stop()
+
+# 📌 Cargar modelos
 pkl_path_2y = os.path.join(BASE_DIR, "04_Extra/APP/models/xgb_2y.pkl")
 pkl_path_5y = os.path.join(BASE_DIR, "04_Extra/APP/models/xgb_5y.pkl")
 
@@ -17,7 +33,6 @@ if not os.path.exists(pkl_path_2y) or not os.path.exists(pkl_path_5y):
     st.error("❌ No se encontraron los modelos .pkl en la carpeta 'models/'.")
     st.stop()
 
-# 📌 Cargar modelos
 @st.cache_resource
 def load_model(filename):
     with open(filename, 'rb') as file:
@@ -31,7 +46,6 @@ st.success("✅ Modelos cargados correctamente.")
 @st.cache_data
 def process_csv(csv_path):
     df = pd.read_csv(csv_path)
-    df.to_csv("df_raw.csv", index=False)  # Guardar el CSV original
     st.write("🔍 Dataframe RAW cargado (primeras filas):", df.head(10))
     st.write("📏 Dimensiones iniciales (sin procesar):", df.shape)
     
@@ -61,9 +75,6 @@ def process_csv(csv_path):
     st.write("📊 Dataframe antes de eliminar nulos:", df_transformed.shape)
     df_transformed = df_transformed.dropna()
     st.write("📊 Dataframe después de eliminar nulos:", df_transformed.shape)
-    
-    df_transformed.to_csv("df_cleaned.csv", index=False)  # Guardar CSV después de la limpieza
-    st.write("📂 Se han guardado dos archivos para depuración: 'df_raw.csv' y 'df_cleaned.csv'.")
     
     return df_transformed
 
