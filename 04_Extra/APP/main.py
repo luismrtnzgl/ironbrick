@@ -82,7 +82,7 @@ st.write("✅ Dataframe final de identificación (primeras filas):", df_identifi
 st.write("📏 Dimensiones finales:", df_identification.shape)
 
 if df_identification.empty:
-    st.error("❌ El dataframe de identificación está vacío después del procesamiento.")
+    st.error("❌ El dataframe  de identificación está vacío después del procesamiento.")
 else:
     st.success("✅ El dataframe tiene datos correctamente.")
     st.dataframe(df_identification)  # Mostrar en pantalla
