@@ -29,11 +29,11 @@ df_sorted = df.sort_values(by=['Number', 'PriceDate'])
 df_sorted['PriceIndex'] = df_sorted.groupby('Number').cumcount()
 df_transformed = df_sorted.pivot(index=['Number', 'SetName', 'Theme', 'Year', 'Pieces', 
                                         'RetailPriceUSD', 'CurrentValueNew', 'ForecastValueNew2Y', 
-                                        'ForecastValueNew5Y', 'URL'],
+                                        'ForecastValueNew5Y'],
                                  columns='PriceIndex', values='PriceValue').reset_index()
 df_transformed.columns = [f'Price_{col+1}' if isinstance(col, int) else col for col in df_transformed.columns]
 price_columns = [f'Price_{i}' for i in range(1, 13)]
-df_transformed = df_transformed[['Number', 'SetName', 'Theme', 'Year', 'Pieces', 'RetailPriceUSD', 'CurrentValueNew', 'ForecastValueNew2Y', 'ForecastValueNew5Y', 'URL'] + price_columns]
+df_transformed = df_transformed[['Number', 'SetName', 'Theme', 'Year', 'Pieces', 'RetailPriceUSD', 'CurrentValueNew', 'ForecastValueNew2Y', 'ForecastValueNew5Y'] + price_columns]
 df_transformed[price_columns] = df_transformed[price_columns].fillna(0)
 df_transformed.loc[:, 'Pieces'] = df_transformed['Pieces'].fillna(0)
 df_transformed.loc[:, 'RetailPriceUSD'] = df_transformed['RetailPriceUSD'].fillna(0)
@@ -58,8 +58,8 @@ model_5y = load_model(pkl_path_5y)
 st.success("✅ Modelos cargados correctamente.")
 
 # 📌 Generar predicciones
-df_identification = df_transformed[['Number', 'SetName', 'Theme', 'CurrentValueNew', 'URL']].copy()
-df_model = df_transformed.drop(columns=['Number', 'SetName', 'Theme', 'URL'], errors='ignore').copy()
+df_identification = df_transformed[['Number', 'SetName', 'Theme', 'CurrentValueNew']].copy()
+df_model = df_transformed.drop(columns=['Number', 'SetName', 'Theme'], errors='ignore').copy()
 df_model = pd.get_dummies(df_model, drop_first=True)
 expected_columns = model_2y.feature_names_in_
 for col in expected_columns:
@@ -80,7 +80,7 @@ presupuesto = st.sidebar.slider("💰 Presupuesto máximo ($)", min_value=10, ma
 
 # 📌 Función para generar combinaciones de inversión
 def encontrar_mejores_inversiones(df, presupuesto, num_opciones=3):
-    sets_lista = df[['SetName', 'CurrentValueNew', 'PredictedValue2Y', 'PredictedValue5Y', 'ROI_2Y', 'ROI_5Y', 'URL']].values.tolist()
+    sets_lista = df[['SetName', 'CurrentValueNew', 'PredictedValue2Y', 'PredictedValue5Y', 'ROI_2Y', 'ROI_5Y']].values.tolist()
     mejores_combinaciones = []
     
     for r in [1, 3, 5]:  # Combinaciones de 1, 3 y 5 sets
@@ -109,6 +109,6 @@ if st.sidebar.button("🔍 Buscar inversiones óptimas"):
             st.write(f"📈 **Rentabilidad estimada en 2 años:** {((ret_2y - precio) / precio) * 100:.2f}%")
             st.write(f"🚀 **Rentabilidad estimada en 5 años:** {((ret_5y - precio) / precio) * 100:.2f}%")
             st.write("🧩 **Sets incluidos:**")
-            for set_name, price, _, _, roi_2y, roi_5y, img_url in combo:
-                st.image(img_url, caption=f"{set_name} (${price:.2f})\nROI 2Y: {roi_2y:.2f}% | ROI 5Y: {roi_5y:.2f}%", width=200)
+            for set_name, price, _, _, roi_2y, roi_5y in combo:
+                st.write(f"- {set_name} (${price:.2f}) | ROI 2Y: {roi_2y:.2f}% | ROI 5Y: {roi_5y:.2f}%")
             st.write("---")
