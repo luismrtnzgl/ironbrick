@@ -90,8 +90,8 @@ st.write("Este gráfico muestra la rentabilidad porcentual estimada en 2 y 5 añ
 
 st.dataframe(
     df_rentabilidad_temas.style.format({"Rentabilidad2Y": "{:.2f}%", "Rentabilidad5Y": "{:.2f}%", "TotalSets": "{:.0f}"}),
-    height=300,  # Altura ajustable para permitir el scroll
-    use_container_width=True  # Hace que la tabla ocupe todo el ancho
+    height=250,  # Altura ajustable
+    use_container_width=True  # Tabla ocupe todo el ancho
 )
 
 # 📌 Selección de temas
