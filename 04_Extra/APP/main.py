@@ -80,7 +80,7 @@ if "Todos" in temas_seleccionados:
     temas_seleccionados = temas_disponibles  # Si el usuario selecciona "Todos", incluir todos los temas
 
 # 📌 Filtro por presupuesto
-presupuesto = st.slider("Presupuesto máximo ($)", min_value=10, max_value=1000, value=200)
+presupuesto = st.slider("Presupuesto máximo ($)", min_value=100, max_value=2000, value=200)
 
 # 📌 Filtrar el dataframe
 df_filtrado = df_identification[df_identification["Theme"].isin(temas_seleccionados)]
