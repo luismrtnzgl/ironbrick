@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import pickle
 import itertools
+import matplotlib.pyplot as plt
 
 # 📌 Obtener la ruta del archivo CSV
 BASE_DIR = os.getcwd()
@@ -72,7 +73,28 @@ title = "🎯 Recomendador de inversión en sets de LEGO retirados"
 st.title(title)
 st.write("Este recomendador te ayuda a encontrar las mejores combinaciones de sets de LEGO retirados para invertir, basándose en su revalorización futura estimada. Puedes seleccionar los temas que más te interesan y un presupuesto, y recibirás las mejores combinaciones de inversión optimizadas.")
 
+# 📌 Calcular rentabilidad media por tema
+df_rentabilidad_temas = df_identification.groupby("Theme")[["PredictedValue2Y", "PredictedValue5Y"]].mean().reset_index()
+df_rentabilidad_temas = df_rentabilidad_temas.sort_values(by="PredictedValue5Y", ascending=False)
+
+# 📌 Mostrar rentabilidad media por tema
+st.subheader("📊 Rentabilidad media por tema")
+st.write("Esta tabla muestra la rentabilidad media estimada en 2 y 5 años para cada tema de LEGO, basada en los modelos de predicción.")
+
+st.dataframe(df_rentabilidad_temas.style.format({"PredictedValue2Y": "${:.2f}", "PredictedValue5Y": "${:.2f}"}))
+
+# 📌 Gráfico de rentabilidad por tema
+st.subheader("📈 Gráfico de rentabilidad media por tema")
+fig, ax = plt.subplots(figsize=(10, 5))
+ax.barh(df_rentabilidad_temas["Theme"], df_rentabilidad_temas["PredictedValue5Y"], color='skyblue')
+ax.set_xlabel("Valor estimado en 5 años ($)")
+ax.set_ylabel("Tema")
+ax.set_title("Rentabilidad estimada en 5 años por tema")
+ax.invert_yaxis()
+st.pyplot(fig)
+
 # 📌 Selección múltiple de temas con opción de seleccionar todos
+st.subheader("🎯 Selecciona tus temas de interés")
 temas_disponibles = sorted(df_identification["Theme"].unique())
 temas_seleccionados = st.multiselect("Selecciona los temas de interés", ["Todos"] + temas_disponibles, default=["Todos"])
 
@@ -94,7 +116,7 @@ def encontrar_mejores_inversiones(df, presupuesto, num_opciones=3):
     sets_lista = df[['SetName', 'CurrentValueNew', 'PredictedValue2Y', 'PredictedValue5Y']].values.tolist()
     mejores_combinaciones = []
     
-    for r in range(1, 6):  # Limitar a combinaciones de 1 a 5 sets para optimizar tiempo
+    for r in range(1, 5):  
         for combinacion in itertools.combinations(sets_lista, r):
             total_precio = sum(item[1] for item in combinacion)
             retorno_2y = sum(item[2] for item in combinacion)
@@ -119,7 +141,6 @@ if st.button("🔍 Buscar inversiones óptimas"):
             st.write(f"💵 **Total de la inversión:** ${precio:.2f}")
             st.write(f"📈 **Valor estimado en 2 años:** ${ret_2y:.2f}")
             st.write(f"🚀 **Valor estimado en 5 años:** ${ret_5y:.2f}")
-            st.write("🧩 **Sets incluidos:**")
             for set_name, price, _, _ in combo:
                 st.write(f"- {set_name} (${price:.2f})")
             st.write("---")
