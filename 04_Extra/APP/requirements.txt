@@ -1,6 +1,7 @@
 streamlit
 pandas
 numpy
-xgboost
 scikit-learn
-pickle5
+xgboost
+requests
+plotly
