@@ -68,38 +68,40 @@ df_model = df_model[expected_columns]
 df_identification.loc[:, 'PredictedValue2Y'] = model_2y.predict(df_model)
 df_identification.loc[:, 'PredictedValue5Y'] = model_5y.predict(df_model)
 
+# 📌 Calcular rentabilidad porcentual por tema
+df_identification["Rentabilidad2Y"] = ((df_identification["PredictedValue2Y"] - df_identification["CurrentValueNew"]) / df_identification["CurrentValueNew"]) * 100
+df_identification["Rentabilidad5Y"] = ((df_identification["PredictedValue5Y"] - df_identification["CurrentValueNew"]) / df_identification["CurrentValueNew"]) * 100
+
+df_rentabilidad_temas = df_identification.groupby("Theme")[["Rentabilidad2Y", "Rentabilidad5Y"]].mean().reset_index()
+df_rentabilidad_temas = df_rentabilidad_temas.sort_values(by="Rentabilidad5Y", ascending=False)
+
 # 📌 Título y descripción
-title = "🎯 Recomendador de inversión en sets de LEGO retirados"
-st.title(title)
-st.write("Este recomendador te ayuda a encontrar las mejores combinaciones de sets de LEGO retirados para invertir, basándose en su revalorización futura estimada. Puedes seleccionar los temas que más te interesan y un presupuesto, y recibirás las mejores combinaciones de inversión optimizadas.")
+st.title("🎯 Recomendador de inversión en sets de LEGO retirados")
+st.write("Este recomendador te ayuda a encontrar las mejores combinaciones de sets de LEGO retirados para invertir, basándose en su rentabilidad futura.")
 
-# 📌 Calcular rentabilidad media por tema
-df_rentabilidad_temas = df_identification.groupby("Theme")[["PredictedValue2Y", "PredictedValue5Y"]].mean().reset_index()
-df_rentabilidad_temas = df_rentabilidad_temas.sort_values(by="PredictedValue5Y", ascending=False)
+# 📌 Mostrar rentabilidad media porcentual por tema
+st.subheader("📊 Rentabilidad media porcentual por tema")
+st.write("Este gráfico muestra la rentabilidad porcentual estimada en 2 y 5 años para cada tema de LEGO.")
 
-# 📌 Mostrar rentabilidad media por tema
-st.subheader("📊 Rentabilidad media por tema")
-st.write("Esta tabla muestra la rentabilidad media estimada en 2 y 5 años para cada tema de LEGO, basada en los modelos de predicción.")
-
-st.dataframe(df_rentabilidad_temas.style.format({"PredictedValue2Y": "${:.2f}", "PredictedValue5Y": "${:.2f}"}))
+st.dataframe(df_rentabilidad_temas.style.format({"Rentabilidad2Y": "{:.2f}%", "Rentabilidad5Y": "{:.2f}%"}))
 
 # 📌 Gráfico de rentabilidad por tema
-st.subheader("📈 Gráfico de rentabilidad media por tema")
+st.subheader("📈 Rentabilidad porcentual media por tema")
 fig, ax = plt.subplots(figsize=(10, 5))
-ax.barh(df_rentabilidad_temas["Theme"], df_rentabilidad_temas["PredictedValue5Y"], color='skyblue')
-ax.set_xlabel("Valor estimado en 5 años ($)")
+ax.barh(df_rentabilidad_temas["Theme"], df_rentabilidad_temas["Rentabilidad5Y"], color='lightblue')
+ax.set_xlabel("Rentabilidad estimada en 5 años (%)")
 ax.set_ylabel("Tema")
 ax.set_title("Rentabilidad estimada en 5 años por tema")
 ax.invert_yaxis()
 st.pyplot(fig)
 
-# 📌 Selección múltiple de temas con opción de seleccionar todos
+# 📌 Selección de temas
 st.subheader("🎯 Selecciona tus temas de interés")
 temas_disponibles = sorted(df_identification["Theme"].unique())
 temas_seleccionados = st.multiselect("Selecciona los temas de interés", ["Todos"] + temas_disponibles, default=["Todos"])
 
 if "Todos" in temas_seleccionados:
-    temas_seleccionados = temas_disponibles  # Si el usuario selecciona "Todos", incluir todos los temas
+    temas_seleccionados = temas_disponibles  
 
 # 📌 Filtro por presupuesto
 presupuesto = st.slider("Presupuesto máximo ($)", min_value=100, max_value=2000, value=200, step=10)
@@ -111,7 +113,7 @@ df_filtrado = df_filtrado[df_filtrado["CurrentValueNew"] <= presupuesto]
 # 📌 Optimización: Seleccionar los 10 mejores sets primero
 df_top_sets = df_filtrado.sort_values(by="PredictedValue5Y", ascending=False).head(10)
 
-# 📌 Generar combinaciones de inversión más eficientes
+# 📌 Buscar combinaciones óptimas de inversión
 def encontrar_mejores_inversiones(df, presupuesto, num_opciones=3):
     sets_lista = df[['SetName', 'CurrentValueNew', 'PredictedValue2Y', 'PredictedValue5Y']].values.tolist()
     mejores_combinaciones = []
@@ -119,16 +121,15 @@ def encontrar_mejores_inversiones(df, presupuesto, num_opciones=3):
     for r in range(1, 5):  
         for combinacion in itertools.combinations(sets_lista, r):
             total_precio = sum(item[1] for item in combinacion)
-            retorno_2y = sum(item[2] for item in combinacion)
             retorno_5y = sum(item[3] for item in combinacion)
             
             if total_precio <= presupuesto:
-                mejores_combinaciones.append((combinacion, retorno_2y, retorno_5y, total_precio))
+                mejores_combinaciones.append((combinacion, retorno_5y, total_precio))
     
-    mejores_combinaciones.sort(key=lambda x: x[2], reverse=True)
+    mejores_combinaciones.sort(key=lambda x: x[1], reverse=True)
     return mejores_combinaciones[:num_opciones]
 
-# 📌 Mostrar las mejores opciones de inversión
+# 📌 Mostrar inversiones óptimas
 if st.button("🔍 Buscar inversiones óptimas"):
     opciones = encontrar_mejores_inversiones(df_top_sets, presupuesto)
     
@@ -136,11 +137,5 @@ if st.button("🔍 Buscar inversiones óptimas"):
         st.warning("⚠️ No se encontraron combinaciones dentro de tu presupuesto.")
     else:
         st.subheader("💡 Mejores opciones de inversión")
-        for i, (combo, ret_2y, ret_5y, precio) in enumerate(opciones, 1):
-            st.write(f"**Opción {i}:**")
-            st.write(f"💵 **Total de la inversión:** ${precio:.2f}")
-            st.write(f"📈 **Valor estimado en 2 años:** ${ret_2y:.2f}")
-            st.write(f"🚀 **Valor estimado en 5 años:** ${ret_5y:.2f}")
-            for set_name, price, _, _ in combo:
-                st.write(f"- {set_name} (${price:.2f})")
-            st.write("---")
+        for i, (combo, ret_5y, precio) in enumerate(opciones, 1):
+            st.write(f"**Opción {i}:** 💵 Inversión: ${precio:.2f} 🚀 Rentabilidad 5Y: {ret_5y:.2f}%")
