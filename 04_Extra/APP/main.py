@@ -38,7 +38,6 @@ price_columns = [f'Price_{i}' for i in range(1, 13)]
 dias = [-15 * i for i in range(1, 13)]  # -15, -30, -45, ..., -180
 renamed_columns = {f'Price_{i}': f"{dias[i-1]} días" for i in range(1, 13)}
 
-# 📌 Mantener el dataframe sin cambios pero usar nombres alternativos en el gráfico
 df_transformed.fillna(0, inplace=True)
 
 # 📌 Cargar modelos de predicción
@@ -68,6 +67,24 @@ for col in expected_columns:
 df_model = df_model[expected_columns]
 df_identification.loc[:, 'PredictedValue2Y'] = model_2y.predict(df_model)
 df_identification.loc[:, 'PredictedValue5Y'] = model_5y.predict(df_model)
+
+# 📌 Calcular rentabilidad porcentual por tema
+df_identification["Rentabilidad2Y"] = ((df_identification["PredictedValue2Y"] - df_identification["CurrentValueNew"]) / df_identification["CurrentValueNew"]) * 100
+df_identification["Rentabilidad5Y"] = ((df_identification["PredictedValue5Y"] - df_identification["CurrentValueNew"]) / df_identification["CurrentValueNew"]) * 100
+
+df_rentabilidad_temas = df_identification.groupby("Theme").agg(
+    TotalSets=('Theme', 'count'),  
+    Rentabilidad2Y=('Rentabilidad2Y', 'mean'),
+    Rentabilidad5Y=('Rentabilidad5Y', 'mean')
+).reset_index()
+
+df_rentabilidad_temas = df_rentabilidad_temas.sort_values(by="Rentabilidad5Y", ascending=False)
+
+# 📌 Mostrar rentabilidad media porcentual por tema con total de sets
+st.subheader("📊 Rentabilidad media porcentual por tema")
+st.write("Este gráfico muestra la rentabilidad porcentual estimada en 2 y 5 años para cada tema de LEGO, junto con el número total de sets disponibles en cada tema.")
+
+st.dataframe(df_rentabilidad_temas.style.format({"Rentabilidad2Y": "{:.2f}%", "Rentabilidad5Y": "{:.2f}%", "TotalSets": "{:.0f}"}))
 
 # 📌 Selección de temas
 st.subheader("🎯 Selecciona tus temas de interés")
@@ -128,5 +145,11 @@ if st.button("🔍 Buscar inversiones óptimas"):
         st.warning("⚠️ No se encontraron combinaciones dentro de tu presupuesto.")
     else:
         st.subheader("💡 Mejores opciones de inversión")
-        for i, (combo, ret_5y, precio) in enumerate(opciones, 1):
-            st.write(f"**Opción {i}:** 💵 Inversión: ${precio:.2f} 🚀 Rentabilidad 5Y: {ret_5y:.2f}%")
+        for i, (combo, ret_2y, ret_5y, precio) in enumerate(opciones, 1):
+            st.write(f"**Opción {i}:**")
+            st.write(f"💵 **Total de la inversión:** ${precio:.2f}")
+            st.write(f"📈 **Valor estimado en 2 años:** ${ret_2y:.2f}")
+            st.write(f"🚀 **Valor estimado en 5 años:** ${ret_5y:.2f}")
+            for set_name, price, _, _ in combo:
+                st.write(f"- {set_name} (${price:.2f})")
+            st.write("---")
