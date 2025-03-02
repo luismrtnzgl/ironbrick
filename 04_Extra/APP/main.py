@@ -75,6 +75,9 @@ df_identification["ROI_5Y"] = ((df_identification["PredictedValue5Y"] - df_ident
 
 st.success("✅ Predicciones generadas correctamente.")
 
+# 📌 Filtro por presupuesto en la barra lateral
+presupuesto = st.sidebar.slider("💰 Presupuesto máximo ($)", min_value=10, max_value=1000, value=200)
+
 # 📌 Función para generar combinaciones de inversión
 def encontrar_mejores_inversiones(df, presupuesto, num_opciones=3):
     sets_lista = df[['SetName', 'CurrentValueNew', 'PredictedValue2Y', 'PredictedValue5Y', 'ROI_2Y', 'ROI_5Y', 'URL']].values.tolist()
