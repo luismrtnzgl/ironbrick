@@ -114,10 +114,6 @@ def process_lego_data(df_lego):
     df_lego['YearsSinceExit'] = df_lego['YearsSinceExit'].fillna(0).astype(int)
     df_lego['YearsSinceExit'] = df_lego['YearsSinceExit'].fillna(0).astype(int)
 
-    
-    # Calcular la mediana de Lifespan por Theme, excluyendo valores nulos
-    median_lifespan_by_theme = df_lego.groupby('Theme')['Lifespan'].median().replace(0, np.nan)
-    
     # Calcular el porcentaje de cambio de precio entre el precio de venta en BrickLink y en la web de LEGO
     df_lego['PriceChange'] = ((df_lego['BrickLinkSoldPriceNew'] - df_lego['USRetailPrice']) / df_lego['USRetailPrice']) * 100
     df_lego['PriceChange'] = df_lego['PriceChange'].fillna(0)
