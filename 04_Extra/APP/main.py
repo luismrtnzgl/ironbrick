@@ -89,7 +89,7 @@ st.subheader("📊 Rentabilidad media porcentual por tema")
 st.write("Este cuadro muestra la rentabilidad media estimada de los sets nuevos en 2 y 5 años para cada tema de LEGO, junto con el número total de sets evaluados en cada tema.")
 
 st.dataframe(
-    df_rentabilidad_temas.style.format({"Rentabilidad2Y": "{:.2f}%", "Rentabilidad5Y": "{:.2f}%", "TotalSets": "{:.0f}"}),
+    df_rentabilidad_temas.style.format({"Rentabilidad a 2 años": "{:.2f}%", "Rentabilidad a 5 años": "{:.2f}%", "Total Sets": "{:.0f}"}),
     height=250,  # Altura ajustable
     use_container_width=True  # Tabla ocupe todo el ancho
 )
