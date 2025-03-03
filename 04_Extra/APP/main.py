@@ -153,6 +153,6 @@ if st.button("🔍 Buscar inversiones óptimas"):
                 image_url = f"https://images.brickset.com/sets/images/{set_number}.jpg"
                 
                 with col:
-                    st.image(image_url, caption=f"**{set_name}**\n📌 **Set {set_number}**\n💵 ${price:.2f}", use_column_width=True)
+                    st.image(image_url, caption=f"**{set_name}**\n📌 **Set {set_number}**\n💵 ${price:.2f}", use_container_width=True)
 
             st.write("---")
