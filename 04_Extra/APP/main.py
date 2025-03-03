@@ -131,7 +131,7 @@ def encontrar_mejores_inversiones(df, presupuesto, num_opciones=3):
     return mejores_combinaciones[:num_opciones]
 
 
-# 📌 Mostrar inversiones óptimas con imágenes, número y precio en líneas separadas
+# 📌 Mostrar inversiones óptimas con imágenes y texto centrado
 if st.button("🔍 Buscar inversiones óptimas"):
     opciones = encontrar_mejores_inversiones(df_top_sets, presupuesto)
     
@@ -146,16 +146,23 @@ if st.button("🔍 Buscar inversiones óptimas"):
             st.write(f"🚀 **Valor estimado en 5 años:** ${ret_5y:.2f}")
             st.write("🧩 **Sets incluidos:**")
 
-            # 📌 Mostrar sets con imágenes y datos en líneas separadas
+            # 📌 Mostrar sets con imágenes y datos centrados
             cols = st.columns(len(combo))  # Crear columnas dinámicas para mostrar imágenes
             for col, (set_name, price, _, _) in zip(cols, combo):
                 set_number = df_top_sets[df_top_sets["SetName"] == set_name]["Number"].values[0]  # Obtener el número del set
                 image_url = f"https://images.brickset.com/sets/images/{set_number}.jpg"
                 
                 with col:
-                    st.image(image_url, use_column_width=True)  # Mostrar la imagen
-                    st.markdown(f"**{set_name}**")  # Nombre del set en negrita
-                    st.markdown(f"📌 **Set {set_number}**")  # Número del set
-                    st.markdown(f"💵 **${price:.2f}**")  # Precio del set
+                    st.image(image_url, use_container_width=True)  # Mostrar la imagen
+                    st.markdown(
+                        f"""
+                        <div style="text-align: center;">
+                            <strong>{set_name}</strong><br>
+                            📌 <strong>Set {set_number}</strong><br>
+                            💵 <strong>${price:.2f}</strong>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
 
             st.write("---")
