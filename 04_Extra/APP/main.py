@@ -131,7 +131,7 @@ def encontrar_mejores_inversiones(df, presupuesto, num_opciones=3):
     return mejores_combinaciones[:num_opciones]
 
 
-# 📌 Mostrar inversiones óptimas
+# 📌 Mostrar inversiones óptimas con imágenes
 if st.button("🔍 Buscar inversiones óptimas"):
     opciones = encontrar_mejores_inversiones(df_top_sets, presupuesto)
     
@@ -145,6 +145,13 @@ if st.button("🔍 Buscar inversiones óptimas"):
             st.write(f"📈 **Valor estimado en 2 años:** ${ret_2y:.2f}")
             st.write(f"🚀 **Valor estimado en 5 años:** ${ret_5y:.2f}")
             st.write("🧩 **Sets incluidos:**")
-            for set_name, price, _, _ in combo:
-                st.write(f"- {set_name} (${price:.2f})")
+
+            # 📌 Mostrar sets con imágenes
+            cols = st.columns(len(combo))  # Crear columnas dinámicas para mostrar imágenes
+            for col, (set_name, price, _, _) in zip(cols, combo):
+                set_number = df_top_sets[df_top_sets["SetName"] == set_name]["Number"].values[0]  # Obtener el número del set
+                image_url = f"https://images.brickset.com/sets/images/{set_number}.jpg"
+                with col:
+                    st.image(image_url, caption=f"{set_name}\n${price:.2f}", use_column_width=True)
+
             st.write("---")
