@@ -78,6 +78,7 @@ if st.button("Generar Predicción"):
                     'PricePerMinifig', 'YearsOnMarket', 'InteractionFeature']
 
     # ✅ Corregir la predicción para evitar los warnings de sklearn
+    df_filtrado = df_filtrado.copy()
     df_filtrado.loc[:, "PredictedInvestmentScore"] = model.predict(df_filtrado[features].values)
 
     st.success("✅ PredictedInvestmentScore generado correctamente.")
