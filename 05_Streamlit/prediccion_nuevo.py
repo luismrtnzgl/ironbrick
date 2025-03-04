@@ -54,7 +54,7 @@ st.subheader("Configura tu Inversión en LEGO")
 presupuesto_min, presupuesto_max = st.slider("Selecciona el rango de presupuesto (USD)", 
                                              min_value=10, max_value=1500, value=(10, 200), step=10)
 
-themes_options = ["Todos"] + sorted(df_ranking["Theme"].unique().tolist())
+themes_options = ["Todos"] + sorted(df_ranking[df_ranking["PredictedInvestmentScore"] > 1]["Theme"].unique().tolist())
 selected_themes = st.multiselect("Selecciona los Themes de Interés", themes_options, default=["Todos"])
 
 df_filtrado = df_ranking if "Todos" in selected_themes else df_ranking[df_ranking["Theme"].isin(selected_themes)]
