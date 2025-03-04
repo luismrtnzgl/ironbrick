@@ -70,9 +70,9 @@ if st.button("Generar Predicciones"):
     if "PredictedInvestmentScore" not in df_filtrado.columns:
         st.warning("⚠️ No se encontró 'PredictedInvestmentScore', aplicando modelo...")
         model = load_model()
-        features = ['USRetailPrice', 'Pieces', 'Minifigs', 'ResaleDemand', 
+        features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit', 'ResaleDemand', 
                     'AnnualPriceIncrease', 'Exclusivity', 'SizeCategory', 'PricePerPiece', 
-                    'PricePerMinifig', 'YearsOnMarket']
+                    'PricePerMinifig', 'YearsOnMarket', 'InteractionFeature']
         df_filtrado["PredictedInvestmentScore"] = model.predict(df_filtrado[features])
         st.success("✅ PredictedInvestmentScore generado correctamente.")
     
