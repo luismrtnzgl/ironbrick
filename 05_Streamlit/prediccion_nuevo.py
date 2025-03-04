@@ -43,9 +43,16 @@ df_ranking = load_data()
 
 st.title("Plataforma de Recomendación de Inversión en LEGO 📊")
 
+st.markdown("""
+### Código de Color para Evaluación de Riesgo:
+- 🟢 **Verde**: Baja probabilidad de pérdida, inversión segura.
+- 🟡 **Amarillo**: Riesgo medio, potencial de revalorización con incertidumbre.
+- 🔴 **Rojo**: Riesgo alto, posibilidad de baja rentabilidad.
+"""")
+
 st.subheader("Configura tu Inversión en LEGO")
 presupuesto_min, presupuesto_max = st.slider("Selecciona el rango de presupuesto (USD)", 
-                                             min_value=10, max_value=1000, value=(10, 200), step=10)
+                                             min_value=10, max_value=1500, value=(10, 200), step=10)
 
 themes_options = ["Todos"] + sorted(df_ranking["Theme"].unique().tolist())
 selected_themes = st.multiselect("Selecciona los Themes de Interés", themes_options, default=["Todos"])
@@ -92,8 +99,9 @@ if st.button("Generar Predicciones"):
                 </div>
             """, unsafe_allow_html=True)
             st.image(get_lego_image(row["Number"]), width=150)
+st.markdown("<div style='margin-bottom:10px'></div>", unsafe_allow_html=True)
             st.write(f"💰 **Precio:** ${row['USRetailPrice']:.2f}")
             st.write(f"📊 **Predicted Investment Score:** {row['PredictedInvestmentScore']:.2f}")
             url_lego = f"https://www.lego.com/en-us/product/{row['Number']}"
-            st.markdown(f"[🛒 Comprar en LEGO]({url_lego})", unsafe_allow_html=True)
+            st.button("🛒 Comprar en LEGO", key=f"buy_{row['Number']}", on_click=lambda: st.markdown(f'<meta http-equiv="refresh" content="0; url={url_lego}" />', unsafe_allow_html=True))
             st.write("---")
