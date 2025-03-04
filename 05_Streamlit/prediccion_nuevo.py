@@ -5,7 +5,28 @@ import joblib
 import os
 import plotly.express as px
 
-# 🔹 Definir rutas absolutas para Streamlit Cloud
+# 🔹 Función de preprocesamiento (la misma que usaste en el entrenamiento)
+def preprocess_data(df):
+    df = df[df['USRetailPrice'] > 0].copy()
+
+    exclusivity_mapping = {'Regular': 0, 'Exclusive': 1}
+    df.loc[:, 'Exclusivity'] = df['Exclusivity'].map(exclusivity_mapping)
+
+    size_category_mapping = {'Small': 0, 'Medium': 1, 'Large': 2}
+    df.loc[:, 'SizeCategory'] = df['SizeCategory'].map(size_category_mapping)
+
+    df.loc[:, "PricePerPiece"] = df["USRetailPrice"] / df["Pieces"]
+    df.loc[:, "PricePerMinifig"] = np.where(df["Minifigs"] > 0, df["USRetailPrice"] / df["Minifigs"], 0)
+    df.loc[:, "YearsOnMarket"] = df["ExitYear"] - df["LaunchYear"]
+    df.loc[:, "InteractionFeature"] = df["PricePerPiece"] * df["YearsOnMarket"]
+
+    df.replace([np.inf, -np.inf], np.nan, inplace=True)
+    numeric_cols = df.select_dtypes(include=[np.number]).columns
+    df.loc[:, numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].median())
+
+    return df
+
+# 🔹 Definir rutas absolutas
 BASE_DIR = os.path.dirname(__file__)
 MODEL_PATH = os.path.join(BASE_DIR, "models/stacking_model_compressed.pkl")
 DATA_PATH = os.path.join(BASE_DIR, "data/df_lego_final_venta.csv")
@@ -15,12 +36,15 @@ DATA_PATH = os.path.join(BASE_DIR, "data/df_lego_final_venta.csv")
 def load_model():
     return joblib.load(MODEL_PATH)
 
-# 🔹 Cargar y preprocesar los datos
+# 🔹 Cargar y procesar los datos
 @st.cache_data
 def load_data():
     df = pd.read_csv(DATA_PATH)
 
-    # Verificar si el modelo genera "PredictedInvestmentScore"
+    # 🔹 Aplicar preprocesamiento para asegurar que las columnas necesarias existen
+    df = preprocess_data(df)
+
+    # 🔹 Verificar si el modelo genera "PredictedInvestmentScore"
     if "PredictedInvestmentScore" not in df.columns:
         st.warning("⚠️ No se encontró 'PredictedInvestmentScore', aplicando modelo...")
         model = load_model()
