@@ -117,21 +117,22 @@ if st.button("Generar Predicción"):
     # 🔹 Mostrar opciones de inversión en columnas
     for i, df_opcion in enumerate(opciones):
         if not df_opcion.empty:
-            cols = st.columns(len(df_opcion))  # Crear columnas dinámicas
+            num_sets = len(df_opcion)  # Cantidad de sets en la opción
+            cols = st.columns(num_sets)  # Crear exactamente el número de columnas necesarias
 
             for idx, row in df_opcion.iterrows():
-                with cols[idx]:
-                    set_number = row["Number"]
-                    image_url = get_brickset_image(set_number)
-                    lego_url = row["LEGO_URL"]  # Enlace a la tienda de LEGO
+                if idx < num_sets:  # Evita IndexError asegurando que idx no supere cols
+                    with cols[idx]:
+                        set_number = row["Number"]
+                        image_url = f"https://images.brickset.com/sets/images/{set_number}-1.jpg"
+                        lego_url = row["LEGO_URL"]  # Enlace a la tienda de LEGO
 
-                    st.image(image_url, width=150)
-                    st.markdown(f"### {row['SetName']}")
-                    st.write(f"💰 **Precio:** ${row['USRetailPrice']:.2f}")
-                    st.markdown(f"""
-                        <div style='background-color:{get_color(row["PredictedInvestmentScore"])}; padding:10px; border-radius:5px; text-align:center;'>
-                            <strong>Investment Score: {row["PredictedInvestmentScore"]:.2f}</strong>
-                        </div>
-                    """, unsafe_allow_html=True)
-                    st.markdown(f"[🛒 Comprar en LEGO]({lego_url})", unsafe_allow_html=True)
-                    st.markdown(f"[🧩 Detalles en Brickset](https://brickset.com/sets/{set_number}-1)", unsafe_allow_html=True)
+                        st.image(image_url, width=150)
+                        st.markdown(f"### {row['SetName']}")
+                        st.write(f"💰 **Precio:** ${row['USRetailPrice']:.2f}")
+                        st.markdown(f"""
+                            <div style='background-color:{get_color(row["PredictedInvestmentScore"])}; padding:10px; border-radius:5px; text-align:center;'>
+                                <strong>Investment Score: {row["PredictedInvestmentScore"]:.2f}</strong>
+                            </div>
+                        """, unsafe_allow_html=True)
+                        st.markdown(f"[🛒 Comprar en LEGO]({lego_url})", unsafe_allow_html=True)
