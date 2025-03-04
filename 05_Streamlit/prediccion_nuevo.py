@@ -54,9 +54,9 @@ for i, opcion in enumerate(opciones):
         color = colores[0] if score_promedio < 8 else colores[1] if score_promedio < 15 else colores[2]
         st.markdown(f"### Opción {i+1} - Inversión Total: ${df_opcion['USRetailPrice'].sum():.2f}")
         st.dataframe(df_opcion[["SetName", "Theme", "USRetailPrice", "PredictedInvestmentScore"]])
-        st.markdown(f"<div style='background-color:{color}; padding:10px; border-radius:5px; text-align:center;'>
-                    Score Promedio: {score_promedio:.2f}
-                    </div>", unsafe_allow_html=True)
+        st.markdown(f"""<div style='background-color:{color}; padding:10px; border-radius:5px; text-align:center;'>
+        <strong>Score Promedio: {score_promedio:.2f}</strong></div>""", unsafe_allow_html=True)
+
 
 # Visualización de los mejores sets
 st.subheader("Top 10 Sets con Mejor Potencial de Inversión")
