@@ -1,4 +1,4 @@
-# Ignora archivos del sistema Mac 
+# Ignora archivos del sistema Mac
 .DS_store
 .env
 
@@ -7,3 +7,6 @@
 /04_Extra/ID/IMAGES
 /04_Extra/ID/IMAGES_PREPROC
 /04_Extra/ID/IMAGES_PREPROC2
+
+#Ignora .env de la carpeta ERV
+/13_ERV/.env
