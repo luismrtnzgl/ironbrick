@@ -54,7 +54,7 @@ st.subheader("Configura tu Inversión en LEGO")
 presupuesto_min, presupuesto_max = st.slider("Selecciona el rango de presupuesto (USD)", 
                                              min_value=10, max_value=1500, value=(10, 200), step=10)
 
-themes_options = ["Todos"] + sorted(df_ranking[df_ranking["PredictedInvestmentScore"] > 1]["Theme"].unique().tolist())
+themes_options = ["Todos"] + sorted(df_ranking["Theme"].unique().tolist())
 selected_themes = st.multiselect("Selecciona los Themes de Interés", themes_options, default=["Todos"])
 
 df_filtrado = df_ranking if "Todos" in selected_themes else df_ranking[df_ranking["Theme"].isin(selected_themes)]
@@ -84,7 +84,12 @@ if st.button("Generar Predicciones"):
         if df_filtrado.shape[0] < 3:
             st.warning("⚠️ Menos de 3 sets cumplen con los criterios seleccionados. Mostrando los disponibles.")
         df_filtrado = df_filtrado.sort_values(by="PredictedInvestmentScore", ascending=False).head(3)
-    
+        if df_filtrado.empty:
+            st.error("❌ Según el presupuesto seleccionado y los temas seleccionados, no hay ninguna inversión disponible que cumpla con un mínimo de garantías en la revalorización.")
+        else:
+            if df_filtrado.shape[0] < 3:
+                st.warning("⚠️ Menos de 3 sets cumplen con los criterios seleccionados. Mostrando los disponibles.")
+            df_filtrado = df_filtrado.sort_values(by="PredictedInvestmentScore", ascending=False).head(3)
     st.subheader("Top 3 Sets Más Rentables")
     if not df_filtrado.empty:
         cols = st.columns(len(df_filtrado))
