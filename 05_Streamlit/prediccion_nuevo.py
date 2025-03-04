@@ -1,20 +1,34 @@
 import streamlit as st
-import pickle
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import RobustScaler
+import joblib
+import os
 import plotly.express as px
 
-# Cargar el modelo y el preprocesamiento
-with open("03_EDA/stacking_model.pkl", "rb") as model_file:
-    model = pickle.load(model_file)
+# Asegurar rutas absolutas para Streamlit Cloud
+BASE_DIR = os.path.dirname(__file__)
+MODEL_PATH = os.path.join(BASE_DIR, "03_EDA/stacking_model.pkl")
+PREPROCESS_PATH = os.path.join(BASE_DIR, "03_EDA/preprocessing.pkl")
+DATA_PATH = os.path.join(BASE_DIR, "01_Data_Cleaning/df_lego_final_venta.csv")
 
-with open("03_EDA/preprocessing.pkl", "rb") as pre_file:
-    preprocess_function = pickle.load(pre_file)
+# Cargar el modelo y la función de preprocesamiento con joblib
+@st.cache_resource
+def load_model():
+    return joblib.load(MODEL_PATH)
 
-# Cargar y preprocesar el ranking de inversión
-df_ranking = pd.read_csv("01_Data_Cleaning/df_lego_final_venta.csv")
-df_ranking = preprocess_function(df_ranking)
+@st.cache_resource
+def load_preprocessing():
+    return joblib.load(PREPROCESS_PATH)
+
+@st.cache_data
+def load_data():
+    df = pd.read_csv(DATA_PATH)
+    preprocess_function = load_preprocessing()
+    return preprocess_function(df)
+
+# Cargar recursos
+model = load_model()
+df_ranking = load_data()
 
 # Streamlit App
 st.title("Plataforma de Recomendación de Inversión en LEGO 📊")
@@ -52,11 +66,13 @@ for i, opcion in enumerate(opciones):
     if not df_opcion.empty:
         score_promedio = df_opcion["PredictedInvestmentScore"].mean()
         color = colores[0] if score_promedio < 8 else colores[1] if score_promedio < 15 else colores[2]
+        st.markdown(f"""
+            <div style='background-color:{color}; padding:10px; border-radius:5px; text-align:center;'>
+                <strong>Score Promedio: {score_promedio:.2f}</strong>
+            </div>
+        """, unsafe_allow_html=True)
         st.markdown(f"### Opción {i+1} - Inversión Total: ${df_opcion['USRetailPrice'].sum():.2f}")
         st.dataframe(df_opcion[["SetName", "Theme", "USRetailPrice", "PredictedInvestmentScore"]])
-        st.markdown(f"""<div style='background-color:{color}; padding:10px; border-radius:5px; text-align:center;'>
-        <strong>Score Promedio: {score_promedio:.2f}</strong></div>""", unsafe_allow_html=True)
-
 
 # Visualización de los mejores sets
 st.subheader("Top 10 Sets con Mejor Potencial de Inversión")
