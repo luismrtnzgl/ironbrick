@@ -75,13 +75,11 @@ def get_color(score):
 
 if st.button("Generar Predicciones"):
     if "PredictedInvestmentScore" not in df_filtrado.columns:
-        st.warning("⚠️ No se encontró 'PredictedInvestmentScore', aplicando modelo...")
         model = load_model()
         features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit', 'ResaleDemand', 
                     'AnnualPriceIncrease', 'Exclusivity', 'SizeCategory', 'PricePerPiece', 
                     'PricePerMinifig', 'YearsOnMarket', 'InteractionFeature']
         df_filtrado.loc[:, "PredictedInvestmentScore"] = model.predict(df_filtrado[features].values)
-        st.success("✅ PredictedInvestmentScore generado correctamente.")
     
     df_filtrado = df_filtrado[df_filtrado["PredictedInvestmentScore"] > 1]
     if df_filtrado.shape[0] < 3:
@@ -94,14 +92,17 @@ if st.button("Generar Predicciones"):
         with col:
             color = get_color(row["PredictedInvestmentScore"])
             st.markdown(f"""
-                <div style='background-color:{color}; padding:10px; border-radius:5px; text-align:center;'>
+                <div style='background-color:{color}; padding:10px; border-radius:5px; text-align:center; margin-bottom:10px;'>
                     <strong>{row['SetName']}</strong>
                 </div>
             """, unsafe_allow_html=True)
-            st.image(get_lego_image(row["Number"]), width=150)
+            st.markdown(f"""
+                <div style='display: flex; justify-content: center;'>
+                    <img src='{get_lego_image(row["Number"])}' width='100%'>
+                </div>
+            """, unsafe_allow_html=True)
             st.markdown("<div style='margin-bottom:10px'></div>", unsafe_allow_html=True)
             st.write(f"💰 **Precio:** ${row['USRetailPrice']:.2f}")
-            st.write(f"📊 **Predicted Investment Score:** {row['PredictedInvestmentScore']:.2f}")
             url_lego = f"https://www.lego.com/en-us/product/{row['Number']}"
             st.markdown(f'<a href="{url_lego}" target="_blank"><button style="background-color:#FFCC00; border:none; padding:10px; border-radius:5px; cursor:pointer; font-size:14px;">🛒 Comprar en LEGO</button></a>', unsafe_allow_html=True)
             st.write("---")
