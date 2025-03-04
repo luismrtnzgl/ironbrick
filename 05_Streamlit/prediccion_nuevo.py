@@ -80,15 +80,15 @@ if st.button("Generar Predicciones"):
                     'AnnualPriceIncrease', 'Exclusivity', 'SizeCategory', 'PricePerPiece', 
                     'PricePerMinifig', 'YearsOnMarket', 'InteractionFeature']
         df_filtrado.loc[:, "PredictedInvestmentScore"] = model.predict(df_filtrado[features].values)
-    
-    df_filtrado = df_filtrado[df_filtrado["PredictedInvestmentScore"] > 1]
-    if df_filtrado.shape[0] < 3:
-        st.warning("⚠️ Menos de 3 sets cumplen con los criterios seleccionados. Mostrando los disponibles.")
-    df_filtrado = df_filtrado.sort_values(by="PredictedInvestmentScore", ascending=False).head(3)
-    
-    st.subheader("Top 3 Sets Más Rentables")
-    if not df_filtrado.empty:
-        cols = st.columns(len(df_filtrado))
+df_filtrado = df_filtrado[df_filtrado["PredictedInvestmentScore"] > 1]
+if df_filtrado.shape[0] < 3:
+    st.warning("⚠️ Menos de 3 sets cumplen con los criterios seleccionados. Mostrando los disponibles.")
+df_filtrado = df_filtrado.sort_values(by="PredictedInvestmentScore", ascending=False).head(3)
+
+st.subheader("Top 3 Sets Más Rentables")
+if not df_filtrado.empty:
+    cols = st.columns(len(df_filtrado))
+if not df_filtrado.empty:
     for col, (_, row) in zip(cols, df_filtrado.iterrows()):
         with col:
             color = get_color(row["PredictedInvestmentScore"])
