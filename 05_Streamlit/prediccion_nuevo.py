@@ -100,9 +100,8 @@ if st.button("Generar Predicciones"):
             """, unsafe_allow_html=True)
             st.image(get_lego_image(row["Number"]), width=150)
             st.markdown("<div style='margin-bottom:10px'></div>", unsafe_allow_html=True)
-st.markdown("<div style='margin-bottom:10px'></div>", unsafe_allow_html=True)
-st.write(f"💰 **Precio:** ${row['USRetailPrice']:.2f}")
-st.write(f"📊 **Predicted Investment Score:** {row['PredictedInvestmentScore']:.2f}")
-url_lego = f"https://www.lego.com/en-us/product/{row['Number']}"
-st.button("🛒 Comprar en LEGO", key=f"buy_{row['Number']}", on_click=lambda: st.markdown(f'<meta http-equiv="refresh" content="0; url={url_lego}" />', unsafe_allow_html=True))
-st.write("---")
+            st.write(f"💰 **Precio:** ${row['USRetailPrice']:.2f}")
+            st.write(f"📊 **Predicted Investment Score:** {row['PredictedInvestmentScore']:.2f}")
+            url_lego = f"https://www.lego.com/en-us/product/{row['Number']}"
+            st.markdown(f'<a href="{url_lego}" target="_blank"><button style="background-color:#FFCC00; border:none; padding:10px; border-radius:5px; cursor:pointer; font-size:14px;">🛒 Comprar en LEGO</button></a>', unsafe_allow_html=True))
+            st.write("---")
