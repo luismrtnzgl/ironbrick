@@ -6,14 +6,14 @@ from sklearn.preprocessing import RobustScaler
 import plotly.express as px
 
 # Cargar el modelo y el preprocesamiento
-with open("../03_EDA/stacking_model.pkl", "rb") as model_file:
+with open("03_EDA/stacking_model.pkl", "rb") as model_file:
     model = pickle.load(model_file)
 
-with open("../03_EDA/preprocessing.pkl", "rb") as pre_file:
+with open("03_EDA/preprocessing.pkl", "rb") as pre_file:
     preprocess_function = pickle.load(pre_file)
 
 # Cargar y preprocesar el ranking de inversión
-df_ranking = pd.read_csv("../01_Data_Cleaning/df_lego_final_venta.csv")
+df_ranking = pd.read_csv("01_Data_Cleaning/df_lego_final_venta.csv")
 df_ranking = preprocess_function(df_ranking)
 
 # Streamlit App
