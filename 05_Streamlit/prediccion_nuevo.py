@@ -138,7 +138,7 @@ for i, df_opcion in enumerate(opciones):
         for _, row in df_opcion.iterrows():
             set_number = row["Number"]
             image_url = get_brickset_image(set_number)
-            brickset_url = f"https://brickset.com/sets/{set_number}"  # URL de la página de Brickset del set
+            brickset_url = f"https://brickset.com/sets/{set_number}-1"  # URL de la página de Brickset del set
 
             st.image(image_url, width=150)
             st.markdown(f"### [{row['SetName']}]({brickset_url})")
