@@ -9,7 +9,7 @@ from preprocessing import preprocess_data  # Importamos la función de preproces
 # Asegurar rutas absolutas para Streamlit Cloud
 BASE_DIR = os.path.dirname(__file__)
 MODEL_PATH = os.path.join(BASE_DIR, "models/stacking_model_compressed.pkl")
-DATA_PATH = os.path.join(BASE_DIR, "data/df_lego_final_venta.csv")
+DATA_PATH = os.path.join(BASE_DIR, "data/ranking_lego_web.csv")
 
 # Cargar el modelo con joblib
 @st.cache_resource
