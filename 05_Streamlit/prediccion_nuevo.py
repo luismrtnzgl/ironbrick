@@ -66,9 +66,9 @@ def get_lego_image(set_number):
     return f"https://images.brickset.com/sets/images/{set_number}-1.jpg"
 
 def get_color(score):
-    if score > 10:
+    if score > 12:
         return "#00736d"  # Verde
-    elif score > 3:
+    elif score > 5:
         return "#FFC300"  # Amarillo
     else:
         return "#FF9944"  # Naranja
