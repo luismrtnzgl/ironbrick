@@ -7,8 +7,8 @@ import plotly.express as px
 
 # Asegurar rutas absolutas para Streamlit Cloud
 BASE_DIR = os.path.dirname(__file__)
-MODEL_PATH = os.path.join(BASE_DIR, "03_EDA/stacking_model_compressed.pkl")
-PREPROCESS_PATH = os.path.join(BASE_DIR, "03_EDA/preprocessing.pkl")
+MODEL_PATH = os.path.join(BASE_DIR, "05_Streamlit/models/stacking_model_compressed.pkl")
+PREPROCESS_PATH = os.path.join(BASE_DIR, "05_Streamlit/models/preprocessing.pkl")
 DATA_PATH = os.path.join(BASE_DIR, "01_Data_Cleaning/df_lego_final_venta.csv")
 
 # Cargar el modelo y la función de preprocesamiento con joblib
