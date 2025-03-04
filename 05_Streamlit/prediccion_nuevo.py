@@ -26,7 +26,7 @@ def preprocess_data(df):
     return df
 
 BASE_DIR = os.path.dirname(__file__)
-MODEL_PATH = os.path.join(BASE_DIR, "models/stacking_model_compressed.pkl")
+MODEL_PATH = os.path.join(BASE_DIR, "models/stacking_model.pkl")
 DATA_PATH = os.path.join(BASE_DIR, "data/df_lego_final_venta.csv")
 
 @st.cache_resource
@@ -66,46 +66,32 @@ def get_color(score):
     else:
         return "#FF5733"  # Naranja
 
-def generar_opciones_inversion(df, n_opciones=3):
-    opciones = []
-    df_sorted = df.sort_values(by="PredictedInvestmentScore", ascending=False)
-    
-    for _ in range(n_opciones):
-        inversion = []
-        for _, row in df_sorted.iterrows():
-            if len(inversion) < 3:
-                inversion.append(row)
-        opciones.append(pd.DataFrame(inversion))
-    return opciones
-
 if st.button("Generar Predicciones"):
     if "PredictedInvestmentScore" not in df_filtrado.columns:
         st.warning("⚠️ No se encontró 'PredictedInvestmentScore', aplicando modelo...")
         model = load_model()
-        features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit', 'ResaleDemand', 
+        features = ['USRetailPrice', 'Pieces', 'Minifigs', 'ResaleDemand', 
                     'AnnualPriceIncrease', 'Exclusivity', 'SizeCategory', 'PricePerPiece', 
-                    'PricePerMinifig', 'YearsOnMarket', 'InteractionFeature']
+                    'PricePerMinifig', 'YearsOnMarket']
         df_filtrado["PredictedInvestmentScore"] = model.predict(df_filtrado[features])
         st.success("✅ PredictedInvestmentScore generado correctamente.")
     
     df_filtrado = df_filtrado[df_filtrado["PredictedInvestmentScore"] > 1]
-    opciones = generar_opciones_inversion(df_filtrado, n_opciones=3)
+    df_filtrado = df_filtrado.sort_values(by="PredictedInvestmentScore", ascending=False).head(3)
     
-    st.subheader("Opciones de Inversión")
-    for i, df_opcion in enumerate(opciones):
-        if not df_opcion.empty:
-            cols = st.columns(len(df_opcion))
-            for col, (_, row) in zip(cols, df_opcion.iterrows()):
-                with col:
-                    color = get_color(row["PredictedInvestmentScore"])
-                    st.markdown(f"""
-                        <div style='background-color:{color}; padding:10px; border-radius:5px; text-align:center;'>
-                            <strong>{row['SetName']}</strong>
-                        </div>
-                    """, unsafe_allow_html=True)
-                    st.image(get_lego_image(row["Number"]), width=150)
-                    st.write(f"💰 **Precio:** ${row['USRetailPrice']:.2f}")
-                    st.write(f"📊 **Predicted Investment Score:** {row['PredictedInvestmentScore']:.2f}")
-                    url_lego = f"https://www.lego.com/en-us/product/{row['Number']}"
-                    st.markdown(f"[🛒 Comprar en LEGO]({url_lego})", unsafe_allow_html=True)
-                    st.write("---")
+    st.subheader("Top 3 Sets Más Rentables")
+    cols = st.columns(len(df_filtrado))
+    for col, (_, row) in zip(cols, df_filtrado.iterrows()):
+        with col:
+            color = get_color(row["PredictedInvestmentScore"])
+            st.markdown(f"""
+                <div style='background-color:{color}; padding:10px; border-radius:5px; text-align:center;'>
+                    <strong>{row['SetName']}</strong>
+                </div>
+            """, unsafe_allow_html=True)
+            st.image(get_lego_image(row["Number"]), width=150)
+            st.write(f"💰 **Precio:** ${row['USRetailPrice']:.2f}")
+            st.write(f"📊 **Predicted Investment Score:** {row['PredictedInvestmentScore']:.2f}")
+            url_lego = f"https://www.lego.com/en-us/product/{row['Number']}"
+            st.markdown(f"[🛒 Comprar en LEGO]({url_lego})", unsafe_allow_html=True)
+            st.write("---")
