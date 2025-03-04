@@ -87,7 +87,8 @@ if st.button("Generar Predicciones"):
     df_filtrado = df_filtrado.sort_values(by="PredictedInvestmentScore", ascending=False).head(3)
     
     st.subheader("Top 3 Sets Más Rentables")
-    cols = st.columns(len(df_filtrado))
+    if not df_filtrado.empty:
+        cols = st.columns(len(df_filtrado))
     for col, (_, row) in zip(cols, df_filtrado.iterrows()):
         with col:
             color = get_color(row["PredictedInvestmentScore"])
