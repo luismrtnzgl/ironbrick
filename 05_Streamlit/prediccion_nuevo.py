@@ -9,7 +9,7 @@ import plotly.express as px
 BASE_DIR = os.path.dirname(__file__)
 MODEL_PATH = os.path.join(BASE_DIR, "models/stacking_model_compressed.pkl")
 PREPROCESS_PATH = os.path.join(BASE_DIR, "models/preprocessing.pkl")
-DATA_PATH = os.path.join(BASE_DIR, "./01_Data_Cleaning/df_lego_final_venta.csv")
+DATA_PATH = os.path.join(BASE_DIR, "data/df_lego_final_venta.csv")
 
 # Cargar el modelo y la función de preprocesamiento con joblib
 @st.cache_resource
