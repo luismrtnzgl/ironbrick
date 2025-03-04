@@ -39,22 +39,7 @@ def load_model():
 @st.cache_data
 def load_data():
     df = pd.read_csv(DATA_PATH)
-
-    # 🔹 Aplicar preprocesamiento
-    df = preprocess_data(df)
-
-    # 🔹 Generar PredictedInvestmentScore si no está presente
-    if "PredictedInvestmentScore" not in df.columns:
-        st.warning("⚠️ No se encontró 'PredictedInvestmentScore', aplicando modelo...")
-        model = load_model()
-        features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit', 'ResaleDemand', 
-                    'AnnualPriceIncrease', 'Exclusivity', 'SizeCategory', 'PricePerPiece', 
-                    'PricePerMinifig', 'YearsOnMarket', 'InteractionFeature']
-        
-        df["PredictedInvestmentScore"] = model.predict(df[features])
-        st.success("✅ PredictedInvestmentScore generado correctamente.")
-
-    return df
+    return preprocess_data(df)  # Aplicar preprocesamiento
 
 # 🔹 Cargar recursos
 df_ranking = load_data()
@@ -62,86 +47,91 @@ df_ranking = load_data()
 # 🔹 Streamlit App
 st.title("Plataforma de Recomendación de Inversión en LEGO 📊")
 
-# 🔹 Selección de presupuesto con rango
+# 🔹 Selección de presupuesto con rango (Máximo 1000, pasos de 10)
 st.subheader("Configura tu Inversión en LEGO")
 presupuesto_min, presupuesto_max = st.slider("Selecciona el rango de presupuesto (USD)", 
-                                             min_value=100, max_value=3000, value=(500, 1500), step=50)
+                                             min_value=100, max_value=1000, value=(200, 800), step=10)
 
 # 🔹 Selección de temas con opción "Todos"
 themes_options = ["Todos"] + sorted(df_ranking["Theme"].unique().tolist())
 selected_themes = st.multiselect("Selecciona los Themes de Interés", themes_options, default=["Todos"])
 
-# 🔹 Filtrar sets según selección de temas
-if "Todos" in selected_themes:
-    df_filtrado = df_ranking
-else:
-    df_filtrado = df_ranking[df_ranking["Theme"].isin(selected_themes)].copy()
-
-# 🔹 Filtrar por presupuesto
-df_filtrado = df_filtrado[(df_filtrado["USRetailPrice"] >= presupuesto_min) & 
-                          (df_filtrado["USRetailPrice"] <= presupuesto_max)]
-
-# 🔹 Filtrar sets con un `PredictedInvestmentScore` mayor a 1
-df_filtrado = df_filtrado[df_filtrado["PredictedInvestmentScore"] > 1]
-
-# 🔹 Generar combinaciones de inversión
-st.subheader("Opciones de Inversión")
-
-def generar_opciones_inversion(df, n_opciones=3):
-    opciones = []
-    df_sorted = df.sort_values(by="PredictedInvestmentScore", ascending=False)  # Priorizar mejores sets
-
-    for _ in range(n_opciones):
-        inversion = []
-        total = 0
-        for _, row in df_sorted.iterrows():
-            if len(inversion) < 3:  # Máximo 3 sets por opción
-                inversion.append(row)
-                total += row["USRetailPrice"]
-
-        df_opcion = pd.DataFrame(inversion)
-
-        if "PredictedInvestmentScore" not in df_opcion.columns:
-            continue  # Si falta la columna, descartar la opción
-
-        opciones.append(df_opcion)
-
-    return opciones
-
-# 🔹 Generar 3 opciones de inversión
-opciones = generar_opciones_inversion(df_filtrado, n_opciones=3)
-
-# 🔹 Función para obtener la imagen del set desde Brickset
-def get_brickset_image(set_number):
-    return f"https://images.brickset.com/sets/images/{set_number}.jpg"
-
-# 🔹 Definir colores para la seguridad de la inversión
-def get_color(score):
-    if score > 15:
-        return "#28B463"  # Verde
-    elif score > 6:
-        return "#FFC300"  # Amarillo
+# 🔹 Botón para generar la predicción
+if st.button("Generar Predicción"):
+    
+    # 🔹 Filtrar sets según selección de temas
+    if "Todos" in selected_themes:
+        df_filtrado = df_ranking
     else:
-        return "#FF5733"  # Naranja
+        df_filtrado = df_ranking[df_ranking["Theme"].isin(selected_themes)].copy()
 
-for i, df_opcion in enumerate(opciones):
-    if not df_opcion.empty:
-        score_promedio = df_opcion["PredictedInvestmentScore"].mean()
-        color = get_color(score_promedio)
+    # 🔹 Filtrar por presupuesto
+    df_filtrado = df_filtrado[(df_filtrado["USRetailPrice"] >= presupuesto_min) & 
+                              (df_filtrado["USRetailPrice"] <= presupuesto_max)]
 
-        st.markdown(f"""
-            <div style='background-color:{color}; padding:10px; border-radius:5px; text-align:center;'>
-                <strong>Score Promedio: {score_promedio:.2f}</strong>
-            </div>
-        """, unsafe_allow_html=True)
+    # 🔹 Generar PredictedInvestmentScore si no está presente
+    if "PredictedInvestmentScore" not in df_filtrado.columns:
+        st.warning("⚠️ No se encontró 'PredictedInvestmentScore', aplicando modelo...")
+        model = load_model()
+        features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit', 'ResaleDemand', 
+                    'AnnualPriceIncrease', 'Exclusivity', 'SizeCategory', 'PricePerPiece', 
+                    'PricePerMinifig', 'YearsOnMarket', 'InteractionFeature']
+        df_filtrado["PredictedInvestmentScore"] = model.predict(df_filtrado[features])
+        st.success("✅ PredictedInvestmentScore generado correctamente.")
 
-        for _, row in df_opcion.iterrows():
-            set_number = row["Number"]
-            image_url = get_brickset_image(set_number)
-            brickset_url = f"https://brickset.com/sets/{set_number}-1"  # URL de la página de Brickset del set
+    # 🔹 Filtrar sets con un `PredictedInvestmentScore` mayor a 1
+    df_filtrado = df_filtrado[df_filtrado["PredictedInvestmentScore"] > 1]
 
-            st.image(image_url, width=150)
-            st.markdown(f"### [{row['SetName']}]({brickset_url})")
-            st.write(f"💰 **Precio:** ${row['USRetailPrice']:.2f}")
-            st.write(f"📊 **Predicted Investment Score:** {row['PredictedInvestmentScore']:.2f}")
-            st.write("---")  # Línea separadora entre sets
+    # 🔹 Generar combinaciones de inversión
+    st.subheader("Opciones de Inversión")
+
+    def generar_opciones_inversion(df, n_opciones=3):
+        opciones = []
+        df_sorted = df.sort_values(by="PredictedInvestmentScore", ascending=False)  # Priorizar mejores sets
+
+        for _ in range(n_opciones):
+            inversion = []
+            for _, row in df_sorted.iterrows():
+                if len(inversion) < 3:  # Máximo 3 sets por opción
+                    inversion.append(row)
+            opciones.append(pd.DataFrame(inversion))
+
+        return opciones
+
+    # 🔹 Generar 3 opciones de inversión
+    opciones = generar_opciones_inversion(df_filtrado, n_opciones=3)
+
+    # 🔹 Función para obtener la imagen del set desde Brickset
+    def get_brickset_image(set_number):
+        return f"https://images.brickset.com/sets/images/{set_number}-1.jpg"
+
+    # 🔹 Definir colores para la seguridad de la inversión
+    def get_color(score):
+        if score > 15:
+            return "#28B463"  # Verde
+        elif score > 6:
+            return "#FFC300"  # Amarillo
+        else:
+            return "#FF5733"  # Naranja
+
+    # 🔹 Mostrar opciones de inversión en columnas
+    for i, df_opcion in enumerate(opciones):
+        if not df_opcion.empty:
+            cols = st.columns(len(df_opcion))  # Crear columnas dinámicas
+
+            for idx, row in df_opcion.iterrows():
+                with cols[idx]:
+                    set_number = row["Number"]
+                    image_url = get_brickset_image(set_number)
+                    lego_url = row["LEGO_URL"]  # Enlace a la tienda de LEGO
+
+                    st.image(image_url, width=150)
+                    st.markdown(f"### {row['SetName']}")
+                    st.write(f"💰 **Precio:** ${row['USRetailPrice']:.2f}")
+                    st.markdown(f"""
+                        <div style='background-color:{get_color(row["PredictedInvestmentScore"])}; padding:10px; border-radius:5px; text-align:center;'>
+                            <strong>Investment Score: {row["PredictedInvestmentScore"]:.2f}</strong>
+                        </div>
+                    """, unsafe_allow_html=True)
+                    st.markdown(f"[🛒 Comprar en LEGO]({lego_url})", unsafe_allow_html=True)
+                    st.markdown(f"[🧩 Detalles en Brickset](https://brickset.com/sets/{set_number}-1)", unsafe_allow_html=True)
