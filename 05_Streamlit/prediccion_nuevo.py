@@ -3,9 +3,8 @@ import pandas as pd
 import numpy as np
 import joblib
 import os
-import plotly.express as px
 
-# 🔹 Función de preprocesamiento (la misma que usaste en el entrenamiento)
+# 🔹 Función de preprocesamiento (para asegurar que las columnas están presentes)
 def preprocess_data(df):
     df = df[df['USRetailPrice'] > 0].copy()
 
@@ -41,10 +40,10 @@ def load_model():
 def load_data():
     df = pd.read_csv(DATA_PATH)
 
-    # 🔹 Aplicar preprocesamiento para asegurar que las columnas necesarias existen
+    # 🔹 Aplicar preprocesamiento
     df = preprocess_data(df)
 
-    # 🔹 Verificar si el modelo genera "PredictedInvestmentScore"
+    # 🔹 Generar PredictedInvestmentScore si no está presente
     if "PredictedInvestmentScore" not in df.columns:
         st.warning("⚠️ No se encontró 'PredictedInvestmentScore', aplicando modelo...")
         model = load_model()
@@ -52,12 +51,8 @@ def load_data():
                     'AnnualPriceIncrease', 'Exclusivity', 'SizeCategory', 'PricePerPiece', 
                     'PricePerMinifig', 'YearsOnMarket', 'InteractionFeature']
         
-        try:
-            df["PredictedInvestmentScore"] = model.predict(df[features])
-            st.success("✅ PredictedInvestmentScore generado correctamente.")
-        except Exception as e:
-            st.error(f"❌ Error al generar PredictedInvestmentScore: {e}")
-            st.stop()
+        df["PredictedInvestmentScore"] = model.predict(df[features])
+        st.success("✅ PredictedInvestmentScore generado correctamente.")
 
     return df
 
@@ -67,64 +62,78 @@ df_ranking = load_data()
 # 🔹 Streamlit App
 st.title("Plataforma de Recomendación de Inversión en LEGO 📊")
 
-# 🔹 Entrada del usuario
+# 🔹 Selección de presupuesto con rango
 st.subheader("Configura tu Inversión en LEGO")
-presupuesto = st.number_input("Presupuesto (USD)", min_value=100.0, max_value=3000.0, value=500.0)
-themes = st.multiselect("Selecciona los Themes de Interés", options=df_ranking["Theme"].unique(), default=df_ranking["Theme"].unique())
+presupuesto_min, presupuesto_max = st.slider("Selecciona el rango de presupuesto (USD)", 
+                                             min_value=100, max_value=3000, value=(500, 1500), step=50)
 
-# 🔹 Filtrar sets basados en themes seleccionados
-df_filtrado = df_ranking[df_ranking["Theme"].isin(themes)].copy()
+# 🔹 Selección de temas con opción "Todos"
+themes_options = ["Todos"] + sorted(df_ranking["Theme"].unique().tolist())
+selected_themes = st.multiselect("Selecciona los Themes de Interés", themes_options, default=["Todos"])
 
-# 🔹 Verificar si "PredictedInvestmentScore" está en df_filtrado
-if "PredictedInvestmentScore" not in df_filtrado.columns:
-    st.error("❌ Error: La columna 'PredictedInvestmentScore' no está en el DataFrame filtrado.")
-    st.write("Columnas disponibles:", df_filtrado.columns.tolist())
-    st.stop()
+# 🔹 Filtrar sets según selección de temas
+if "Todos" in selected_themes:
+    df_filtrado = df_ranking
+else:
+    df_filtrado = df_ranking[df_ranking["Theme"].isin(selected_themes)].copy()
+
+# 🔹 Filtrar por presupuesto
+df_filtrado = df_filtrado[(df_filtrado["USRetailPrice"] >= presupuesto_min) & 
+                          (df_filtrado["USRetailPrice"] <= presupuesto_max)]
+
+# 🔹 Filtrar sets con un `PredictedInvestmentScore` mayor a 1
+df_filtrado = df_filtrado[df_filtrado["PredictedInvestmentScore"] > 1]
 
 # 🔹 Generar combinaciones de inversión
 st.subheader("Opciones de Inversión")
 
-def generar_opciones_inversion(df, presupuesto, n_opciones=3):
+def generar_opciones_inversion(df, n_opciones=3):
     opciones = []
+    df_sorted = df.sort_values(by="PredictedInvestmentScore", ascending=False)  # Priorizar mejores sets
+
     for _ in range(n_opciones):
-        df_sample = df.sample(frac=1).reset_index(drop=True)  # Mezclar sets aleatoriamente
         inversion = []
         total = 0
-        for _, row in df_sample.iterrows():
-            if total + row["USRetailPrice"] <= presupuesto:
+        for _, row in df_sorted.iterrows():
+            if len(inversion) < 3:  # Máximo 3 sets por opción
                 inversion.append(row)
                 total += row["USRetailPrice"]
 
         df_opcion = pd.DataFrame(inversion)
-        
-        # Verificar columnas
+
         if "PredictedInvestmentScore" not in df_opcion.columns:
-            st.error("❌ Error: 'PredictedInvestmentScore' se eliminó en la selección.")
-            st.write("Columnas en df_opcion:", df_opcion.columns.tolist())
-            continue  # Saltar esta opción
+            continue  # Si falta la columna, descartar la opción
 
         opciones.append(df_opcion)
 
     return opciones
 
 # 🔹 Generar 3 opciones de inversión
-opciones = generar_opciones_inversion(df_filtrado, presupuesto, n_opciones=3)
-colores = ["#FF5733", "#FFC300", "#28B463"]  # Rojo, Amarillo, Verde según PredictedInvestmentScore
+opciones = generar_opciones_inversion(df_filtrado, n_opciones=3)
+
+# 🔹 Definir colores para la seguridad de la inversión
+def get_color(score):
+    if score > 15:
+        return "#28B463"  # Verde
+    elif score > 6:
+        return "#FFC300"  # Amarillo
+    else:
+        return "#FF5733"  # Naranja
 
 for i, df_opcion in enumerate(opciones):
     if not df_opcion.empty:
         score_promedio = df_opcion["PredictedInvestmentScore"].mean()
-        color = colores[0] if score_promedio < 8 else colores[1] if score_promedio < 15 else colores[2]
+        color = get_color(score_promedio)
+
         st.markdown(f"""
             <div style='background-color:{color}; padding:10px; border-radius:5px; text-align:center;'>
                 <strong>Score Promedio: {score_promedio:.2f}</strong>
             </div>
         """, unsafe_allow_html=True)
-        st.markdown(f"### Opción {i+1} - Inversión Total: ${df_opcion['USRetailPrice'].sum():.2f}")
-        st.dataframe(df_opcion[["SetName", "Theme", "USRetailPrice", "PredictedInvestmentScore"]])
 
-# 🔹 Visualización de los mejores sets
-st.subheader("Top 10 Sets con Mejor Potencial de Inversión")
-df_top = df_ranking.sort_values(by="PredictedInvestmentScore", ascending=False).head(10)
-fig = px.bar(df_top, x="SetName", y="PredictedInvestmentScore", color="PredictedInvestmentScore", color_continuous_scale=["red", "yellow", "green"])
-st.plotly_chart(fig)
+        for _, row in df_opcion.iterrows():
+            st.image(row["BricksetImageURL"], width=150)
+            st.markdown(f"### [{row['SetName']}]({row['BricksetURL']})")
+            st.write(f"💰 **Precio:** ${row['USRetailPrice']:.2f}")
+            st.write(f"📊 **Predicted Investment Score:** {row['PredictedInvestmentScore']:.2f}")
+            st.write("---")  # Línea separadora entre sets
