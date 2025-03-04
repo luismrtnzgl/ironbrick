@@ -4,7 +4,7 @@ import numpy as np
 import joblib
 import os
 
-# 🔹 Función de preprocesamiento (para asegurar que las columnas están presentes)
+# 🔹 Función de preprocesamiento (asegura que las columnas necesarias estén presentes)
 def preprocess_data(df):
     df = df[df['USRetailPrice'] > 0].copy()
 
@@ -111,6 +111,10 @@ def generar_opciones_inversion(df, n_opciones=3):
 # 🔹 Generar 3 opciones de inversión
 opciones = generar_opciones_inversion(df_filtrado, n_opciones=3)
 
+# 🔹 Función para obtener la imagen del set desde Brickset
+def get_brickset_image(set_number):
+    return f"https://images.brickset.com/sets/images/{set_number}.jpg"
+
 # 🔹 Definir colores para la seguridad de la inversión
 def get_color(score):
     if score > 15:
@@ -132,8 +136,12 @@ for i, df_opcion in enumerate(opciones):
         """, unsafe_allow_html=True)
 
         for _, row in df_opcion.iterrows():
-            st.image(row["BricksetImageURL"], width=150)
-            st.markdown(f"### [{row['SetName']}]({row['BricksetURL']})")
+            set_number = row["Number"]
+            image_url = get_brickset_image(set_number)
+            brickset_url = f"https://brickset.com/sets/{set_number}"  # URL de la página de Brickset del set
+
+            st.image(image_url, width=150)
+            st.markdown(f"### [{row['SetName']}]({brickset_url})")
             st.write(f"💰 **Precio:** ${row['USRetailPrice']:.2f}")
             st.write(f"📊 **Predicted Investment Score:** {row['PredictedInvestmentScore']:.2f}")
             st.write("---")  # Línea separadora entre sets
