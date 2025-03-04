@@ -79,6 +79,15 @@ def generar_opciones_inversion(df, n_opciones=3):
     return opciones
 
 if st.button("Generar Predicciones"):
+    if "PredictedInvestmentScore" not in df_filtrado.columns:
+        st.warning("⚠️ No se encontró 'PredictedInvestmentScore', aplicando modelo...")
+        model = load_model()
+        features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit', 'ResaleDemand', 
+                    'AnnualPriceIncrease', 'Exclusivity', 'SizeCategory', 'PricePerPiece', 
+                    'PricePerMinifig', 'YearsOnMarket', 'InteractionFeature']
+        df_filtrado["PredictedInvestmentScore"] = model.predict(df_filtrado[features])
+        st.success("✅ PredictedInvestmentScore generado correctamente.")
+    
     df_filtrado = df_filtrado[df_filtrado["PredictedInvestmentScore"] > 1]
     opciones = generar_opciones_inversion(df_filtrado, n_opciones=3)
     
