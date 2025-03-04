@@ -52,7 +52,7 @@ st.markdown("""
 
 st.subheader("Configura tu Inversión en LEGO")
 presupuesto_min, presupuesto_max = st.slider("Selecciona el rango de presupuesto (USD)", 
-                                             min_value=100, max_value=1000, value=(500, 800), step=10)
+                                             min_value=10, max_value=1500, value=(10, 200), step=10)
 
 themes_options = ["Todos"] + sorted(df_ranking["Theme"].unique().tolist())
 selected_themes = st.multiselect("Selecciona los Themes de Interés", themes_options, default=["Todos"])
@@ -67,7 +67,7 @@ def get_lego_image(set_number):
 
 def get_color(score):
     if score > 10:
-        return "#28B463"  # Verde
+        return "#00736d"  # Verde
     elif score > 3:
         return "#FFC300"  # Amarillo
     else:
@@ -105,5 +105,5 @@ if st.button("Generar Predicciones"):
             st.write(f"**Tema:** {row['Theme']}")
             st.write(f"💰 **Precio:** ${row['USRetailPrice']:.2f}")
             url_lego = f"https://www.lego.com/en-us/product/{row['Number']}"
-            st.markdown(f'<a href="{url_lego}" target="_blank"><button style="background-color:#00736d; border:none; padding:10px; border-radius:5px; cursor:pointer; font-size:14px;">🛒 Comprar en LEGO</button></a>', unsafe_allow_html=True)
+            st.markdown(f'<a href="{url_lego}" target="_blank"><button style="background-color:#ff4b4b; border:none; padding:10px; border-radius:5px; cursor:pointer; font-size:14px;">🛒 Comprar en LEGO</button></a>', unsafe_allow_html=True)
             st.write("---")
