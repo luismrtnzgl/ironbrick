@@ -76,8 +76,12 @@ if st.button("Generar Predicción"):
         features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit', 'ResaleDemand', 
                     'AnnualPriceIncrease', 'Exclusivity', 'SizeCategory', 'PricePerPiece', 
                     'PricePerMinifig', 'YearsOnMarket', 'InteractionFeature']
-        df_filtrado["PredictedInvestmentScore"] = model.predict(df_filtrado[features])
-        st.success("✅ PredictedInvestmentScore generado correctamente.")
+
+    # ✅ Corregir la predicción para evitar los warnings de sklearn
+    df_filtrado.loc[:, "PredictedInvestmentScore"] = model.predict(df_filtrado[features].values)
+
+    st.success("✅ PredictedInvestmentScore generado correctamente.")
+
 
     # 🔹 Filtrar sets con un `PredictedInvestmentScore` mayor a 1
     df_filtrado = df_filtrado[df_filtrado["PredictedInvestmentScore"] > 1]
