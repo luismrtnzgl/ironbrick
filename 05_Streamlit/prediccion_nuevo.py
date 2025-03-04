@@ -73,7 +73,7 @@ if st.button("Generar Predicciones"):
         features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit', 'ResaleDemand', 
                     'AnnualPriceIncrease', 'Exclusivity', 'SizeCategory', 'PricePerPiece', 
                     'PricePerMinifig', 'YearsOnMarket', 'InteractionFeature']
-        df_filtrado["PredictedInvestmentScore"] = model.predict(df_filtrado[features])
+        df_filtrado.loc[:, "PredictedInvestmentScore"] = model.predict(df_filtrado[features].values)
         st.success("✅ PredictedInvestmentScore generado correctamente.")
     
     df_filtrado = df_filtrado[df_filtrado["PredictedInvestmentScore"] > 1]
