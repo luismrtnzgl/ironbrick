@@ -1,16 +1,24 @@
 import streamlit as st
-import sqlite3
-import pandas as pd
 import joblib
 import requests
+import os
 
-# 📌 Cargar modelo entrenado
+# 📌 URL del modelo en GitHub RAW
+modelo_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/05_Streamlit/models/stacking_model.pkl"
+
 @st.cache_resource
 def cargar_modelo():
-    modelo_path = "https://github.com/luismrtnzgl/ironbrick/blob/2eb159c4791bcfdd9d2a2dba6754e53f37612212/05_Streamlit/models/stacking_model.pkl"
+    """Descarga el modelo desde GitHub y lo carga en Streamlit Cloud."""
+    modelo_path = "/tmp/stacking_model.pkl"  # Ruta temporal
+    
+    # 📌 Descargar el archivo si no existe
+    if not os.path.exists(modelo_path):
+        response = requests.get(modelo_url)
+        with open(modelo_path, "wb") as f:
+            f.write(response.content)
+    
+    # 📌 Cargar el modelo
     return joblib.load(modelo_path)
-
-modelo = cargar_modelo()
 
 # 📌 Cargar dataset de sets en venta
 @st.cache_data
