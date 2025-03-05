@@ -4,6 +4,10 @@ import numpy as np
 import joblib
 import requests
 import os
+import pymongo #cambio erv
+
+
+
 
 # 📌 URL del modelo en GitHub RAW
 modelo_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/05_Streamlit/models/stacking_model.pkl"
@@ -12,24 +16,43 @@ modelo_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/05_St
 def load_model():
     """Descarga el modelo desde GitHub y lo carga en Streamlit."""
     modelo_path = "/tmp/stacking_model.pkl"
-    
+
     if not os.path.exists(modelo_path):
         response = requests.get(modelo_url)
         with open(modelo_path, "wb") as f:
             f.write(response.content)
-    
+
     return joblib.load(modelo_path)
 
 # 📌 Cargar el modelo
 modelo = load_model()
 
 # 📌 URL del dataset en GitHub RAW
-dataset_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/01_Data_Cleaning/df_lego_final_venta.csv"
+#dataset_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/01_Data_Cleaning/df_lego_final_venta.csv"
 
+#@st.cache_data
+#def load_data():
+    #df = pd.read_csv(dataset_url)
+    #return preprocess_data(df)  # Aplicar preprocesamiento antes de usarlo
+
+#inicio cambio erv
+# 📌 Cargar variables de conexión desde secrets.toml
+MONGO_URI = st.secrets["MONGO_URI"]
+DATABASE_NAME = st.secrets["DATABASE_NAME"]
+COLLECTION_NAME = st.secrets["COLLECTION_NAME"]
+
+# Conectar a MongoDB
+client = pymongo.MongoClient(MONGO_URI)
+db = client[DATABASE_NAME]
+collection = db[COLLECTION_NAME]
+
+# 📌 Obtener los datos de MongoDB
 @st.cache_data
-def load_data():
-    df = pd.read_csv(dataset_url)
-    return preprocess_data(df)  # Aplicar preprocesamiento antes de usarlo
+def load_data_from_mongodb():
+    cursor = collection.find()
+    df = pd.DataFrame(list(cursor))
+    return preprocess_data(df)  # Aplicar preprocesamiento a los datos
+#fin cambio erv
 
 # 📌 Función de preprocesamiento (igual que en telegram_app.py)
 def preprocess_data(df):
@@ -66,7 +89,7 @@ st.markdown("""
 - 🟢 **Verde**: Set con una alta probabilidad de revalorización y rentabilidad.
 - 🟡 **Amarillo**: Set con potencial de revalorización y con un riesgo medio.
 - 🟠 **Naranja**: Set posibilidades de bajas de rentabilidad pero con riesgo medio-bajo
-- 🔴 **Rojo**: Set con posibilidades de revalorización pero con una baja rentabilidad.           
+- 🔴 **Rojo**: Set con posibilidades de revalorización pero con una baja rentabilidad.
 """)
 
 st.subheader("Configura tu Inversión en LEGO")
@@ -79,7 +102,7 @@ temas_opciones = ["Todos"] + temas_unicos
 selected_themes = st.multiselect("🛒 Selecciona los Themes de Interés", temas_opciones, default=["Todos"])
 
 # 📌 Filtrar por presupuesto y temas
-df_filtrado = df_ranking[(df_ranking["USRetailPrice"] >= presupuesto_min) & 
+df_filtrado = df_ranking[(df_ranking["USRetailPrice"] >= presupuesto_min) &
                           (df_ranking["USRetailPrice"] <= presupuesto_max)]
 
 if "Todos" not in selected_themes:
@@ -107,21 +130,21 @@ def get_color(score):
 # 📌 Generar Predicciones y Mostrar Top 3 Sets
 if st.button("Generar Predicciones"):
     if "PredictedInvestmentScore" not in df_filtrado.columns:
-        features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit', 
-                    'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity', 
+        features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit',
+                    'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity',
                     'SizeCategory', 'PricePerPiece', 'PricePerMinifig', 'YearsOnMarket']
-        
+
         # 📌 Asegurar que hay datos antes de predecir
         if df_filtrado.shape[0] == 0:
             st.error("❌ No hay sets disponibles para predecir. Prueba ajustando los filtros.")
             st.stop()
-        
+
         df_filtrado.loc[:, "PredictedInvestmentScore"] = modelo.predict(df_filtrado[features])
         df_filtrado = df_filtrado[df_filtrado["PredictedInvestmentScore"] > 0]
-        
+
         if df_filtrado.shape[0] < 3:
             st.warning("⚠️ Menos de 3 sets cumplen con los criterios seleccionados. Mostrando los disponibles.")
-        
+
         df_filtrado = df_filtrado.sort_values(by="PredictedInvestmentScore", ascending=False).head(3)
 
     st.subheader("📊 Top 3 Sets Más Rentables")

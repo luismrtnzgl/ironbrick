@@ -10,3 +10,6 @@
 
 #Ignora .env de la carpeta ERV
 /13_ERV/.env
+
+#Ignora secrets.toml de la carpeta ERV
+/05_Streamlit/models/secrets.toml
