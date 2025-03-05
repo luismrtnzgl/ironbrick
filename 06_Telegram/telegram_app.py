@@ -105,9 +105,8 @@ df_recomendados.rename(columns={
     "Number": "ID",
     "Theme": "Tema",
     "SetName": "Nombre del set",
-    "USRetailPrice": "Precio de compra",
-    "WantCount": "Personas que lo quieren",
-    "PredictedInvestmentScore": "Rentabilidad como inversión"
+    "USRetailPrice": "Precio",
+    "PredictedInvestmentScore": "Rentabilidad"
 }, inplace=True)
 
 # 📌 Convertir la rentabilidad en categorías de texto
@@ -120,9 +119,9 @@ def clasificar_rentabilidad(score):
         return "Baja"
 
 # 📌 Ordenar de mayor a menor por la predicción original
-df_recomendados = df_recomendados.sort_values(by="Rentabilidad como inversión", ascending=False)
+df_recomendados = df_recomendados.sort_values(by="Rentabilidad", ascending=False)
 
-df_recomendados["Rentabilidad como inversión"] = df_recomendados["Rentabilidad como inversión"].apply(clasificar_rentabilidad)
+df_recomendados["Rentabilidad"] = df_recomendados["Rentabilidad"].apply(clasificar_rentabilidad)
 
 # 📌 Mostrar la tabla con los resultados
 st.dataframe(df_recomendados)
