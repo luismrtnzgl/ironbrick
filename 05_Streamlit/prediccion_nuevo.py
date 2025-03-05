@@ -54,17 +54,10 @@ def preprocess_data(df):
 # 📌 Cargar dataset con preprocesamiento
 df_ranking = load_data()
 
-# 📌 Aplicar el modelo para predecir rentabilidad en TODOS los sets
-features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit', 
-            'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity', 
-            'SizeCategory', 'PricePerPiece', 'PricePerMinifig', 'YearsOnMarket']
-
-df_ranking["PredictedInvestmentScore"] = modelo.predict(df_ranking[features])
-
 # 📌 Interfaz en Streamlit
 st.title("Recomendador de sets actuales para Inversión en LEGO 📊")
 
-st.write("**Explicación:** Según el presupuesto y los temas de interés seleccionados, el sistema generará un ranking de los sets más rentables para invertir en LEGO.")
+st.write("**Explicación:** Según el presupuesto y los temas de interés seleccionados, el sistema generará un ranking de los 3 sets más rentables para invertir en LEGO.")
 
 # 📌 Configuración de presupuesto y temas
 presupuesto_min, presupuesto_max = st.slider("💰 Selecciona el rango de presupuesto (USD)", 10, 500, (10, 200), step=10)
@@ -80,36 +73,7 @@ df_filtrado = df_ranking[(df_ranking["USRetailPrice"] >= presupuesto_min) &
 if "Todos" not in selected_themes:
     df_filtrado = df_filtrado[df_filtrado["Theme"].isin(selected_themes)]
 
-# 📌 Seleccionar columnas y renombrarlas
-df_filtrado = df_filtrado[["Number", "Theme", "SetName", "USRetailPrice", "WantCount", "PredictedInvestmentScore"]].copy()
-
-df_filtrado.rename(columns={
-    "Number": "ID",
-    "Theme": "Tema",
-    "SetName": "Nombre del set",
-    "USRetailPrice": "Precio de compra",
-    "WantCount": "Personas que lo quieren",
-    "PredictedInvestmentScore": "Rentabilidad como inversión"
-}, inplace=True)
-
-# 📌 Guardar la predicción numérica original en una nueva columna
-df_filtrado["Score Numérico"] = df_filtrado["Rentabilidad como inversión"]
-
-# 📌 Convertir la rentabilidad en categorías de texto
-def clasificar_rentabilidad(score):
-    if score > 10:
-        return "Alta"
-    elif 5 <= score <= 10:
-        return "Media"
-    else:
-        return "Baja"
-
-df_filtrado["Rentabilidad como inversión"] = df_filtrado["Score Numérico"].apply(clasificar_rentabilidad)
-
-# 📌 Ordenar por rentabilidad de mayor a menor
-df_filtrado = df_filtrado.sort_values(by="Score Numérico", ascending=False)
-
-# 📌 Funciones auxiliares
+# 📌 Funciones auxiliares para obtener imágenes y colores
 def get_lego_image(set_number):
     return f"https://images.brickset.com/sets/images/{set_number}-1.jpg"
 
@@ -123,29 +87,48 @@ def get_color(score):
     else:
         return "#FF4B4B"  # Rojo
 
-# 📌 Mostrar los resultados en Streamlit
+# 📌 Generar Predicciones y Mostrar Top 3 Sets
 if st.button("Generar Predicciones"):
-    st.subheader("📊 Sets Recomendados para Inversión")
+    if "PredictedInvestmentScore" not in df_filtrado.columns:
+        features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit', 
+                    'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity', 
+                    'SizeCategory', 'PricePerPiece', 'PricePerMinifig', 'YearsOnMarket']
+        
+        df_filtrado.loc[:, "PredictedInvestmentScore"] = modelo.predict(df_filtrado[features].values)
+        df_filtrado = df_filtrado[df_filtrado["PredictedInvestmentScore"] > 0]
+        
+        if df_filtrado.shape[0] < 3:
+            st.warning("⚠️ Menos de 3 sets cumplen con los criterios seleccionados. Mostrando los disponibles.")
+        
+        df_filtrado = df_filtrado.sort_values(by="PredictedInvestmentScore", ascending=False).head(3)
+        
+        if df_filtrado.empty:
+            st.error("❌ Según el presupuesto seleccionado y los temas seleccionados, no hay ninguna inversión disponible que cumpla con un mínimo de garantías en la revalorización.")
+        else:
+            if df_filtrado.shape[0] < 3:
+                st.warning("⚠️ Menos de 3 sets cumplen con los criterios seleccionados. Mostrando los disponibles.")
+            
+            df_filtrado = df_filtrado.sort_values(by="PredictedInvestmentScore", ascending=False).head(3)
+
+    st.subheader("📊 Top 3 Sets Más Rentables")
     if not df_filtrado.empty:
         cols = st.columns(len(df_filtrado))
         for col, (_, row) in zip(cols, df_filtrado.iterrows()):
             with col:
-                color = get_color(row["Score Numérico"])  # Usar la columna numérica
+                color = get_color(row["PredictedInvestmentScore"])
                 st.markdown(f"""
                     <div style='background-color:{color}; padding:10px; border-radius:5px; text-align:center; margin-bottom:10px;'>
-                        <strong>{row['Nombre del set']}</strong>
+                        <strong>{row['SetName']}</strong>
                     </div>
                 """, unsafe_allow_html=True)
                 st.markdown(f"""
                     <div style='display: flex; justify-content: center;'>
-                        <img src='{get_lego_image(row["ID"])}' width='100%'>
+                        <img src='{get_lego_image(row["Number"])}' width='100%'>
                     </div>
                 """, unsafe_allow_html=True)
                 st.markdown("<div style='margin-bottom:10px'></div>", unsafe_allow_html=True)
-                st.write(f"**Tema:** {row['Tema']}")
-                st.write(f"💰 **Precio:** ${row['Precio de compra']:.2f}")
-                url_lego = f"https://www.lego.com/en-us/product/{row['ID']}"
+                st.write(f"**Tema:** {row['Theme']}")
+                st.write(f"💰 **Precio:** ${row['USRetailPrice']:.2f}")
+                url_lego = f"https://www.lego.com/en-us/product/{row['Number']}"
                 st.markdown(f'<a href="{url_lego}" target="_blank"><button style="background-color:#ff4b4b; border:none; padding:10px; border-radius:5px; cursor:pointer; font-size:14px;">🛒 Comprar en LEGO</button></a>', unsafe_allow_html=True)
                 st.write("---")
-    else:
-        st.error("❌ No hay sets disponibles según los criterios seleccionados.")
