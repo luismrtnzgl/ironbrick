@@ -75,7 +75,8 @@ def preprocess_data(df):
     return df
 
 # 📌 Cargar dataset con preprocesamiento
-df_ranking = load_data()
+#df_ranking = load_data()
+df_ranking = load_data_from_mongodb() #cambio erv
 
 # 📌 Interfaz en Streamlit
 st.title("Recomendador de sets actuales para Inversión en LEGO 📊")
