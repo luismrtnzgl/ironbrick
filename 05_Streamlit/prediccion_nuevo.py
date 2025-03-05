@@ -46,7 +46,9 @@ st.title("Recomendador de sets actuales para Inversión en LEGO 📊")
 st.write("**Explicación:** Según el presupuesto y los temas de interés seleccionados, el sistema generará un ranking de los 3 sets más rentables para invertir en LEGO. Se ha entrenado un modelo de Machine Learning que predice la rentabilidad de un set en los próximos años, basado en características como el precio, el número de piezas, la exclusividad, etc.")
 
 st.markdown("""
-### Código de Color para Evaluación de Riesgo:
+### Código de Color para Evaluación de Riesgo:        """)
+st.write("**Todos los set recomendados son rentables según las características del set**. Hemos analizado el riesgo y hemos los hemos clasificado con una escala de color:")
+st.markdown("""
 - 🟢 **Verde**: Set con una alta probabilidad de revalorización y rentabilidad.
 - 🟡 **Amarillo**: Set con potencial de revalorización y con un riesgo medio.
 - 🟠 **Naranja**: Set posibilidades de bajas de rentabilidad pero con riesgo medio-bajo
