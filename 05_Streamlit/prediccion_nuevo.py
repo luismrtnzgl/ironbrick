@@ -47,9 +47,10 @@ st.write("**Explicación:** Según el presupuesto y los temas de interés selecc
 
 st.markdown("""
 ### Código de Color para Evaluación de Riesgo:
-- 🟢 **Verde**: Alta probabilidad de revalorización.
-- 🟡 **Amarillo**: Potencial de revalorización con un riesgo medio.
-- 🟠 **Naranja**: Posibilidad de baja rentabilidad.
+- 🟢 **Verde**: Set con una alta probabilidad de revalorización.
+- 🟡 **Amarillo**: Set con potencial de revalorización y con un riesgo medio.
+- 🟠 **Naranja**: Set posibilidades de bajas de rentabilidad pero con riesgo medio-bajo
+- 🔴 **Rojo**: Set con posibilidades de revalorización pero con una baja rentabilidad.           
 """)
 
 st.subheader("Configura tu Inversión en LEGO")
@@ -72,8 +73,10 @@ def get_color(score):
         return "#00736d"  # Verde
     elif score > 5:
         return "#FFC300"  # Amarillo
-    else:
+    elif score > 2:
         return "#FF9944"  # Naranja
+    else:
+        return "#FF4B4B"  # Rojo
 
 if st.button("Generar Predicciones"):
     if "PredictedInvestmentScore" not in df_filtrado.columns:
