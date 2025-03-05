@@ -11,7 +11,7 @@ modelo_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/05_St
 @st.cache_resource
 def cargar_modelo():
     """Descarga el modelo desde GitHub y lo carga en Streamlit Cloud."""
-    modelo_path = "/tmp/stacking_model.pkl"  # Ruta temporal
+    modelo_path = "/tmp/stacking_model.pkl"  # Ruta temporal en Streamlit Cloud
     
     # 📌 Descargar el archivo si no existe
     if not os.path.exists(modelo_path):
@@ -22,13 +22,37 @@ def cargar_modelo():
     # 📌 Cargar el modelo
     return joblib.load(modelo_path)
 
-# 📌 Cargar dataset de sets en venta
+# 📌 Cargar el modelo ANTES de usarlo
+modelo = cargar_modelo()
+
+# 📌 URL del dataset en GitHub RAW
+dataset_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/01_Data_Cleaning/df_lego_final_venta.csv"
+
 @st.cache_data
 def cargar_datos():
-    dataset_path = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/refs/heads/main/01_Data_Cleaning/df_lego_final_venta.csv"
-    return pd.read_csv(dataset_path)
+    return pd.read_csv(dataset_url)
 
+# 📌 Cargar dataset ANTES de hacer predicciones
 df_lego = cargar_datos()
+
+# 📌 Verificar que df_lego está cargado antes de usarlo
+if df_lego is not None and not df_lego.empty:
+    # 📌 Hacer predicción con el modelo
+    features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit', 
+                'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity', 
+                'SizeCategory', 'PricePerPiece', 'PricePerMinifig', 'YearsOnMarket']
+
+    if all(feature in df_lego.columns for feature in features):
+        df_lego["PredictedInvestmentScore"] = modelo.predict(df_lego[features])
+
+        # 📌 Mostrar los mejores sets de inversión según el modelo
+        st.write("📊 **Top Sets Recomendados por el Modelo**:")
+        df_recomendados = df_lego.sort_values(by="PredictedInvestmentScore", ascending=False).head(10)
+        st.dataframe(df_recomendados)
+    else:
+        st.error("❌ Algunas columnas faltan en el dataset. Verifica que todas las características estén disponibles.")
+else:
+    st.error("❌ No se pudo cargar el dataset. Verifica la URL de GitHub.")
 
 # 📌 Base de datos SQLite
 conn = sqlite3.connect("user_ironbrick.db", check_same_thread=False)
