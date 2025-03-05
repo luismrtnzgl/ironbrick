@@ -12,4 +12,4 @@
 /13_ERV/.env
 
 #Ignora secrets.toml de la carpeta ERV
-/05_Streamlit/models/secrets.toml
+/05_Streamlit/secrets.toml
