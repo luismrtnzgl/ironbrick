@@ -57,10 +57,22 @@ df_ranking = load_data()
 # 📌 Interfaz en Streamlit
 st.title("Recomendador de sets actuales para Inversión en LEGO 📊")
 
-st.write("**Explicación:** Según el presupuesto y los temas de interés seleccionados, el sistema generará un ranking de los 3 sets más rentables para invertir en LEGO.")
+st.write("**Explicación:** Según el presupuesto y los temas de interés seleccionados, el sistema generará un ranking de los 3 sets más rentables para invertir en LEGO. Se ha entrenado un modelo de Machine Learning que predice la rentabilidad de un set en los próximos años, basado en características como el precio, el número de piezas, la exclusividad, etc.")
+
+st.markdown("""
+### Código de Color para Evaluación de Riesgo:        """)
+st.write("**Todos los sets recomendados tienen una alta rentabilidad basada en sus características.**. Hemos analizado el riesgo y  clasificado con una escala de color:")
+st.markdown("""
+- 🟢 **Verde**: Set con una alta probabilidad de revalorización y rentabilidad.
+- 🟡 **Amarillo**: Set con potencial de revalorización y con un riesgo medio.
+- 🟠 **Naranja**: Set posibilidades de bajas de rentabilidad pero con riesgo medio-bajo
+- 🔴 **Rojo**: Set con posibilidades de revalorización pero con una baja rentabilidad.           
+""")
+
+st.subheader("Configura tu Inversión en LEGO")
 
 # 📌 Configuración de presupuesto y temas
-presupuesto_min, presupuesto_max = st.slider("💰 Selecciona el rango de presupuesto (USD)", 10, 500, (10, 200), step=10)
+presupuesto_min, presupuesto_max = st.slider("💰 Selecciona el rango de presupuesto (USD)", 10, 1000, (10, 200), step=10)
 
 temas_unicos = sorted(df_ranking["Theme"].unique().tolist())
 temas_opciones = ["Todos"] + temas_unicos
