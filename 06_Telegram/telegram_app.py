@@ -119,6 +119,9 @@ def clasificar_rentabilidad(score):
     else:
         return "Baja"
 
+# 📌 Ordenar de mayor a menor por la predicción original
+df_recomendados = df_recomendados.sort_values(by="Rentabilidad como inversión", ascending=False)
+
 df_recomendados["Rentabilidad como inversión"] = df_recomendados["Rentabilidad como inversión"].apply(clasificar_rentabilidad)
 
 # 📌 Mostrar la tabla con los resultados
