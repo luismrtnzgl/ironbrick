@@ -47,7 +47,7 @@ st.write("**Explicación:** Según el presupuesto y los temas de interés selecc
 
 st.markdown("""
 ### Código de Color para Evaluación de Riesgo:        """)
-st.write("**Todos los set recomendados son rentables según las características del set**. Hemos analizado el riesgo y hemos los hemos clasificado con una escala de color:")
+st.write("**Todos los sets recomendados tienen una alta rentabilidad basada en sus características.**. Hemos evaluado el riesgo y lo hemos categorizado utilizando una escala de colores.")
 st.markdown("""
 - 🟢 **Verde**: Set con una alta probabilidad de revalorización y rentabilidad.
 - 🟡 **Amarillo**: Set con potencial de revalorización y con un riesgo medio.
