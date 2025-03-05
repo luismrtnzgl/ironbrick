@@ -92,16 +92,7 @@ df_filtrado.rename(columns={
     "PredictedInvestmentScore": "Rentabilidad como inversión"
 }, inplace=True)
 
-# 📌 Convertir la rentabilidad en categorías de texto
-def clasificar_rentabilidad(score):
-    if score > 10:
-        return "Alta"
-    elif 5 <= score <= 10:
-        return "Media"
-    else:
-        return "Baja"
 
-df_filtrado["Rentabilidad como inversión"] = df_filtrado["Rentabilidad como inversión"].apply(clasificar_rentabilidad)
 
 # 📌 Ordenar por rentabilidad de mayor a menor
 df_filtrado = df_filtrado.sort_values(by="Rentabilidad como inversión", ascending=False)
