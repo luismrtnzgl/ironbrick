@@ -85,8 +85,10 @@ df_filtrado = df_ranking[(df_ranking["USRetailPrice"] >= presupuesto_min) &
 if "Todos" not in selected_themes:
     df_filtrado = df_filtrado[df_filtrado["Theme"].isin(selected_themes)]
 
-# 📌 Crear una copia explícita para evitar SettingWithCopyWarning
-df_filtrado = df_filtrado.copy()
+# 📌 Si `df_filtrado` está vacío, mostrar error y detener ejecución
+if df_filtrado.empty:
+    st.error("❌ No hay sets disponibles con los filtros seleccionados. Ajusta la franja de precios o los temas para ver opciones.")
+    st.stop()
 
 # 📌 Funciones auxiliares para obtener imágenes y colores
 def get_lego_image(set_number):
@@ -109,6 +111,11 @@ if st.button("Generar Predicciones"):
                     'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity', 
                     'SizeCategory', 'PricePerPiece', 'PricePerMinifig', 'YearsOnMarket']
         
+        # 📌 Asegurar que hay datos antes de predecir
+        if df_filtrado.shape[0] == 0:
+            st.error("❌ No hay sets disponibles para predecir. Prueba ajustando los filtros.")
+            st.stop()
+        
         df_filtrado.loc[:, "PredictedInvestmentScore"] = modelo.predict(df_filtrado[features])
         df_filtrado = df_filtrado[df_filtrado["PredictedInvestmentScore"] > 0]
         
@@ -116,14 +123,6 @@ if st.button("Generar Predicciones"):
             st.warning("⚠️ Menos de 3 sets cumplen con los criterios seleccionados. Mostrando los disponibles.")
         
         df_filtrado = df_filtrado.sort_values(by="PredictedInvestmentScore", ascending=False).head(3)
-        
-        if df_filtrado.empty:
-            st.error("❌ Según el presupuesto seleccionado y los temas seleccionados, no hay ninguna inversión disponible que cumpla con un mínimo de garantías en la revalorización.")
-        else:
-            if df_filtrado.shape[0] < 3:
-                st.warning("⚠️ Menos de 3 sets cumplen con los criterios seleccionados. Mostrando los disponibles.")
-            
-            df_filtrado = df_filtrado.sort_values(by="PredictedInvestmentScore", ascending=False).head(3)
 
     st.subheader("📊 Top 3 Sets Más Rentables")
     if not df_filtrado.empty:
