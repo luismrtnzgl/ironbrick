@@ -96,4 +96,30 @@ if st.button("💾 Guardar configuración"):
     st.success("✅ ¡Tus preferencias han sido guardadas!")
 
 st.write("📊 **Top Sets Recomendados por el Modelo**:")
-st.dataframe(df_lego[["Number", "Theme", "SetName", "USRetailPrice", "PredictedInvestmentScore"]])
+
+# 📌 Seleccionar solo las columnas deseadas y renombrarlas
+df_recomendados = df_lego[["Number", "Theme", "SetName", "USRetailPrice", "WantCount", "PredictedInvestmentScore"]].copy()
+
+# 📌 Renombrar las columnas
+df_recomendados.rename(columns={
+    "Number": "ID",
+    "Theme": "Tema",
+    "SetName": "Nombre del set",
+    "USRetailPrice": "Precio de compra",
+    "WantCount": "Personas que lo quieren",
+    "PredictedInvestmentScore": "Rentabilidad como inversión"
+}, inplace=True)
+
+# 📌 Convertir la rentabilidad en categorías de texto
+def clasificar_rentabilidad(score):
+    if score > 10:
+        return "Alta"
+    elif 5 <= score <= 10:
+        return "Media"
+    else:
+        return "Baja"
+
+df_recomendados["Rentabilidad como inversión"] = df_recomendados["Rentabilidad como inversión"].apply(clasificar_rentabilidad)
+
+# 📌 Mostrar la tabla con los resultados
+st.dataframe(df_recomendados)
