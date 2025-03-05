@@ -2,56 +2,70 @@ import telebot
 import sqlite3
 import pandas as pd
 import joblib
+import os
 import time
+import schedule
 
-# 📌 Token del bot de Telegram
-TELEGRAM_BOT_TOKEN = st.secrets["TELEGRAM_BOT_TOKEN"]
+# 📌 Obtener el token de Telegram desde las variables de entorno
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
+if not TELEGRAM_BOT_TOKEN:
+    raise ValueError("❌ ERROR: No se encontró el TOKEN del bot de Telegram.")
+
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
-# 📌 Cargar el modelo
-modelo_path = "/mnt/data/stacking_model.pkl"
+# 📌 Cargar el modelo desde GitHub
+modelo_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/05_Streamlit/models/stacking_model.pkl"
+modelo_path = "/tmp/stacking_model.pkl"
+
+if not os.path.exists(modelo_path):
+    import requests
+    response = requests.get(modelo_url)
+    with open(modelo_path, "wb") as f:
+        f.write(response.content)
+
 modelo = joblib.load(modelo_path)
 
-# 📌 Cargar dataset de sets en venta
-df_lego = pd.read_csv("/mnt/data/df_lego_final_venta.csv")
+# 📌 Cargar dataset de sets en venta desde GitHub
+dataset_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/01_Data_Cleaning/df_lego_final_venta.csv"
+df_lego = pd.read_csv(dataset_url)
 
 # 📌 Aplicar el modelo para predecir oportunidades de inversión
-df_lego["PredictedInvestmentScore"] = modelo.predict(df_lego[['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit', 
-                                                               'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity', 
-                                                               'SizeCategory', 'PricePerPiece', 'PricePerMinifig', 'YearsOnMarket']])
+features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit', 
+            'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity', 
+            'SizeCategory', 'PricePerPiece', 'PricePerMinifig', 'YearsOnMarket']
+
+df_lego["PredictedInvestmentScore"] = modelo.predict(df_lego[features])
 
 # 📌 Función para obtener recomendaciones personalizadas
 def obtener_recomendaciones(telegram_id):
-    """Filtra sets según los criterios del usuario en la BD."""
-    conn = sqlite3.connect("usuarios.db")
+    """Filtra sets según los criterios del usuario en la base de datos."""
+    conn = sqlite3.connect("user_ironbrick.db")  # Cambiado a la BD correcta
     cursor = conn.cursor()
     
-    cursor.execute("SELECT * FROM usuarios WHERE telegram_id = ?", (telegram_id,))
+    cursor.execute("SELECT presupuesto_min, presupuesto_max, temas_favoritos FROM usuarios WHERE telegram_id = ?", (telegram_id,))
     usuario = cursor.fetchone()
     conn.close()
 
     if not usuario:
         return None
 
-    _, presupuesto_max, temas_favoritos, rentabilidad_min, piezas_min, exclusivo = usuario
+    presupuesto_min, presupuesto_max, temas_favoritos = usuario
     temas_lista = temas_favoritos.split(",")
 
     df_filtrado = df_lego[
-        (df_lego["USRetailPrice"] <= presupuesto_max) &
-        (df_lego["Theme"].isin(temas_lista)) &
-        (df_lego["PredictedInvestmentScore"] >= rentabilidad_min) &
-        (df_lego["Pieces"] >= piezas_min)
+        (df_lego["USRetailPrice"] >= presupuesto_min) & 
+        (df_lego["USRetailPrice"] <= presupuesto_max)
     ]
 
-    if exclusivo == "Sí":
-        df_filtrado = df_filtrado[df_filtrado["Exclusivity"] == 1]
+    if "Todos" not in temas_lista:
+        df_filtrado = df_filtrado[df_filtrado["Theme"].isin(temas_lista)]
 
     return df_filtrado.sort_values(by="PredictedInvestmentScore", ascending=False).head(5)
 
 # 📌 Función para enviar recomendaciones cada mes
 def enviar_recomendaciones():
     """Recorre la BD de usuarios y envía recomendaciones de inversión cada mes."""
-    conn = sqlite3.connect("usuarios.db")
+    conn = sqlite3.connect("user_ironbrick.db")  # Cambiado a la BD correcta
     cursor = conn.cursor()
     
     cursor.execute("SELECT telegram_id FROM usuarios")
@@ -67,15 +81,17 @@ def enviar_recomendaciones():
         else:
             mensaje = "📊 *Propuestas de Inversión en LEGO* 📊\n\n"
             for _, row in recomendaciones.iterrows():
-                mensaje += f"🧱 *{row['SetName']}* ({row['SetNumber']})\n"
+                mensaje += f"🧱 *{row['SetName']}* ({row['Number']})\n"
                 mensaje += f"💰 *Precio Actual:* ${row['USRetailPrice']}\n"
-                mensaje += f"📈 *Investment Score:* {row['PredictedInvestmentScore']:.2f}\n"
+                mensaje += f"📈 *Rentabilidad:* {row['PredictedInvestmentScore']:.2f}\n"
                 mensaje += f"🛒 *Tema:* {row['Theme']}\n"
-                mensaje += f"🔗 [Más info](https://bricklink.com/{row['SetNumber']})\n\n"
+                mensaje += f"🔗 [Más info](https://bricklink.com/{row['Number']})\n\n"
 
             bot.send_message(user_id, mensaje, parse_mode="Markdown")
 
-# 📌 Ejecutar el bot cada 30 días (una vez al mes)
+# 📌 Ejecutar el bot una vez al mes sin bloquear el proceso
+schedule.every(30).days.do(enviar_recomendaciones)
+
 while True:
-    enviar_recomendaciones()
-    time.sleep(60 * 60 * 24 * 30)
+    schedule.run_pending()
+    time.sleep(60 * 60 * 24)  # Revisa cada 24 horas si debe enviar alertas
