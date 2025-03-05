@@ -63,7 +63,7 @@ if df_lego is not None and not df_lego.empty:
     # 📌 Hacer predicción con el modelo
     features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit', 
                 'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity', 
-                'SizeCategory', 'PricePerPiece', 'PricePerMinifig', 'YearsOnMarket', 'InteractionFeature']
+                'SizeCategory', 'PricePerPiece', 'PricePerMinifig', 'YearsOnMarket']
 
     if all(feature in df_lego.columns for feature in features):
         df_lego["PredictedInvestmentScore"] = modelo.predict(df_lego[features])
