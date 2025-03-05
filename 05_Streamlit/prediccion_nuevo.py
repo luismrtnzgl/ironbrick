@@ -85,6 +85,9 @@ df_filtrado = df_ranking[(df_ranking["USRetailPrice"] >= presupuesto_min) &
 if "Todos" not in selected_themes:
     df_filtrado = df_filtrado[df_filtrado["Theme"].isin(selected_themes)]
 
+# 📌 Crear una copia explícita para evitar SettingWithCopyWarning
+df_filtrado = df_filtrado.copy()
+
 # 📌 Funciones auxiliares para obtener imágenes y colores
 def get_lego_image(set_number):
     return f"https://images.brickset.com/sets/images/{set_number}-1.jpg"
@@ -106,7 +109,7 @@ if st.button("Generar Predicciones"):
                     'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity', 
                     'SizeCategory', 'PricePerPiece', 'PricePerMinifig', 'YearsOnMarket']
         
-        df_filtrado.loc[:, "PredictedInvestmentScore"] = modelo.predict(df_filtrado[features].values)
+        df_filtrado.loc[:, "PredictedInvestmentScore"] = modelo.predict(df_filtrado[features])
         df_filtrado = df_filtrado[df_filtrado["PredictedInvestmentScore"] > 0]
         
         if df_filtrado.shape[0] < 3:
