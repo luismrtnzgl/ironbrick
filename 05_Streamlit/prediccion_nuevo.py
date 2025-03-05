@@ -4,7 +4,7 @@ import numpy as np
 import joblib
 import requests
 import os
-import pymongo #cambio erv
+#import pymongo #cambio erv
 
 
 
@@ -28,23 +28,23 @@ def load_model():
 modelo = load_model()
 
 # 📌 URL del dataset en GitHub RAW
-#dataset_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/01_Data_Cleaning/df_lego_final_venta.csv"
+dataset_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/01_Data_Cleaning/df_lego_final_venta.csv"
 
-#@st.cache_data
-#def load_data():
-    #df = pd.read_csv(dataset_url)
-    #return preprocess_data(df)  # Aplicar preprocesamiento antes de usarlo
+@st.cache_data
+def load_data():
+    df = pd.read_csv(dataset_url)
+    return preprocess_data(df)  # Aplicar preprocesamiento antes de usarlo
 
 #inicio cambio erv
 # 📌 Cargar variables de conexión desde secrets.toml
-MONGO_URI = st.secrets["MONGO_URI"]
-DATABASE_NAME = st.secrets["DATABASE_NAME"]
-COLLECTION_NAME = st.secrets["COLLECTION_NAME"]
+#MONGO_URI = st.secrets["MONGO_URI"]
+#DATABASE_NAME = st.secrets["DATABASE_NAME"]
+#COLLECTION_NAME = st.secrets["COLLECTION_NAME"]
 
 # Conectar a MongoDB
-client = pymongo.MongoClient(MONGO_URI)
-db = client[DATABASE_NAME]
-collection = db[COLLECTION_NAME]
+#client = pymongo.MongoClient(MONGO_URI)
+#db = client[DATABASE_NAME]
+#collection = db[COLLECTION_NAME]
 
 # 📌 Obtener los datos de MongoDB
 #@st.cache_data
@@ -53,64 +53,35 @@ collection = db[COLLECTION_NAME]
     #df = pd.DataFrame(list(cursor))
     #return preprocess_data(df)  # Aplicar preprocesamiento a los datos
 
-@st.cache_data
-def load_data_from_mongodb():
-    cursor = collection.find()
-    df = pd.DataFrame(list(cursor))
+#@st.cache_data
+#def load_data_from_mongodb():
+    #cursor = collection.find()
+    #df = pd.DataFrame(list(cursor))
 
     # Verifica los primeros registros para asegurarte de que la columna 'USRetailPrice' esté bien cargada
-    st.write("Primeros registros de USRetailPrice:", df['USRetailPrice'].head())
+    #st.write("Primeros registros de USRetailPrice:", df['USRetailPrice'].head())
 
     # Verifica si hay valores NaN o no numéricos
-    st.write("Cantidad de valores NaN en 'USRetailPrice':", df['USRetailPrice'].isna().sum())
-    st.write("¿Hay valores no numéricos en 'USRetailPrice'? ", df['USRetailPrice'].apply(pd.to_numeric, errors='coerce').isna().any())
+    #st.write("Cantidad de valores NaN en 'USRetailPrice':", df['USRetailPrice'].isna().sum())
+    #st.write("¿Hay valores no numéricos en 'USRetailPrice'? ", df['USRetailPrice'].apply(pd.to_numeric, errors='coerce').isna().any())
 
     # Asegúrate de que 'USRetailPrice' sea numérico
-    df['USRetailPrice'] = pd.to_numeric(df['USRetailPrice'], errors='coerce')
+    #df['USRetailPrice'] = pd.to_numeric(df['USRetailPrice'], errors='coerce')
 
     # Verifica que 'USRetailPrice' se haya convertido correctamente
-    st.write("Valores después de convertir a numérico:", df['USRetailPrice'].head())
+    #st.write("Valores después de convertir a numérico:", df['USRetailPrice'].head())
 
     # Elimina filas con valores nulos en 'USRetailPrice'
-    df = df.dropna(subset=['USRetailPrice'])
+    #df = df.dropna(subset=['USRetailPrice'])
 
-    return preprocess_data(df)  # Aplicar preprocesamiento a los datos
+    #return preprocess_data(df)  # Aplicar preprocesamiento a los datos
 
 #fin cambio erv
 
 #inicio original luis
 # 📌 Función de preprocesamiento (igual que en telegram_app.py)
-#def preprocess_data(df):
-    #df = df[df['USRetailPrice'] > 0].copy()
-
-    #exclusivity_mapping = {'Regular': 0, 'Exclusive': 1}
-    #df['Exclusivity'] = df['Exclusivity'].map(exclusivity_mapping)
-
-    #size_category_mapping = {'Small': 0, 'Medium': 1, 'Large': 2}
-    #df['SizeCategory'] = df['SizeCategory'].map(size_category_mapping)
-
-    #df["PricePerPiece"] = df["USRetailPrice"] / df["Pieces"]
-    #df["PricePerMinifig"] = np.where(df["Minifigs"] > 0, df["USRetailPrice"] / df["Minifigs"], 0)
-    #df["YearsOnMarket"] = df["ExitYear"] - df["LaunchYear"]
-
-    #df.replace([np.inf, -np.inf], np.nan, inplace=True)
-    #numeric_cols = df.select_dtypes(include=[np.number]).columns
-    #df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].median())
-
-    #return df
-#fin original Luis
-
-#inicio cambio erv
 def preprocess_data(df):
-    # Verificar antes de filtrar
-    st.write("Datos antes de filtrar por 'USRetailPrice':")
-    st.write(df[['SetName', 'USRetailPrice']].head())
-
     df = df[df['USRetailPrice'] > 0].copy()
-
-    # Verificar después de filtrar
-    st.write("Datos después de filtrar 'USRetailPrice' > 0:")
-    st.write(df[['SetName', 'USRetailPrice']].head())
 
     exclusivity_mapping = {'Regular': 0, 'Exclusive': 1}
     df['Exclusivity'] = df['Exclusivity'].map(exclusivity_mapping)
@@ -127,13 +98,42 @@ def preprocess_data(df):
     df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].median())
 
     return df
+#fin original Luis
+
+#inicio cambio erv
+#def preprocess_data(df):
+    # Verificar antes de filtrar
+    #st.write("Datos antes de filtrar por 'USRetailPrice':")
+    #st.write(df[['SetName', 'USRetailPrice']].head())
+
+    #df = df[df['USRetailPrice'] > 0].copy()
+
+    # Verificar después de filtrar
+    #st.write("Datos después de filtrar 'USRetailPrice' > 0:")
+    #st.write(df[['SetName', 'USRetailPrice']].head())
+
+    #exclusivity_mapping = {'Regular': 0, 'Exclusive': 1}
+    #df['Exclusivity'] = df['Exclusivity'].map(exclusivity_mapping)
+
+    #size_category_mapping = {'Small': 0, 'Medium': 1, 'Large': 2}
+    #df['SizeCategory'] = df['SizeCategory'].map(size_category_mapping)
+
+    #df["PricePerPiece"] = df["USRetailPrice"] / df["Pieces"]
+    #df["PricePerMinifig"] = np.where(df["Minifigs"] > 0, df["USRetailPrice"] / df["Minifigs"], 0)
+    #df["YearsOnMarket"] = df["ExitYear"] - df["LaunchYear"]
+
+    #df.replace([np.inf, -np.inf], np.nan, inplace=True)
+    #numeric_cols = df.select_dtypes(include=[np.number]).columns
+    #df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].median())
+
+    #return df
 
 
 #fin cambio erv
 
 # 📌 Cargar dataset con preprocesamiento
-#df_ranking = load_data()
-df_ranking = load_data_from_mongodb() #cambio erv
+df_ranking = load_data()
+#df_ranking = load_data_from_mongodb() #cambio erv
 
 # 📌 Interfaz en Streamlit
 st.title("Recomendador de sets actuales para Inversión en LEGO 📊")
