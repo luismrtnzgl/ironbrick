@@ -47,7 +47,7 @@ st.write("**Explicación:** Según el presupuesto y los temas de interés selecc
 
 st.markdown("""
 ### Código de Color para Evaluación de Riesgo:
-- 🟢 **Verde**: Set con una alta probabilidad de revalorización.
+- 🟢 **Verde**: Set con una alta probabilidad de revalorización y rentabilidad.
 - 🟡 **Amarillo**: Set con potencial de revalorización y con un riesgo medio.
 - 🟠 **Naranja**: Set posibilidades de bajas de rentabilidad pero con riesgo medio-bajo
 - 🔴 **Rojo**: Set con posibilidades de revalorización pero con una baja rentabilidad.           
@@ -71,7 +71,7 @@ def get_lego_image(set_number):
 def get_color(score):
     if score > 12:
         return "#00736d"  # Verde
-    elif score > 5:
+    elif score > 6:
         return "#FFC300"  # Amarillo
     elif score > 2:
         return "#FF9944"  # Naranja
@@ -85,7 +85,7 @@ if st.button("Generar Predicciones"):
                     'AnnualPriceIncrease', 'Exclusivity', 'SizeCategory', 'PricePerPiece', 
                     'PricePerMinifig', 'YearsOnMarket', 'InteractionFeature']
         df_filtrado.loc[:, "PredictedInvestmentScore"] = model.predict(df_filtrado[features].values)
-        df_filtrado = df_filtrado[df_filtrado["PredictedInvestmentScore"] > 1]
+        df_filtrado = df_filtrado[df_filtrado["PredictedInvestmentScore"] > 0]
         if df_filtrado.shape[0] < 3:
             st.warning("⚠️ Menos de 3 sets cumplen con los criterios seleccionados. Mostrando los disponibles.")
         df_filtrado = df_filtrado.sort_values(by="PredictedInvestmentScore", ascending=False).head(3)
