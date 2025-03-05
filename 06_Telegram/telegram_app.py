@@ -4,6 +4,7 @@ import pandas as pd
 import joblib
 import requests
 import os
+import numpy as np
 
 # 📌 URL del modelo en GitHub RAW
 modelo_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/05_Streamlit/models/stacking_model.pkl"
@@ -30,9 +31,31 @@ dataset_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/01_D
 
 @st.cache_data
 def cargar_datos():
-    return pd.read_csv(dataset_url)
+    df = pd.read_csv(dataset_url)
+    return preprocess_data(df)  # Aplicar preprocesamiento antes de usarlo
 
-# 📌 Cargar dataset ANTES de hacer predicciones
+# 📌 Función de preprocesamiento
+def preprocess_data(df):
+    df = df[df['USRetailPrice'] > 0].copy()
+
+    exclusivity_mapping = {'Regular': 0, 'Exclusive': 1}
+    df['Exclusivity'] = df['Exclusivity'].map(exclusivity_mapping)
+
+    size_category_mapping = {'Small': 0, 'Medium': 1, 'Large': 2}
+    df['SizeCategory'] = df['SizeCategory'].map(size_category_mapping)
+
+    df["PricePerPiece"] = df["USRetailPrice"] / df["Pieces"]
+    df["PricePerMinifig"] = np.where(df["Minifigs"] > 0, df["USRetailPrice"] / df["Minifigs"], 0)
+    df["YearsOnMarket"] = df["ExitYear"] - df["LaunchYear"]
+    df["InteractionFeature"] = df["PricePerPiece"] * df["YearsOnMarket"]
+
+    df.replace([np.inf, -np.inf], np.nan, inplace=True)
+    numeric_cols = df.select_dtypes(include=[np.number]).columns
+    df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].median())
+
+    return df
+
+# 📌 Cargar dataset con preprocesamiento
 df_lego = cargar_datos()
 
 # 📌 Verificar que df_lego está cargado antes de usarlo
@@ -40,7 +63,7 @@ if df_lego is not None and not df_lego.empty:
     # 📌 Hacer predicción con el modelo
     features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit', 
                 'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity', 
-                'SizeCategory', 'PricePerPiece', 'PricePerMinifig', 'YearsOnMarket']
+                'SizeCategory', 'PricePerPiece', 'PricePerMinifig', 'YearsOnMarket', 'InteractionFeature']
 
     if all(feature in df_lego.columns for feature in features):
         df_lego["PredictedInvestmentScore"] = modelo.predict(df_lego[features])
@@ -96,12 +119,9 @@ if st.button("💾 Guardar configuración"):
     conn.commit()
     st.success("✅ ¡Tus preferencias han sido guardadas! Recibirás alertas mensuales en Telegram.")
 
-# 📌 Hacer predicción con el modelo
-df_lego["PredictedInvestmentScore"] = modelo.predict(df_lego[['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit', 
-                                                               'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity', 
-                                                               'SizeCategory', 'PricePerPiece', 'PricePerMinifig', 'YearsOnMarket']])
-
-# 📌 Mostrar los mejores sets de inversión según el modelo
+# 📌 Hacer predicción con el modelo y mostrar resultados
 st.write("📊 **Top Sets Recomendados por el Modelo**:")
+df_lego["PredictedInvestmentScore"] = modelo.predict(df_lego[features])
+
 df_recomendados = df_lego.sort_values(by="PredictedInvestmentScore", ascending=False).head(10)
 st.dataframe(df_recomendados)
