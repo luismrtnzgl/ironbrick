@@ -1,21 +1,29 @@
 import telebot
 import sqlite3
 import pandas as pd
+import joblib
 import time
-from dotenv import load_dotenv
 
 # 📌 Token del bot de Telegram
-# Configuración del entorno
-load_dotenv()
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_BOT_TOKEN = st.secrets["TELEGRAM_BOT_TOKEN"]
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
-# 📌 Cargar datos de sets retirados
-df_lego = pd.read_csv("../01_Data_Cleaning/df_lego_final_retirados.csv")
+# 📌 Cargar el modelo
+modelo_path = "/mnt/data/stacking_model.pkl"
+modelo = joblib.load(modelo_path)
 
+# 📌 Cargar dataset de sets en venta
+df_lego = pd.read_csv("/mnt/data/df_lego_final_venta.csv")
+
+# 📌 Aplicar el modelo para predecir oportunidades de inversión
+df_lego["PredictedInvestmentScore"] = modelo.predict(df_lego[['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit', 
+                                                               'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity', 
+                                                               'SizeCategory', 'PricePerPiece', 'PricePerMinifig', 'YearsOnMarket']])
+
+# 📌 Función para obtener recomendaciones personalizadas
 def obtener_recomendaciones(telegram_id):
-    """Busca en la BD los requisitos del usuario y filtra los sets de LEGO."""
-    conn = sqlite3.connect("user_ironbrick.db")
+    """Filtra sets según los criterios del usuario en la BD."""
+    conn = sqlite3.connect("usuarios.db")
     cursor = conn.cursor()
     
     cursor.execute("SELECT * FROM usuarios WHERE telegram_id = ?", (telegram_id,))
@@ -29,20 +37,21 @@ def obtener_recomendaciones(telegram_id):
     temas_lista = temas_favoritos.split(",")
 
     df_filtrado = df_lego[
-        (df_lego["CurrentValueNew"] <= presupuesto_max) &
+        (df_lego["USRetailPrice"] <= presupuesto_max) &
         (df_lego["Theme"].isin(temas_lista)) &
-        (df_lego["ForecastValueNew2Y"] >= (df_lego["CurrentValueNew"] * (1 + rentabilidad_min / 100))) &
-        (df_lego["PieceCount"] >= piezas_min)
+        (df_lego["PredictedInvestmentScore"] >= rentabilidad_min) &
+        (df_lego["Pieces"] >= piezas_min)
     ]
 
     if exclusivo == "Sí":
-        df_filtrado = df_filtrado[df_filtrado["Exclusive"] == "Yes"]
+        df_filtrado = df_filtrado[df_filtrado["Exclusivity"] == 1]
 
-    return df_filtrado
+    return df_filtrado.sort_values(by="PredictedInvestmentScore", ascending=False).head(5)
 
+# 📌 Función para enviar recomendaciones cada mes
 def enviar_recomendaciones():
-    """Envía recomendaciones a los usuarios cada 15 días."""
-    conn = sqlite3.connect("user_ironbrick.db")
+    """Recorre la BD de usuarios y envía recomendaciones de inversión cada mes."""
+    conn = sqlite3.connect("usuarios.db")
     cursor = conn.cursor()
     
     cursor.execute("SELECT telegram_id FROM usuarios")
@@ -54,19 +63,19 @@ def enviar_recomendaciones():
         recomendaciones = obtener_recomendaciones(user_id)
 
         if recomendaciones is None or recomendaciones.empty:
-            bot.send_message(user_id, "😞 No encontramos sets de inversión según tus criterios esta vez. ¡Revisaremos en 15 días!")
+            bot.send_message(user_id, "😞 No encontramos sets de inversión según tus criterios este mes.")
         else:
-            mensaje = "📊 *Recomendaciones de Inversión en LEGO* 📊\n\n"
+            mensaje = "📊 *Propuestas de Inversión en LEGO* 📊\n\n"
             for _, row in recomendaciones.iterrows():
                 mensaje += f"🧱 *{row['SetName']}* ({row['SetNumber']})\n"
-                mensaje += f"💰 *Precio Actual:* ${row['CurrentValueNew']}\n"
-                mensaje += f"📈 *Valor Estimado en 2 años:* ${row['ForecastValueNew2Y']}\n"
+                mensaje += f"💰 *Precio Actual:* ${row['USRetailPrice']}\n"
+                mensaje += f"📈 *Investment Score:* {row['PredictedInvestmentScore']:.2f}\n"
                 mensaje += f"🛒 *Tema:* {row['Theme']}\n"
                 mensaje += f"🔗 [Más info](https://bricklink.com/{row['SetNumber']})\n\n"
 
             bot.send_message(user_id, mensaje, parse_mode="Markdown")
 
-# 📌 Bucle para enviar alertas cada 15 días
+# 📌 Ejecutar el bot cada 30 días (una vez al mes)
 while True:
     enviar_recomendaciones()
-    time.sleep(60 * 60 * 24 * 15)  # Esperar 15 días antes de volver a enviar
+    time.sleep(60 * 60 * 24 * 30)
