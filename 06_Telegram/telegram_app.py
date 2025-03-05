@@ -98,7 +98,7 @@ if st.button("💾 Guardar configuración"):
 st.write("📊 **Top Sets Recomendados por el Modelo**:")
 
 # 📌 Seleccionar solo las columnas deseadas y renombrarlas
-df_recomendados = df_lego[["Number", "Theme", "SetName", "USRetailPrice", "WantCount", "PredictedInvestmentScore"]].copy()
+df_recomendados = df_lego[["Number", "Theme", "SetName", "USRetailPrice", "PredictedInvestmentScore"]].copy()
 
 # 📌 Renombrar las columnas
 df_recomendados.rename(columns={
