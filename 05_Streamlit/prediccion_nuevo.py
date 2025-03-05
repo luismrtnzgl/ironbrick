@@ -92,10 +92,22 @@ df_filtrado.rename(columns={
     "PredictedInvestmentScore": "Rentabilidad como inversión"
 }, inplace=True)
 
+# 📌 Guardar la predicción numérica original en una nueva columna
+df_filtrado["Score Numérico"] = df_filtrado["Rentabilidad como inversión"]
 
+# 📌 Convertir la rentabilidad en categorías de texto
+def clasificar_rentabilidad(score):
+    if score > 10:
+        return "Alta"
+    elif 5 <= score <= 10:
+        return "Media"
+    else:
+        return "Baja"
+
+df_filtrado["Rentabilidad como inversión"] = df_filtrado["Score Numérico"].apply(clasificar_rentabilidad)
 
 # 📌 Ordenar por rentabilidad de mayor a menor
-df_filtrado = df_filtrado.sort_values(by="Rentabilidad como inversión", ascending=False)
+df_filtrado = df_filtrado.sort_values(by="Score Numérico", ascending=False)
 
 # 📌 Funciones auxiliares
 def get_lego_image(set_number):
@@ -118,7 +130,7 @@ if st.button("Generar Predicciones"):
         cols = st.columns(len(df_filtrado))
         for col, (_, row) in zip(cols, df_filtrado.iterrows()):
             with col:
-                color = get_color(row["Rentabilidad como inversión"])
+                color = get_color(row["Score Numérico"])  # Usar la columna numérica
                 st.markdown(f"""
                     <div style='background-color:{color}; padding:10px; border-radius:5px; text-align:center; margin-bottom:10px;'>
                         <strong>{row['Nombre del set']}</strong>
