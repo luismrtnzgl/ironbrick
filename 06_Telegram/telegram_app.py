@@ -6,7 +6,7 @@ import requests
 import os
 import numpy as np
 
-# 📌 URL del modelo en GitHub RAW
+# URL del modelo en GitHub RAW
 modelo_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/05_Streamlit/models/stacking_model.pkl"
 
 @st.cache_resource
@@ -21,18 +21,18 @@ def cargar_modelo():
     
     return joblib.load(modelo_path)
 
-# 📌 Cargar el modelo
+# Cargamos el modelo
 modelo = cargar_modelo()
 
-# 📌 URL del dataset en GitHub RAW
+# URL del dataset en GitHub RAW
 dataset_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/01_Data_Cleaning/df_lego_final_venta.csv"
 
 @st.cache_data
 def cargar_datos():
     df = pd.read_csv(dataset_url)
-    return preprocess_data(df)  # Aplicar preprocesamiento antes de usarlo
+    return preprocess_data(df)
 
-# 📌 Función de preprocesamiento (igual para bot_telegram.py)
+# Función de preprocesamiento (es la misma que usamos en bot_telegram.py)
 def preprocess_data(df):
     df = df[df['USRetailPrice'] > 0].copy()
 
@@ -52,17 +52,17 @@ def preprocess_data(df):
 
     return df
 
-# 📌 Cargar dataset con preprocesamiento
+# Cargamos dataset con preprocesamiento
 df_lego = cargar_datos()
 
-# 📌 Aplicar el modelo para predecir rentabilidad
+# Aplicamos el modelo para predecir rentabilidad en los sets
 features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit', 
             'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity', 
             'SizeCategory', 'PricePerPiece', 'PricePerMinifig', 'YearsOnMarket']
 
 df_lego["PredictedInvestmentScore"] = modelo.predict(df_lego[features])
 
-# 📌 Guardar información en la base de datos
+# Guardamos información en la base de datos 
 st.title("📢 Alerta mensual de Inversión en LEGO por Telegram")
 st.write("Registra tus preferencias para recibir propuestas de inversión por Telegram cada mes.")
 
@@ -97,10 +97,10 @@ if st.button("💾 Guardar configuración"):
 
 st.write("📊 **Top Sets Recomendados por el Modelo**:")
 
-# 📌 Seleccionar solo las columnas deseadas y renombrarlas
+# Seleccionamos solo las columnas deseadas y renombrarlas
 df_recomendados = df_lego[["Number", "Theme", "SetName", "USRetailPrice", "PredictedInvestmentScore"]].copy()
 
-# 📌 Renombrar las columnas
+# Renombramos las columnas
 df_recomendados.rename(columns={
     "Number": "ID",
     "Theme": "Tema",
@@ -109,7 +109,7 @@ df_recomendados.rename(columns={
     "PredictedInvestmentScore": "Rentabilidad"
 }, inplace=True)
 
-# 📌 Convertir la rentabilidad en categorías de texto
+# Convertimos la rentabilidad en categorías de texto
 def clasificar_rentabilidad(score):
     if score > 10:
         return "Alta"
@@ -118,10 +118,27 @@ def clasificar_rentabilidad(score):
     else:
         return "Baja"
 
-# 📌 Ordenar de mayor a menor por la predicción original
+# Ordenamos de mayor a menor por la predicción original
 df_recomendados = df_recomendados.sort_values(by="Rentabilidad", ascending=False)
 
 df_recomendados["Rentabilidad"] = df_recomendados["Rentabilidad"].apply(clasificar_rentabilidad)
 
-# 📌 Mostrar la tabla con los resultados
+# Mostramos la tabla con los resultados
 st.dataframe(df_recomendados)
+
+st.write("📊 **Usuarios Registrados en el Bot de Telegram**")
+
+conn = sqlite3.connect("user_ironbrick.db")
+cursor = conn.cursor()
+
+# Verificamos si hay usuarios registrados
+cursor.execute("SELECT telegram_id, presupuesto_min, presupuesto_max, temas_favoritos FROM usuarios")
+usuarios = cursor.fetchall()
+
+if usuarios:
+    df_usuarios = pd.DataFrame(usuarios, columns=["Telegram ID", "Presupuesto Mín", "Presupuesto Máx", "Temas Favoritos"])
+    st.dataframe(df_usuarios)
+else:
+    st.warning("❌ No hay usuarios registrados en el bot.")
+
+conn.close()
