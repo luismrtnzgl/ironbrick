@@ -58,12 +58,36 @@ features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit',
 
 df_lego["PredictedInvestmentScore"] = modelo.predict(df_lego[features])
 
+# 📌 Función para manejar el comando /start y registrar usuarios
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    user_id = message.chat.id
+    bot.send_message(user_id, "✅ ¡Bienvenido! Recibirás recomendaciones de inversión en LEGO cada mes.")
+
+    conn = sqlite3.connect("user_ironbrick.db")
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS usuarios (
+        telegram_id TEXT PRIMARY KEY,
+        presupuesto_min INTEGER DEFAULT 10,
+        presupuesto_max INTEGER DEFAULT 200,
+        temas_favoritos TEXT DEFAULT 'Todos'
+    )
+    """)
+    
+    cursor.execute("INSERT OR IGNORE INTO usuarios (telegram_id) VALUES (?)", (user_id,))
+    
+    conn.commit()
+    conn.close()
+
+    bot.send_message(user_id, "💡 Puedes configurar tu presupuesto y temas favoritos en la app de Streamlit.")
+
 # 📌 Función para seleccionar un set no repetido dentro del presupuesto y preferencias del usuario
 def obtener_mejor_set(user_id, presupuesto_min, presupuesto_max, temas_favoritos):
     conn = sqlite3.connect("user_ironbrick.db")
     cursor = conn.cursor()
     
-    # 📌 Obtener sets ya recomendados a este usuario
     cursor.execute("CREATE TABLE IF NOT EXISTS recomendaciones (telegram_id TEXT, set_id TEXT, PRIMARY KEY (telegram_id, set_id))")
     cursor.execute("SELECT set_id FROM recomendaciones WHERE telegram_id = ?", (user_id,))
     sets_recomendados = {row[0] for row in cursor.fetchall()}
@@ -82,14 +106,14 @@ def obtener_mejor_set(user_id, presupuesto_min, presupuesto_max, temas_favoritos
     # 📌 Excluir sets ya recomendados
     df_filtrado = df_filtrado[~df_filtrado["Number"].astype(str).isin(sets_recomendados)]
 
-    # 📌 Seleccionar el mejor set (con mayor PredictedInvestmentScore)
+    # 📌 Seleccionar el mejor set
     if not df_filtrado.empty:
         mejor_set = df_filtrado.sort_values(by="PredictedInvestmentScore", ascending=False).iloc[0]
         return mejor_set
 
-    return None  # No hay sets disponibles para recomendar
+    return None
 
-# 📌 Función para enviar recomendaciones personalizadas a los usuarios
+# 📌 Función para enviar recomendaciones mensuales
 def enviar_recomendaciones():
     conn = sqlite3.connect("user_ironbrick.db")
     cursor = conn.cursor()
@@ -99,9 +123,8 @@ def enviar_recomendaciones():
     
     for user in usuarios:
         user_id, presupuesto_min, presupuesto_max, temas_favoritos = user
-        temas_favoritos = temas_favoritos.split(",")  # Convertir a lista
+        temas_favoritos = temas_favoritos.split(",")
 
-        # 📌 Obtener el mejor set dentro de su presupuesto y preferencias
         mejor_set = obtener_mejor_set(user_id, presupuesto_min, presupuesto_max, temas_favoritos)
 
         if mejor_set is not None:
@@ -114,19 +137,24 @@ def enviar_recomendaciones():
 
             bot.send_message(user_id, mensaje, parse_mode="Markdown")
 
-            # 📌 Guardar el set recomendado en la base de datos
             cursor.execute("INSERT INTO recomendaciones (telegram_id, set_id) VALUES (?, ?)", (user_id, mejor_set["Number"]))
             conn.commit()
-
         else:
-            bot.send_message(user_id, "😞 No encontramos un nuevo set que cumpla con tus criterios este mes. ¡Revisaremos en el próximo envío!")
+            bot.send_message(user_id, "😞 No encontramos un nuevo set para ti este mes. ¡Revisaremos el próximo envío!")
 
     conn.close()
 
 # 📌 Programar el envío cada 30 días
 schedule.every(30).days.do(enviar_recomendaciones)
 
-# 📌 Ejecutar el bot en bucle
-while True:
-    schedule.run_pending()
-    time.sleep(86400)  # Revisar cada 24 horas
+# 📌 Iniciar el bot en paralelo con `schedule`
+def run_scheduler():
+    while True:
+        schedule.run_pending()
+        time.sleep(86400)  # Revisar cada 24 horas
+
+import threading
+threading.Thread(target=run_scheduler, daemon=True).start()
+
+# 📌 Ejecutar el bot (esto permite que reciba mensajes en Telegram)
+bot.polling(none_stop=True)
