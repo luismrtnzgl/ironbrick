@@ -5,6 +5,7 @@ import joblib
 import requests
 import os
 from pymongo import MongoClient #cambio erv
+import pymongo
 
 #inicio cambio erv
 # 📌 Leer credenciales desde `secrets.toml`
@@ -33,16 +34,16 @@ def load_model():
 modelo = load_model()
 
 @st.cache_data
-def load_data_from_mongodb():
-    """Carga los datos desde MongoDB y los convierte en un DataFrame de Pandas."""
-    client = MongoClient(MONGO_URI)
-    db = client[DB_NAME]
-    collection = db[COLLECTION_NAME]
+def load_data():
+    # Conexión a MongoDB
+    client = pymongo.MongoClient(st.secrets["MONGO_URI"])
+    db = client[st.secrets["DATABASE_NAME"]]
+    collection = db[st.secrets["COLLECTION_NAME"]]
 
-    data = list(collection.find({}, {"_id": 0}))  # Excluir el campo `_id`
+    # Cargar los datos
+    data = list(collection.find())
     df = pd.DataFrame(data)
-
-    return preprocess_data(df)  # Aplicar preprocesamiento antes de usarlo
+    return df
 
 
 
