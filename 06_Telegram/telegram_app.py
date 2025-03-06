@@ -1,18 +1,24 @@
 import streamlit as st
-import sqlite3
+import psycopg2
 import pandas as pd
 import joblib
 import requests
 import os
 import numpy as np
 
-# URL del modelo en GitHub RAW
+# 📌 Obtener la URL de la base de datos PostgreSQL desde Render
+DB_URL = os.getenv("DATABASE_URL", "postgresql://ironbrick_user:password@your-database-host.compute.amazonaws.com:5432/ironbrick")
+
+# 📌 Función para conectar con la base de datos en Render
+def get_db_connection():
+    return psycopg2.connect(DB_URL, sslmode="require")
+
+# 📌 Cargar el modelo
 modelo_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/05_Streamlit/models/stacking_model.pkl"
 
 @st.cache_resource
 def cargar_modelo():
-    """Descarga el modelo desde GitHub y lo carga en Streamlit Cloud."""
-    modelo_path = "/tmp/stacking_model.pkl"  # Ruta temporal en Streamlit Cloud
+    modelo_path = "/tmp/stacking_model.pkl"
     
     if not os.path.exists(modelo_path):
         response = requests.get(modelo_url)
@@ -21,10 +27,9 @@ def cargar_modelo():
     
     return joblib.load(modelo_path)
 
-# Cargamos el modelo
 modelo = cargar_modelo()
 
-# URL del dataset en GitHub RAW
+# 📌 Cargar y procesar el dataset de LEGO
 dataset_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/01_Data_Cleaning/df_lego_final_venta.csv"
 
 @st.cache_data
@@ -32,37 +37,30 @@ def cargar_datos():
     df = pd.read_csv(dataset_url)
     return preprocess_data(df)
 
-# Función de preprocesamiento (es la misma que usamos en bot_telegram.py)
 def preprocess_data(df):
     df = df[df['USRetailPrice'] > 0].copy()
 
+    # Mapeo de exclusividad y tamaño del set
     exclusivity_mapping = {'Regular': 0, 'Exclusive': 1}
     df['Exclusivity'] = df['Exclusivity'].map(exclusivity_mapping)
 
     size_category_mapping = {'Small': 0, 'Medium': 1, 'Large': 2}
     df['SizeCategory'] = df['SizeCategory'].map(size_category_mapping)
 
+    # Creación de nuevas métricas
     df["PricePerPiece"] = df["USRetailPrice"] / df["Pieces"]
     df["PricePerMinifig"] = np.where(df["Minifigs"] > 0, df["USRetailPrice"] / df["Minifigs"], 0)
     df["YearsOnMarket"] = df["ExitYear"] - df["LaunchYear"]
 
+    # Limpieza de valores infinitos y nulos
     df.replace([np.inf, -np.inf], np.nan, inplace=True)
-    numeric_cols = df.select_dtypes(include=[np.number]).columns
-    df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].median())
+    df.fillna(df.median(), inplace=True)
 
     return df
 
-# Cargamos dataset con preprocesamiento
 df_lego = cargar_datos()
 
-# Aplicamos el modelo para predecir rentabilidad en los sets
-features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit', 
-            'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity', 
-            'SizeCategory', 'PricePerPiece', 'PricePerMinifig', 'YearsOnMarket']
-
-df_lego["PredictedInvestmentScore"] = modelo.predict(df_lego[features])
-
-# Guardamos información en la base de datos 
+# 📌 Formulario para guardar configuración del usuario
 st.title("📢 Alerta mensual de Inversión en LEGO por Telegram")
 st.write("Registra tus preferencias para recibir propuestas de inversión por Telegram cada mes.")
 
@@ -70,16 +68,8 @@ telegram_id = st.text_input("🔹 Tu ID de Telegram (usa @userinfobot en Telegra
 presupuesto_min, presupuesto_max = st.slider("💰 Rango de presupuesto (USD)", 10, 500, (10, 200), step=10)
 
 temas_unicos = sorted(df_lego["Theme"].unique().tolist())
-temas_opciones = ["Todos"] + temas_unicos  # Agregar opción "Todos"
+temas_opciones = ["Todos"] + temas_unicos
 temas_favoritos = st.multiselect("🛒 Temas Favoritos", temas_opciones, default=["Todos"])
-
-# 📌 Definir la ruta absoluta de la base de datos
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, "user_ironbrick.db")
-
-# 📌 Conectar siempre a la misma base de datos
-def get_db_connection():
-    return sqlite3.connect(DB_PATH, check_same_thread=False)
 
 if st.button("💾 Guardar configuración"):
     temas_str = ",".join(temas_favoritos)
@@ -94,53 +84,26 @@ if st.button("💾 Guardar configuración"):
         temas_favoritos TEXT
     )
     """)
-    
+
     cursor.execute("""
-    INSERT OR REPLACE INTO usuarios (telegram_id, presupuesto_min, presupuesto_max, temas_favoritos)
-    VALUES (?, ?, ?, ?)
+    INSERT INTO usuarios (telegram_id, presupuesto_min, presupuesto_max, temas_favoritos)
+    VALUES (%s, %s, %s, %s)
+    ON CONFLICT (telegram_id) DO UPDATE
+    SET presupuesto_min = EXCLUDED.presupuesto_min,
+        presupuesto_max = EXCLUDED.presupuesto_max,
+        temas_favoritos = EXCLUDED.temas_favoritos;
     """, (telegram_id, presupuesto_min, presupuesto_max, temas_str))
     
     conn.commit()
     conn.close()
-    st.success("✅ ¡Tus preferencias han sido guardadas!")
-    
-st.write("📊 **Top Sets Recomendados por el Modelo**:")
+    st.success("✅ ¡Tus preferencias han sido guardadas correctamente!")
 
-# Seleccionamos solo las columnas deseadas y renombrarlas
-df_recomendados = df_lego[["Number", "Theme", "SetName", "USRetailPrice", "PredictedInvestmentScore"]].copy()
+# 📌 Mostrar usuarios registrados
+st.write("📊 **Usuarios Registrados en la Base de Datos**")
 
-# Renombramos las columnas
-df_recomendados.rename(columns={
-    "Number": "ID",
-    "Theme": "Tema",
-    "SetName": "Nombre del set",
-    "USRetailPrice": "Precio",
-    "PredictedInvestmentScore": "Rentabilidad"
-}, inplace=True)
-
-# Convertimos la rentabilidad en categorías de texto
-def clasificar_rentabilidad(score):
-    if score > 10:
-        return "Alta"
-    elif 5 <= score <= 10:
-        return "Media"
-    else:
-        return "Baja"
-
-# Ordenamos de mayor a menor por la predicción original
-df_recomendados = df_recomendados.sort_values(by="Rentabilidad", ascending=False)
-
-df_recomendados["Rentabilidad"] = df_recomendados["Rentabilidad"].apply(clasificar_rentabilidad)
-
-# Mostramos la tabla con los resultados
-st.dataframe(df_recomendados)
-
-st.write("📊 **Usuarios Registrados en el Bot de Telegram**")
-
-conn = sqlite3.connect("user_ironbrick.db")
+conn = get_db_connection()
 cursor = conn.cursor()
 
-# Verificamos si hay usuarios registrados
 cursor.execute("SELECT telegram_id, presupuesto_min, presupuesto_max, temas_favoritos FROM usuarios")
 usuarios = cursor.fetchall()
 
