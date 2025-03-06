@@ -105,6 +105,12 @@ st.subheader("Configura tu Inversión en LEGO")
 # 📌 Configuración de presupuesto y temas
 presupuesto_min, presupuesto_max = st.slider("💰 Selecciona el rango de presupuesto (USD)", 10, 1000, (10, 200), step=10)
 
+#check erv
+# Verificar las columnas del DataFrame
+st.write(df_ranking.columns)  # Esto mostrará las columnas disponibles
+#fin check erv
+
+
 temas_unicos = sorted(df_ranking["Theme"].unique().tolist())
 temas_opciones = ["Todos"] + temas_unicos
 selected_themes = st.multiselect("🛒 Selecciona los Themes de Interés", temas_opciones, default=["Todos"])
