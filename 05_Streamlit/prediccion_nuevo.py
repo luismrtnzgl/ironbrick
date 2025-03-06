@@ -9,12 +9,13 @@ import pymongo
 from dotenv import load_dotenv #cambio
 
 load_dotenv()
-
+print("tu putamadre")
 
 #inicio cambio erv
 # 📌 Leer credenciales desde `secrets.toml`
 # Accede a los secretos directamente
 mongo_uri = os.environ.get("MONGO_URI")
+print("tu putamadre")
 database_name = os.environ.get("DATABASE_NAME")
 collection_name = os.environ.get("COLLECTION_NAME")
 #fin cambio erv
