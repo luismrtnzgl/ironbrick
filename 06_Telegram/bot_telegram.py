@@ -94,7 +94,7 @@ def check_status(message):
     conn = sqlite3.connect("user_ironbrick.db")
     cursor = conn.cursor()
     
-    # Verificar si el usuario está registrado
+    # 📌 Verificar si el usuario está registrado en la base de datos
     cursor.execute("SELECT presupuesto_min, presupuesto_max, temas_favoritos FROM usuarios WHERE telegram_id = ?", (user_id,))
     usuario = cursor.fetchone()
 
@@ -108,7 +108,6 @@ def check_status(message):
         mensaje += f"🛒 *Temas favoritos:* {temas_favoritos}\n"
         mensaje += f"📩 *Recomendaciones recibidas:* {num_recomendaciones}\n\n"
         mensaje += "✅ Tu suscripción está activa y funcionando correctamente."
-
     else:
         mensaje = "❌ No estás registrado en el sistema. Usa `/start` para suscribirte."
 
