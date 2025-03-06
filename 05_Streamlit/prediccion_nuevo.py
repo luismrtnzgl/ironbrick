@@ -7,7 +7,7 @@ import os
 from pymongo import MongoClient #cambio erv
 import pymongo
 from dotenv import load_dotenv #cambio
-import config
+from config import collection
 
 load_dotenv()
 
