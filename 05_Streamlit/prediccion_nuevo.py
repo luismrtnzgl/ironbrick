@@ -7,10 +7,11 @@ import os
 from pymongo import MongoClient #cambio erv
 import pymongo
 from dotenv import load_dotenv #cambio
+load_dotenv()
 from config import collection, MONGO_URI, DATABASE_NAME, COLLECTION_NAME
 
 
-load_dotenv()
+
 
 
 #inicio cambio erv
