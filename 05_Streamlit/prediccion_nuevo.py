@@ -10,10 +10,14 @@ import pymongo
 #inicio cambio erv
 # 📌 Leer credenciales desde `secrets.toml`
 # Accede a los secretos directamente
-mongo_uri = st.secrets["MONGO_URI"]
-database_name = st.secrets["DATABASE_NAME"]
-collection_name = st.secrets["COLLECTION_NAME"]
+mongo_uri = os.getenv["MONGO_URI"]
+database_name = os.getenv["DATABASE_NAME"]
+collection_name = os.getenv["COLLECTION_NAME"]
 #fin cambio erv
+
+
+
+
 
 # 📌 URL del modelo en GitHub RAW
 modelo_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/05_Streamlit/models/stacking_model.pkl"
