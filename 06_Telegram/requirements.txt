@@ -2,12 +2,12 @@ streamlit
 pandas
 numpy==1.26.4
 scikit-learn==1.3.0
-xgboost
+psycopg2-binary
 requests
 joblib==1.4.2
+xgboost
 plotly
 matplotlib
 python-telegram-bot
 pyTelegramBotAPI
 schedule
-psycopg2-binary
