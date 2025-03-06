@@ -45,9 +45,9 @@ modelo = load_model()
 @st.cache_data
 def load_data():
     # Conexión a MongoDB
-    client = pymongo.MongoClient(os.environ.get("MONGO_URI"))
-    db = client[os.environ.get("DATABASE_NAME")]
-    collection = db[os.environ.get("COLLECTION_NAME")]
+    client = MongoClient(mongo_uri)
+    db = client[database_name]
+    collection = db[collection_name]
 
     # Cargar los datos
     data = list(collection.find())
