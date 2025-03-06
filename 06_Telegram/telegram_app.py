@@ -73,12 +73,17 @@ temas_unicos = sorted(df_lego["Theme"].unique().tolist())
 temas_opciones = ["Todos"] + temas_unicos  # Agregar opción "Todos"
 temas_favoritos = st.multiselect("🛒 Temas Favoritos", temas_opciones, default=["Todos"])
 
-# 📌 Conectar SIEMPRE a la misma base de datos
-DB_PATH = "user_ironbrick.db"  # Asegurar que el archivo existe y no se usa ":memory:"
+# 📌 Definir la ruta absoluta de la base de datos
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "user_ironbrick.db")
+
+# 📌 Conectar siempre a la misma base de datos
+def get_db_connection():
+    return sqlite3.connect(DB_PATH, check_same_thread=False)
 
 if st.button("💾 Guardar configuración"):
     temas_str = ",".join(temas_favoritos)
-    conn = sqlite3.connect(DB_PATH)  # 💡 Asegurar que la conexión es al mismo archivo
+    conn = get_db_connection()
     cursor = conn.cursor()
     
     cursor.execute("""
@@ -89,6 +94,7 @@ if st.button("💾 Guardar configuración"):
         temas_favoritos TEXT
     )
     """)
+    
     cursor.execute("""
     INSERT OR REPLACE INTO usuarios (telegram_id, presupuesto_min, presupuesto_max, temas_favoritos)
     VALUES (?, ?, ?, ?)
@@ -97,7 +103,7 @@ if st.button("💾 Guardar configuración"):
     conn.commit()
     conn.close()
     st.success("✅ ¡Tus preferencias han sido guardadas!")
-
+    
 st.write("📊 **Top Sets Recomendados por el Modelo**:")
 
 # Seleccionamos solo las columnas deseadas y renombrarlas

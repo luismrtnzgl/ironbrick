@@ -117,14 +117,18 @@ def send_welcome(message):
                               "📊 Puedes configurar tu presupuesto y temas favoritos en la app de Streamlit.\n"
                               "🔍 Usa `/status` para verificar tu suscripción.", parse_mode="Markdown")
 
-# 📌 Conectar a la misma base de datos que usa Streamlit
-DB_PATH = "user_ironbrick.db" 
+# 📌 Definir la ruta absoluta de la base de datos
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "user_ironbrick.db")
 
-# Función para '/status'
+# 📌 Conectar a la base de datos
+def get_db_connection():
+    return sqlite3.connect(DB_PATH, check_same_thread=False)
+
 @bot.message_handler(commands=['status'])
 def check_status(message):
     user_id = message.chat.id
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db_connection()
     cursor = conn.cursor()
 
     cursor.execute("SELECT presupuesto_min, presupuesto_max, temas_favoritos FROM usuarios WHERE telegram_id = ?", (user_id,))
@@ -141,10 +145,7 @@ def check_status(message):
 
     conn.close()
     bot.send_message(user_id, mensaje, parse_mode="Markdown")
-
-    conn.close()
-    bot.send_message(user_id, mensaje, parse_mode="Markdown")
-
+    
 # 📌 Programar envío de recomendaciones
 def enviar_recomendaciones():
     print("📤 Enviando recomendaciones a los usuarios...")
