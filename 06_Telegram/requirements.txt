@@ -10,3 +10,4 @@ matplotlib
 python-telegram-bot
 pyTelegramBotAPI
 schedule
+psycopg2-binary
