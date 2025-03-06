@@ -73,9 +73,12 @@ temas_unicos = sorted(df_lego["Theme"].unique().tolist())
 temas_opciones = ["Todos"] + temas_unicos  # Agregar opción "Todos"
 temas_favoritos = st.multiselect("🛒 Temas Favoritos", temas_opciones, default=["Todos"])
 
+# 📌 Conectar SIEMPRE a la misma base de datos
+DB_PATH = "user_ironbrick.db"  # Asegurar que el archivo existe y no se usa ":memory:"
+
 if st.button("💾 Guardar configuración"):
     temas_str = ",".join(temas_favoritos)
-    conn = sqlite3.connect("user_ironbrick.db")
+    conn = sqlite3.connect(DB_PATH)  # 💡 Asegurar que la conexión es al mismo archivo
     cursor = conn.cursor()
     
     cursor.execute("""

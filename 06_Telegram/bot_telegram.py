@@ -117,33 +117,30 @@ def send_welcome(message):
                               "📊 Puedes configurar tu presupuesto y temas favoritos en la app de Streamlit.\n"
                               "🔍 Usa `/status` para verificar tu suscripción.", parse_mode="Markdown")
 
-# 📌 Función para `/status`
+# 📌 Conectar a la misma base de datos que usa Streamlit
+DB_PATH = "user_ironbrick.db" 
+
+# Función para '/status'
 @bot.message_handler(commands=['status'])
 def check_status(message):
     user_id = message.chat.id
-    print(f"📢 Usuario {user_id} ha solicitado /status")
-
-    conn = sqlite3.connect("user_ironbrick.db")
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    
+
     cursor.execute("SELECT presupuesto_min, presupuesto_max, temas_favoritos FROM usuarios WHERE telegram_id = ?", (user_id,))
     usuario = cursor.fetchone()
 
     if usuario:
         presupuesto_min, presupuesto_max, temas_favoritos = usuario
-        cursor.execute("SELECT COUNT(*) FROM recomendaciones WHERE telegram_id = ?", (user_id,))
-        num_recomendaciones = cursor.fetchone()[0]
-
         mensaje = f"📊 *Estado de tu suscripción:*\n\n"
         mensaje += f"💰 *Presupuesto:* ${presupuesto_min} - ${presupuesto_max}\n"
         mensaje += f"🛒 *Temas favoritos:* {temas_favoritos}\n"
-        mensaje += f"📩 *Recomendaciones recibidas:* {num_recomendaciones}\n\n"
         mensaje += "✅ Tu suscripción está activa y funcionando correctamente."
-
-        print(f"✅ Usuario {user_id} encontrado en la base de datos.")
     else:
         mensaje = "❌ No estás registrado en el sistema. Usa `/start` para suscribirte."
-        print(f"❌ Usuario {user_id} no encontrado en la base de datos.")
+
+    conn.close()
+    bot.send_message(user_id, mensaje, parse_mode="Markdown")
 
     conn.close()
     bot.send_message(user_id, mensaje, parse_mode="Markdown")
