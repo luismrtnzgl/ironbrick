@@ -42,8 +42,17 @@ def load_data():
 
     # Cargar los datos
     data = list(collection.find())
+
+    if len(data) == 0:
+        st.error("❌ No se encontraron datos en la colección de MongoDB.")
+        st.stop()  # Detener la ejecución si no hay datos
+
     df = pd.DataFrame(data)
+
+    # Verificar las primeras filas del DataFrame para asegurarse de que los datos están bien cargados
+    st.write("Datos cargados correctamente:", df.head())  # Mostrar las primeras filas del DataFrame
     return df
+
 
 
 
@@ -104,11 +113,6 @@ st.subheader("Configura tu Inversión en LEGO")
 
 # 📌 Configuración de presupuesto y temas
 presupuesto_min, presupuesto_max = st.slider("💰 Selecciona el rango de presupuesto (USD)", 10, 1000, (10, 200), step=10)
-
-#check erv
-# Verificar las columnas del DataFrame
-st.write(df_ranking.columns)  # Esto mostrará las columnas disponibles
-#fin check erv
 
 
 temas_unicos = sorted(df_ranking["Theme"].unique().tolist())
