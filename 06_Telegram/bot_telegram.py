@@ -15,6 +15,37 @@ if not TELEGRAM_BOT_TOKEN:
 
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
+# 📌 Crear la tabla recomendaciones si no existe
+def asegurar_tablas():
+    conn = sqlite3.connect("user_ironbrick.db")
+    cursor = conn.cursor()
+
+    # Crear la tabla de usuarios si no existe
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS usuarios (
+        telegram_id TEXT PRIMARY KEY,
+        presupuesto_min INTEGER DEFAULT 10,
+        presupuesto_max INTEGER DEFAULT 200,
+        temas_favoritos TEXT DEFAULT 'Todos'
+    )
+    """)
+
+    # Crear la tabla de recomendaciones si no existe
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS recomendaciones (
+        telegram_id TEXT,
+        set_id TEXT,
+        PRIMARY KEY (telegram_id, set_id),
+        FOREIGN KEY (telegram_id) REFERENCES usuarios (telegram_id)
+    )
+    """)
+
+    conn.commit()
+    conn.close()
+
+# 📌 Asegurar que las tablas existen antes de que el bot se ejecute
+asegurar_tablas()
+
 # 📌 Cargar el modelo desde GitHub
 modelo_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/05_Streamlit/models/stacking_model.pkl"
 modelo_path = "/tmp/stacking_model.pkl"
