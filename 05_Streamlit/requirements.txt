@@ -6,3 +6,4 @@ plotly
 streamlit
 pymongo #cambio erv
 python-dotenv #cambio
+config
