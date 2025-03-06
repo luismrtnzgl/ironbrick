@@ -156,8 +156,9 @@ schedule.every(30).days.do(enviar_recomendaciones)
 # 📌 Bucle principal con manejo de errores
 while True:
     try:
-        print("🔄 Iniciando bot...")
-        bot.infinity_polling(timeout=60, long_polling_timeout=10)
+        if __name__ == "__main__":
+            print("🔄 Iniciando bot en modo seguro...")
+            bot.infinity_polling(timeout=60, long_polling_timeout=10)
     except Exception as e:
         print(f"⚠️ Error en el bot: {e}")
         time.sleep(5)
