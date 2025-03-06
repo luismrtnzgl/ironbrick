@@ -8,14 +8,14 @@ import time
 import schedule
 import numpy as np
 
-# Obtenemos el token del bot desde las variables de entorno
+# 📌 Obtener el token del bot desde las variables de entorno
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 if not TELEGRAM_BOT_TOKEN:
     raise ValueError("❌ ERROR: No se encontró el TOKEN del bot de Telegram.")
 
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
-# Cargamos el modelo desde GitHub
+# 📌 Cargar el modelo desde GitHub
 modelo_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/05_Streamlit/models/stacking_model.pkl"
 modelo_path = "/tmp/stacking_model.pkl"
 
@@ -26,7 +26,7 @@ if not os.path.exists(modelo_path):
 
 modelo = joblib.load(modelo_path)
 
-# Cargamos dataset y preprocesarlo
+# 📌 Cargar dataset y preprocesarlo
 dataset_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/01_Data_Cleaning/df_lego_final_venta.csv"
 df_lego = pd.read_csv(dataset_url)
 
@@ -51,14 +51,14 @@ def preprocess_data(df):
 
 df_lego = preprocess_data(df_lego)
 
-# Aplicamos el modelo a todos los sets
+# 📌 Aplicar el modelo a todos los sets
 features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit', 
             'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity', 
             'SizeCategory', 'PricePerPiece', 'PricePerMinifig', 'YearsOnMarket']
 
 df_lego["PredictedInvestmentScore"] = modelo.predict(df_lego[features])
 
-# Función para el comando /start y registrar usuarios
+# 📌 Función para `/start`
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     user_id = message.chat.id
@@ -86,15 +86,15 @@ def send_welcome(message):
                               "📊 Puedes configurar tu presupuesto y temas favoritos en la app de Streamlit.\n"
                               "🔍 Usa `/status` para verificar tu suscripción.", parse_mode="Markdown")
 
-# Función para el comando /status y asegurarnos de que los datos de los usuarios se guardan en la base de datos
+# 📌 Función para `/status`
 @bot.message_handler(commands=['status'])
 def check_status(message):
     user_id = message.chat.id
+    print(f"📢 Usuario {user_id} ha solicitado /status")
 
     conn = sqlite3.connect("user_ironbrick.db")
     cursor = conn.cursor()
     
-    # 📌 Verificar si el usuario está registrado en la base de datos
     cursor.execute("SELECT presupuesto_min, presupuesto_max, temas_favoritos FROM usuarios WHERE telegram_id = ?", (user_id,))
     usuario = cursor.fetchone()
 
@@ -108,44 +108,19 @@ def check_status(message):
         mensaje += f"🛒 *Temas favoritos:* {temas_favoritos}\n"
         mensaje += f"📩 *Recomendaciones recibidas:* {num_recomendaciones}\n\n"
         mensaje += "✅ Tu suscripción está activa y funcionando correctamente."
+
+        print(f"✅ Usuario {user_id} encontrado en la base de datos.")
     else:
         mensaje = "❌ No estás registrado en el sistema. Usa `/start` para suscribirte."
+        print(f"❌ Usuario {user_id} no encontrado en la base de datos.")
 
     conn.close()
     bot.send_message(user_id, mensaje, parse_mode="Markdown")
 
-# Función para seleccionar un set no repetido dentro del presupuesto y preferencias del usuario
-def obtener_mejor_set(user_id, presupuesto_min, presupuesto_max, temas_favoritos):
-    conn = sqlite3.connect("user_ironbrick.db")
-    cursor = conn.cursor()
-    
-    cursor.execute("CREATE TABLE IF NOT EXISTS recomendaciones (telegram_id TEXT, set_id TEXT, PRIMARY KEY (telegram_id, set_id))")
-    cursor.execute("SELECT set_id FROM recomendaciones WHERE telegram_id = ?", (user_id,))
-    sets_recomendados = {row[0] for row in cursor.fetchall()}
-    
-    conn.close()
-
-    # Filtrar por presupuesto y temas favoritos
-    df_filtrado = df_lego[
-        (df_lego["USRetailPrice"] >= presupuesto_min) &
-        (df_lego["USRetailPrice"] <= presupuesto_max)
-    ]
-
-    if "Todos" not in temas_favoritos:
-        df_filtrado = df_filtrado[df_filtrado["Theme"].isin(temas_favoritos)]
-
-    # Excluir sets ya recomendados
-    df_filtrado = df_filtrado[~df_filtrado["Number"].astype(str).isin(sets_recomendados)]
-
-    # Seleccionar el mejor set
-    if not df_filtrado.empty:
-        mejor_set = df_filtrado.sort_values(by="PredictedInvestmentScore", ascending=False).iloc[0]
-        return mejor_set
-
-    return None
-
-# Función para enviar recomendaciones mensuales
+# 📌 Programar envío de recomendaciones
 def enviar_recomendaciones():
+    print("📤 Enviando recomendaciones a los usuarios...")
+    
     conn = sqlite3.connect("user_ironbrick.db")
     cursor = conn.cursor()
     
@@ -156,36 +131,33 @@ def enviar_recomendaciones():
         user_id, presupuesto_min, presupuesto_max, temas_favoritos = user
         temas_favoritos = temas_favoritos.split(",")
 
-        mejor_set = obtener_mejor_set(user_id, presupuesto_min, presupuesto_max, temas_favoritos)
+        df_filtrado = df_lego[
+            (df_lego["USRetailPrice"] >= presupuesto_min) &
+            (df_lego["USRetailPrice"] <= presupuesto_max)
+        ]
 
-        if mejor_set is not None:
+        if "Todos" not in temas_favoritos:
+            df_filtrado = df_filtrado[df_filtrado["Theme"].isin(temas_favoritos)]
+
+        if not df_filtrado.empty:
+            mejor_set = df_filtrado.sort_values(by="PredictedInvestmentScore", ascending=False).iloc[0]
             mensaje = f"📊 *Nueva Oportunidad de Inversión en LEGO*\n\n"
             mensaje += f"🧱 *{mejor_set['SetName']}* ({mejor_set['Number']})\n"
             mensaje += f"💰 *Precio:* ${mejor_set['USRetailPrice']:.2f}\n"
             mensaje += f"📈 *Rentabilidad:* {mejor_set['PredictedInvestmentScore']:.2f}\n"
-            mensaje += f"🛒 *Tema:* {mejor_set['Theme']}\n"
             mensaje += f"🔗 [Ver en BrickLink](https://bricklink.com/v2/catalog/catalogitem.page?S={mejor_set['Number']})\n"
 
             bot.send_message(user_id, mensaje, parse_mode="Markdown")
 
-            cursor.execute("INSERT INTO recomendaciones (telegram_id, set_id) VALUES (?, ?)", (user_id, mejor_set["Number"]))
-            conn.commit()
-        else:
-            bot.send_message(user_id, "😞 No encontramos un nuevo set para ti este mes. ¡Revisaremos el próximo envío!")
-
     conn.close()
 
-# Programamos el envío cada 30 días
 schedule.every(30).days.do(enviar_recomendaciones)
 
-# Iniciamos el bot en paralelo con `schedule`
-def run_scheduler():
-    while True:
-        schedule.run_pending()
-        time.sleep(86400)  # Revisar cada 24 horas
-
-import threading
-threading.Thread(target=run_scheduler, daemon=True).start()
-
-# Ejecutamos el bot (esto permite que reciba mensajes en Telegram)
-bot.polling(none_stop=True)
+# 📌 Bucle principal con manejo de errores
+while True:
+    try:
+        print("🔄 Iniciando bot...")
+        bot.infinity_polling(timeout=60, long_polling_timeout=10)
+    except Exception as e:
+        print(f"⚠️ Error en el bot: {e}")
+        time.sleep(5)
