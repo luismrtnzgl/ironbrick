@@ -7,7 +7,8 @@ import os
 from pymongo import MongoClient #cambio erv
 import pymongo
 from dotenv import load_dotenv #cambio
-from config import collection
+from config import collection, MONGO_URI, DATABASE_NAME, COLLECTION_NAME
+
 
 load_dotenv()
 
@@ -15,9 +16,9 @@ load_dotenv()
 #inicio cambio erv
 # 📌 Leer credenciales desde `secrets.toml`
 # Accede a los secretos directamente
-mongo_uri = config("MONGO_URI")
-database_name = config("DATABASE_NAME")
-collection_name = config("COLLECTION_NAME")
+#mongo_uri = config("MONGO_URI")
+#database_name = config("DATABASE_NAME")
+#collection_name = config("COLLECTION_NAME")
 #fin cambio erv
 
 
@@ -44,13 +45,8 @@ modelo = load_model()
 
 @st.cache_data
 def load_data():
-    # Conexión a MongoDB
-    #client = pymongo.MongoClient(mongo_uri)
-    #db = client[database_name]
-    #collection = db[collection_name]
-
-    # Cargar los datos
-    data = list(collection.find())
+    # Ya no necesitas reconectar a la base de datos, ya que la colección se importa desde config.py
+    data = list(collection.find())  # Usar la colección importada
 
     if len(data) == 0:
         st.error("❌ No se encontraron datos en la colección de MongoDB.")
@@ -61,6 +57,7 @@ def load_data():
     # Verificar las primeras filas del DataFrame para asegurarse de que los datos están bien cargados
     st.write("Datos cargados correctamente:", df.head())  # Mostrar las primeras filas del DataFrame
     return df
+
 
 
 
