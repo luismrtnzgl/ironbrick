@@ -14,3 +14,4 @@
 
 #Ignora secrets.toml de la carpeta ERV
 /05_Streamlit/secrets.toml
+/05_Streamlit/config.py
