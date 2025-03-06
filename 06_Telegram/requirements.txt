@@ -7,3 +7,5 @@ requests
 joblib==1.4.2
 plotly
 matplotlib
+python-telegram-bot
+schedule
