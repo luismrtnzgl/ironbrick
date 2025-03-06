@@ -8,9 +8,10 @@ from pymongo import MongoClient #cambio erv
 
 #inicio cambio erv
 # 📌 Leer credenciales desde `secrets.toml`
-MONGO_URI = st.secrets["mongo"]["uri"]
-DB_NAME = st.secrets["mongo"]["database"]
-COLLECTION_NAME = st.secrets["mongo"]["collection"]
+# Accede a los secretos directamente
+mongo_uri = st.secrets["MONGO_URI"]
+database_name = st.secrets["DATABASE_NAME"]
+collection_name = st.secrets["COLLECTION_NAME"]
 #fin cambio erv
 
 # 📌 URL del modelo en GitHub RAW
