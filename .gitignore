@@ -9,9 +9,8 @@
 /04_Extra/ID/IMAGES_PREPROC2
 /04_Extra/ID
 
-#Ignora .env de la carpeta ERV
-/13_ERV/.env
+
 
 #Ignora secrets.toml de la carpeta ERV
 /05_Streamlit/secrets.toml
-/05_Streamlit/config.py
+/05_Streamlit/.env
