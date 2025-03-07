@@ -1,8 +1,6 @@
-numpy==1.26.4
 torch
 torchvision
+numpy
 pillow
-opencv-python-headless
 streamlit
-streamlit-webrtc
-pyyaml
+opencv-python-headless
