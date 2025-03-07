@@ -6,14 +6,14 @@ import requests
 import os
 import numpy as np
 
-# 📌 Obtener la URL de la base de datos PostgreSQL desde Render
+# Obtenemos la URL de la base de datos PostgreSQL desde Render
 DB_URL = os.getenv("DATABASE_URL")
 
-# 📌 Función para conectar con la base de datos en Render
+# Función para conectar con la base de datos en Render
 def get_db_connection():
     return psycopg2.connect(DB_URL, sslmode="require")
 
-# 📌 Cargar el modelo
+# Cargamos el modelo
 modelo_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/05_Streamlit/models/stacking_model.pkl"
 
 @st.cache_resource
@@ -29,7 +29,7 @@ def cargar_modelo():
 
 modelo = cargar_modelo()
 
-# 📌 Cargar y procesar el dataset de LEGO
+# Cargamos y procesar el dataset de LEGO
 dataset_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/01_Data_Cleaning/df_lego_final_venta.csv"
 
 @st.cache_data
@@ -40,7 +40,7 @@ def cargar_datos():
 def preprocess_data(df):
     df = df[df['USRetailPrice'] > 0].copy()
 
-    # 📌 Asegurar que estas columnas existen antes de mapear
+    # Aseguramos que estas columnas existen antes de mapear
     if 'Exclusivity' in df.columns:
         exclusivity_mapping = {'Regular': 0, 'Exclusive': 1}
         df['Exclusivity'] = df['Exclusivity'].map(exclusivity_mapping)
@@ -49,7 +49,7 @@ def preprocess_data(df):
         size_category_mapping = {'Small': 0, 'Medium': 1, 'Large': 2}
         df['SizeCategory'] = df['SizeCategory'].map(size_category_mapping)
 
-    # 📌 Crear métricas solo si las columnas existen
+    # Creamos métricas solo si las columnas existen
     if 'Pieces' in df.columns and 'USRetailPrice' in df.columns:
         df["PricePerPiece"] = df["USRetailPrice"] / df["Pieces"]
 
@@ -59,10 +59,10 @@ def preprocess_data(df):
     if 'ExitYear' in df.columns and 'LaunchYear' in df.columns:
         df["YearsOnMarket"] = df["ExitYear"] - df["LaunchYear"]
 
-    # 📌 Filtrar solo columnas numéricas antes de limpiar datos
+    # Filtramos solo columnas numéricas antes de limpiar datos
     numeric_cols = df.select_dtypes(include=[np.number]).columns
 
-    # 📌 Reemplazar valores infinitos por NaN y luego llenarlos con la mediana
+    # Reemplazamos valores infinitos por NaN y luego llenarlos con la mediana
     df[numeric_cols] = df[numeric_cols].replace([np.inf, -np.inf], np.nan)
     df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].median())
 
@@ -70,7 +70,7 @@ def preprocess_data(df):
 
 df_lego = cargar_datos()
 
-# 📌 Formulario para guardar configuración del usuario
+# Formulario para guardar configuración del usuario
 st.title("📢 Alerta mensual de Inversión en LEGO por Telegram")
 st.write("Registra tus preferencias para recibir propuestas de inversión por Telegram cada mes.")
 
@@ -81,7 +81,7 @@ temas_unicos = sorted(df_lego["Theme"].unique().tolist())
 temas_opciones = ["Todos"] + temas_unicos
 temas_favoritos = st.multiselect("🛒 Temas Favoritos", temas_opciones, default=["Todos"])
 
-if st.button("💾 Guardar configuración"):
+if st.button("💾 Alta en Alertas"):
     temas_str = ",".join(temas_favoritos)
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -108,7 +108,42 @@ if st.button("💾 Guardar configuración"):
     conn.close()
     st.success("✅ ¡Tus preferencias han sido guardadas correctamente!")
 
-# 📌 Mostrar usuarios registrados
+
+# Aplicamos el modelo de predicción antes de mostrar el ranking
+features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit', 
+            'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity', 
+            'SizeCategory', 'PricePerPiece', 'PricePerMinifig', 'YearsOnMarket']
+
+df_lego["PredictedInvestmentScore"] = modelo.predict(df_lego[features])
+
+# Transformamos los valores de revalorización en categorías
+def clasificar_revalorizacion(score):
+    if score > 13:
+        return "Muy Alta"
+    elif 10 <= score <= 13:
+        return "Alta"
+    elif 5 <= score < 10:
+        return "Media"
+    else:
+        return "Baja"
+
+df_lego["Revalorización"] = df_lego["PredictedInvestmentScore"].apply(clasificar_revalorizacion)
+
+# Renombramos columnas
+df_lego.rename(columns={
+    "Number": "Set",
+    "SetName": "Nombre",
+    "USRetailPrice": "Precio",
+    "Theme": "Tema"
+}, inplace=True)
+
+# Mostramos los sets recomendados en el orden correcto
+st.write("📊 **Sets Recomendados por IronbrickML**:")
+df_recomendados = df_lego.sort_values(by="PredictedInvestmentScore", ascending=False)
+st.dataframe(df_recomendados[["Set", "Nombre", "Precio", "Tema", "Revalorización"]])
+
+
+# Mostramos usuarios registrados
 st.write("📊 **Usuarios Registrados en la Base de Datos**")
 
 conn = get_db_connection()
