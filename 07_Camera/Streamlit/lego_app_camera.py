@@ -19,6 +19,15 @@ if not os.path.exists(MODEL_PATH):
     urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
     st.write("✅ Modelo descargado exitosamente.")
 
+DATA_URL = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/refs/heads/main/04_Extra/APP/data/scraped_lego_data.csv"
+DATA_PATH = "scraped_lego_data.csv"
+
+if not os.path.exists(DATA_PATH):
+    st.write("📥 Descargando datos de LEGO...")
+    urllib.request.urlretrieve(DATA_URL, DATA_PATH)
+    st.write("✅ Datos descargados.")
+
+
 # 📌 Cargar el modelo
 model = load_model(MODEL_PATH)
 
