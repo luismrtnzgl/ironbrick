@@ -72,7 +72,13 @@ df_lego = cargar_datos()
 
 # Formulario para guardar configuración del usuario
 st.title("📢 Alerta mensual de Inversión en LEGO por Telegram")
-st.write("Registra tus preferencias para recibir propuestas de inversión por Telegram cada mes.")
+st.write("**Bienvenido a IronbrickML - Alertas de Inversión en LEGO**")
+st.write(
+    "📊 IronbrickML analiza la rentabilidad de sets de LEGO utilizando modelos de predicción de inversión. "
+    "Cada mes, recibirás una recomendación personalizada en Telegram con el set que mejor se ajuste a tu presupuesto y preferencias. "
+    "Solo se te sugerirán sets con alto potencial de revalorización y sin repeticiones para que siempre tengas nuevas oportunidades de inversión. "
+    "Configura tus preferencias y deja que la inteligencia artificial haga el resto."
+)
 
 telegram_id = st.text_input("🔹 Tu ID de Telegram (usa @userinfobot en Telegram para obtenerlo)")
 presupuesto_min, presupuesto_max = st.slider("💰 Rango de presupuesto (USD)", 10, 500, (10, 200), step=10)
