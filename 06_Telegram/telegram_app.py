@@ -169,7 +169,7 @@ df_lego["PredictedInvestmentScore"] = modelo.predict(df_lego[features])
 #    else:
 #        return "Baja"
 
-df_lego["Revalorización"] = df_lego["PredictedInvestmentScore"].apply(clasificar_revalorizacion)
+df_lego["Revalorización"] = df_lego["PredictedInvestmentScore"]#.apply(clasificar_revalorizacion)
 
 # Renombramos columnas
 df_lego.rename(columns={
