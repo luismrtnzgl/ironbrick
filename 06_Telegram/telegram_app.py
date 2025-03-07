@@ -5,6 +5,8 @@ import joblib
 import requests
 import os
 import numpy as np
+import pymongo #incluido erv
+
 
 # Obtenemos la URL de la base de datos PostgreSQL desde Render
 DB_URL = os.getenv("DATABASE_URL")
@@ -13,29 +15,62 @@ DB_URL = os.getenv("DATABASE_URL")
 def get_db_connection():
     return psycopg2.connect(DB_URL, sslmode="require")
 
+#cambio incluido erv - inicio
+# Inicializa la conexión con MongoDB (se ejecuta solo una vez)
+@st.cache_resource
+def init_connection():
+    return pymongo.MongoClient(st.secrets["mongo"]["uri"])
+
+client = init_connection()
+db = client[st.secrets["mongo"]["db"]]  # Usar el nombre de la base de datos desde secrets.toml
+collection = db[st.secrets["mongo"]["collection"]]
+#cambio incluido erv - fin
+
+
+
+
 # Cargamos el modelo
 modelo_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/05_Streamlit/models/stacking_model.pkl"
 
 @st.cache_resource
 def cargar_modelo():
     modelo_path = "/tmp/stacking_model.pkl"
-    
+
     if not os.path.exists(modelo_path):
         response = requests.get(modelo_url)
         with open(modelo_path, "wb") as f:
             f.write(response.content)
-    
+
     return joblib.load(modelo_path)
 
 modelo = cargar_modelo()
 
-# Cargamos y procesar el dataset de LEGO
-dataset_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/01_Data_Cleaning/df_lego_final_venta.csv"
+#cambio incluido erv - inicio
+# 📌 Función para cargar datos desde MongoDB
+@st.cache_data(ttl=600)
+def load_data():
+    data = list(collection.find({}, {"_id": 0}))  # Excluir `_id` para evitar problemas
+    if not data:
+        st.error("❌ No se encontraron datos en la colección de MongoDB.")
+        st.stop()
 
-@st.cache_data
-def cargar_datos():
-    df = pd.read_csv(dataset_url)
-    return preprocess_data(df)
+    df = pd.DataFrame(data)
+    df = preprocess_data(df)  # Aquí aplicas la función de preprocesamiento
+
+    return df
+#cambio incluido erv - fin
+
+
+#original luis - inicio
+# Cargamos y procesar el dataset de LEGO
+# dataset_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/01_Data_Cleaning/df_lego_final_venta.csv"
+
+# @st.cache_data
+# def cargar_datos():
+#     df = pd.read_csv(dataset_url)
+#     return preprocess_data(df)
+
+#original luis - fin
 
 def preprocess_data(df):
     df = df[df['USRetailPrice'] > 0].copy()
@@ -91,7 +126,7 @@ if st.button("💾 Alta en Alertas"):
     temas_str = ",".join(temas_favoritos)
     conn = get_db_connection()
     cursor = conn.cursor()
-    
+
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS usuarios (
         telegram_id TEXT PRIMARY KEY,
@@ -109,15 +144,15 @@ if st.button("💾 Alta en Alertas"):
         presupuesto_max = EXCLUDED.presupuesto_max,
         temas_favoritos = EXCLUDED.temas_favoritos;
     """, (telegram_id, presupuesto_min, presupuesto_max, temas_str))
-    
+
     conn.commit()
     conn.close()
     st.success("✅ ¡Tus preferencias han sido guardadas correctamente!")
 
 
 # Aplicamos el modelo de predicción antes de mostrar el ranking
-features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit', 
-            'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity', 
+features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit',
+            'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity',
             'SizeCategory', 'PricePerPiece', 'PricePerMinifig', 'YearsOnMarket']
 
 df_lego["PredictedInvestmentScore"] = modelo.predict(df_lego[features])

@@ -5,6 +5,7 @@ import numpy as np
 import pickle
 import itertools
 import matplotlib.pyplot as plt
+import pymongo #cambio erv
 
 # 📌 Obtener la ruta del archivo CSV
 BASE_DIR = os.getcwd()
@@ -27,8 +28,8 @@ df["PriceDate"] = pd.to_datetime(df["PriceDate"], errors='coerce')
 df = df.dropna(subset=["PriceDate"])
 df_sorted = df.sort_values(by=['Number', 'PriceDate'])
 df_sorted['PriceIndex'] = df_sorted.groupby('Number').cumcount()
-df_transformed = df_sorted.pivot(index=['Number', 'SetName', 'Theme', 'Year', 'Pieces', 
-                                        'RetailPriceUSD', 'CurrentValueNew', 'ForecastValueNew2Y', 
+df_transformed = df_sorted.pivot(index=['Number', 'SetName', 'Theme', 'Year', 'Pieces',
+                                        'RetailPriceUSD', 'CurrentValueNew', 'ForecastValueNew2Y',
                                         'ForecastValueNew5Y'],
                                  columns='PriceIndex', values='PriceValue').reset_index()
 df_transformed.columns = [f'Price_{col+1}' if isinstance(col, int) else col for col in df_transformed.columns]
@@ -73,7 +74,7 @@ df_identification["Rentabilidad2Y"] = ((df_identification["PredictedValue2Y"] - 
 df_identification["Rentabilidad5Y"] = ((df_identification["PredictedValue5Y"] - df_identification["CurrentValueNew"]) / df_identification["CurrentValueNew"]) * 100
 
 df_rentabilidad_temas = df_identification.groupby("Theme").agg(
-    TotalSets=('Theme', 'count'),  
+    TotalSets=('Theme', 'count'),
     Rentabilidad2Y=('Rentabilidad2Y', 'mean'),
     Rentabilidad5Y=('Rentabilidad5Y', 'mean')
 ).reset_index()
@@ -100,7 +101,7 @@ temas_disponibles = sorted(df_identification["Theme"].unique())
 temas_seleccionados = st.multiselect("Selecciona los temas de interés", ["Todos"] + temas_disponibles, default=["Todos"])
 
 if "Todos" in temas_seleccionados:
-    temas_seleccionados = temas_disponibles  
+    temas_seleccionados = temas_disponibles
 
 # 📌 Filtro por presupuesto
 presupuesto = st.slider("Presupuesto máximo ($)", min_value=100, max_value=2000, value=200, step=10)
@@ -116,13 +117,13 @@ df_top_sets = df_filtrado.sort_values(by="PredictedValue5Y", ascending=False).he
 def encontrar_mejores_inversiones(df, presupuesto, num_opciones=3):
     sets_lista = df[['SetName', 'CurrentValueNew', 'PredictedValue2Y', 'PredictedValue5Y']].values.tolist()
     mejores_combinaciones = []
-    
+
     for r in range(1, 5):  # Limitar combinaciones a 1-4 sets para optimizar
         for combinacion in itertools.combinations(sets_lista, r):
             total_precio = sum(item[1] for item in combinacion)
             retorno_2y = sum(item[2] for item in combinacion)
             retorno_5y = sum(item[3] for item in combinacion)
-            
+
             if total_precio <= presupuesto:
                 mejores_combinaciones.append((combinacion, retorno_2y, retorno_5y, total_precio))
 
@@ -134,7 +135,7 @@ def encontrar_mejores_inversiones(df, presupuesto, num_opciones=3):
 # 📌 Mostrar inversiones óptimas con imágenes y texto centrado
 if st.button("🔍 Buscar inversiones óptimas"):
     opciones = encontrar_mejores_inversiones(df_top_sets, presupuesto)
-    
+
     if not opciones:
         st.warning("⚠️ No se encontraron combinaciones dentro de tu presupuesto.")
     else:
@@ -151,7 +152,7 @@ if st.button("🔍 Buscar inversiones óptimas"):
             for col, (set_name, price, _, _) in zip(cols, combo):
                 set_number = df_top_sets[df_top_sets["SetName"] == set_name]["Number"].values[0]  # Obtener el número del set
                 image_url = f"https://images.brickset.com/sets/images/{set_number}.jpg"
-                
+
                 with col:
                     st.image(image_url, use_container_width=True)  # Mostrar la imagen
                     st.markdown(

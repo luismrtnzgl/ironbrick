@@ -11,3 +11,4 @@ matplotlib
 python-telegram-bot
 pyTelegramBotAPI
 schedule
+pymongo
