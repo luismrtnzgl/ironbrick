@@ -178,3 +178,26 @@ def enviar_recomendaciones():
             conn.commit()
 
     conn.close()
+
+if __name__ == "__main__":
+    print("🔄 Iniciando bot con alertas de inversión...")
+    
+    import threading
+    def run_scheduler():
+        while True:
+            try:
+                schedule.run_pending()
+                time.sleep(86400)  # Revisar alertas cada 24 horas
+            except Exception as e:
+                print(f"⚠️ Error en el sistema de alertas: {e}")
+                time.sleep(60)  # Esperar 1 minuto antes de reintentar
+
+    scheduler_thread = threading.Thread(target=run_scheduler, daemon=True)
+    scheduler_thread.start()
+
+    while True:
+        try:
+            bot.infinity_polling(timeout=60, long_polling_timeout=10)
+        except Exception as e:
+            print(f"⚠️ Error en el bot: {e}")
+            time.sleep(60)  # Evita que Render lo reinicie constantemente
