@@ -14,6 +14,7 @@ def init_connection():
     return pymongo.MongoClient(st.secrets["mongo"]["uri"])
 
 client = init_connection()
+db = client["db"]  # Accede a la base de datos
 
 # Pull data from the collection.
 # Uses st.cache_data to only rerun when the query changes or after 10 min.
