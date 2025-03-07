@@ -103,7 +103,8 @@ def preprocess_data(df):
 
     return df
 
-df_lego = cargar_datos()
+df_lego = cargar_datos() #luis original
+df_lego = load_data() #cambio erv
 
 # Formulario para guardar configuración del usuario
 st.title("📢 Alerta mensual de Inversión en LEGO por Telegram")
