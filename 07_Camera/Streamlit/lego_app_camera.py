@@ -2,16 +2,13 @@ import streamlit as st
 import torch
 import os
 import urllib.request
+import pandas as pd
 from model_utils import load_model
 from predict import predict
 
 # 📌 Ruta del modelo en la máquina de Streamlit
 MODEL_PATH = "modelo_lego_final.pth"
 state_dict = torch.load(MODEL_PATH, map_location="cpu")
-
-# 📌 Imprimir las dimensiones de las capas del modelo guardado
-for key, value in state_dict.items():
-    print(f"{key}: {value.shape}")
 
 # 📌 URL del modelo en GitHub (Asegúrate de usar el enlace RAW del archivo)
 MODEL_URL = "https://github.com/luismrtnzgl/ironbrick/raw/93ee1070fbea6c5b42724b2e0bb4e9236bff2966/07_Camera/Streamlit/modelo_lego_final.pth"
@@ -24,6 +21,10 @@ if not os.path.exists(MODEL_PATH):
 
 # 📌 Cargar el modelo
 model = load_model(MODEL_PATH)
+
+# 📌 Cargar datos de LEGO
+DATA_PATH = "scraped_lego_data.csv"
+df_lego = pd.read_csv(DATA_PATH)
 
 st.set_page_config(page_title="Identificación de Sets LEGO", layout="wide")
 
@@ -48,5 +49,17 @@ if uploaded_file is not None:
     # 🔥 Realizar predicción
     predicted_class, confidence = predict(image, model)
 
-    st.subheader(f"🔍 Set identificado: {predicted_class}")
+    # Buscar información en el dataset
+    set_info = df_lego[df_lego.index == predicted_class]
+    if not set_info.empty:
+        set_number = set_info.iloc[0]['Number']
+        set_name = set_info.iloc[0]['SetName']
+        used_price = set_info.iloc[0]['CurrentValueUsed']
+    else:
+        set_number = "Desconocido"
+        set_name = "Desconocido"
+        used_price = "N/A"
+
+    st.subheader(f"🔍 Set identificado: {set_name} ({set_number})")
     st.write(f"📈 Confianza: {confidence:.2f}%")
+    st.write(f"💰 Precio usado estimado: ${used_price}")
