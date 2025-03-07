@@ -56,8 +56,12 @@ def preprocess_data(df):
     df["PricePerMinifig"] = np.where(df["Minifigs"] > 0, df["USRetailPrice"] / df["Minifigs"], 0)
     df["YearsOnMarket"] = df["ExitYear"] - df["LaunchYear"]
 
-    df.replace([np.inf, -np.inf], np.nan, inplace=True)
-    df.fillna(df.median(), inplace=True)
+    # 📌 Filtrar solo columnas numéricas antes de limpiar datos
+    numeric_cols = df.select_dtypes(include=[np.number]).columns
+
+    # 📌 Reemplazar valores infinitos por NaN y luego llenarlos con la mediana
+    df[numeric_cols] = df[numeric_cols].replace([np.inf, -np.inf], np.nan)
+    df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].median())
 
     return df
 
