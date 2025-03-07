@@ -39,7 +39,7 @@ def check_status(message):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT presupuesto_min, presupuesto_max, temas_favoritos FROM usuarios WHERE telegram_id = %s", (user_id,))
+    cursor.execute("SELECT presupuesto_min, presupuesto_max, temas_favoritos FROM usuarios WHERE telegram_id = %s", (str(user_id),))
     usuario = cursor.fetchone()
 
     if usuario:
