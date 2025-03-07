@@ -7,6 +7,11 @@ from predict import predict
 
 # 📌 Ruta del modelo en la máquina de Streamlit
 MODEL_PATH = "modelo_lego_final.pth"
+state_dict = torch.load(MODEL_PATH, map_location="cpu")
+
+# 📌 Imprimir las dimensiones de las capas del modelo guardado
+for key, value in state_dict.items():
+    print(f"{key}: {value.shape}")
 
 # 📌 URL del modelo en GitHub (Asegúrate de usar el enlace RAW del archivo)
 MODEL_URL = "https://github.com/luismrtnzgl/ironbrick/raw/93ee1070fbea6c5b42724b2e0bb4e9236bff2966/07_Camera/Streamlit/modelo_lego_final.pth"
