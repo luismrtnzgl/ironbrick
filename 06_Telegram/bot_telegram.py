@@ -67,6 +67,30 @@ def preprocess_data(df):
 
 df_lego = load_data()
 
+# 📌 Función para obtener el mejor set sin repetir recomendaciones
+def obtener_nueva_recomendacion(telegram_id, presupuesto_min, presupuesto_max, temas_favoritos):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT set_id FROM recomendaciones WHERE telegram_id = %s", (str(telegram_id),))
+    sets_recomendados = {row[0] for row in cursor.fetchall()}
+
+    df_filtrado = df_lego[(df_lego["USRetailPrice"] >= presupuesto_min) & 
+                           (df_lego["USRetailPrice"] <= presupuesto_max)]
+
+    if "Todos" not in temas_favoritos:
+        df_filtrado = df_filtrado[df_filtrado["Theme"].isin(temas_favoritos)]
+
+    df_filtrado = df_filtrado[~df_filtrado["Number"].astype(str).isin(sets_recomendados)]
+
+    if df_filtrado.empty:
+        return None
+
+    df_filtrado["PredictedInvestmentScore"] = modelo.predict(df_filtrado[['USRetailPrice', 'Pieces', 'Minifigs', 'YearsOnMarket']])
+
+    return df_filtrado.sort_values(by="PredictedInvestmentScore", ascending=False).iloc[0]
+
+
 # 📌 Asegurar que las tablas `usuarios` y `recomendaciones` existen
 def crear_tablas():
     conn = get_db_connection()
