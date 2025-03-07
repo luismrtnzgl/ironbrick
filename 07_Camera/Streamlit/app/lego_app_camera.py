@@ -1,5 +1,5 @@
 import streamlit as st
-from utils.model_utils import load_model
+from app.utils.model_utils import load_model
 
 MODEL_PATH = "app/model/modelo_lego_final.pth"
 model = load_model(MODEL_PATH)
