@@ -7,29 +7,36 @@ import os
 import pymongo
 
 
-# Initialize connection.
-# Uses st.cache_resource to only run once.
+
+# Inicializa la conexión con MongoDB (se ejecuta solo una vez)
 @st.cache_resource
 def init_connection():
     return pymongo.MongoClient(st.secrets["mongo"]["uri"])
 
 client = init_connection()
-db = client["db"]  # Accede a la base de datos
+db = client[st.secrets["mongo"]["db"]]  # Usa el nombre de la DB desde secrets
 
-# Pull data from the collection.
-# Uses st.cache_data to only rerun when the query changes or after 10 min.
+# Función para obtener los datos de la colección (se actualiza cada 10 min)
 @st.cache_data(ttl=600)
 def get_data():
-    db = client.mydb
-    items = db.mycollection.find()
-    items = list(items)  # make hashable for st.cache_data
+    collection = db[st.secrets["mongo"]["collection"]]  # Usa el nombre de la colección desde secrets
+    items = list(collection.find())  # Convierte el cursor a lista
     return items
 
+# Obtener datos de MongoDB
 items = get_data()
 
-# Print results.
-for item in items:
-    st.write(f"{item['name']} has a :{item['pet']}:")
+# Mostrar datos en la interfaz de Streamlit
+st.title("Datos desde MongoDB")
+
+# Verificar si hay datos
+if items:
+    st.write(f"Número de documentos en la colección: {len(items)}")
+    for item in items:
+        st.json(item)  # Muestra cada documento en formato JSON
+else:
+    st.warning("No hay datos en la colección.")
+
 
 
 
