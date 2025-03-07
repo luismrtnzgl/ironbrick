@@ -51,9 +51,6 @@ def load_data():
     return df
 
 
-# 📌 Cargar dataset desde MongoDB
-df_ranking = load_data()
-
 
 # 📌 Función de preprocesamiento (igual que en telegram_app.py)
 def preprocess_data(df):
@@ -75,6 +72,12 @@ def preprocess_data(df):
 
     return df
 
+
+# 📌 Cargar dataset desde MongoDB
+df_ranking = load_data()
+
+# 📌 Preprocesamiento de datos
+df_ranking = preprocess_data(df_ranking)  # Llamada a la función de preprocesamiento
 
 
 # # 📌 Interfaz en Streamlit
