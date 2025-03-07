@@ -6,3 +6,4 @@ xgboost
 requests
 plotly
 matplotlib
+pymongo
