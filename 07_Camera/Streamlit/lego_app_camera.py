@@ -5,7 +5,7 @@ from model_utils import load_model
 from predict import predict
 
 # 📌 Ruta del modelo en la raíz
-MODEL_PATH = "modelo_lego_final.pth"
+MODEL_PATH = os.path.join(os.getcwd(), "modelo_lego_final.pth")
 
 # 📌 Cargar el modelo
 model = load_model(MODEL_PATH)
