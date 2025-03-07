@@ -108,6 +108,12 @@ if st.button("💾 Guardar configuración"):
     conn.close()
     st.success("✅ ¡Tus preferencias han sido guardadas correctamente!")
 
+# 📌 Mostrar los mejores sets de inversión según el modelo
+st.write("📊 **Top Sets Recomendados por el Modelo**:")
+df_recomendados = df_lego.sort_values(by="PredictedInvestmentScore", ascending=False).head(10)
+st.dataframe(df_recomendados[["SetName", "Number", "USRetailPrice", "PredictedInvestmentScore", "Theme"]])
+
+
 # 📌 Mostrar usuarios registrados
 st.write("📊 **Usuarios Registrados en la Base de Datos**")
 
