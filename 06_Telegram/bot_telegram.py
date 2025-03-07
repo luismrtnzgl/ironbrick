@@ -1,7 +1,6 @@
 import os
 import psycopg2
 import telebot
-import time
 
 # 📌 Obtener el token del bot
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -13,6 +12,26 @@ DB_URL = os.getenv("DATABASE_URL", "postgresql://ironbrick_user:password@your-da
 # 📌 Función para conectar a la base de datos PostgreSQL en Render
 def get_db_connection():
     return psycopg2.connect(DB_URL, sslmode="require")
+
+# 📌 Función para asegurar que la tabla `usuarios` existe
+def crear_tabla_usuarios():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS usuarios (
+        telegram_id TEXT PRIMARY KEY,
+        presupuesto_min INTEGER DEFAULT 10,
+        presupuesto_max INTEGER DEFAULT 200,
+        temas_favoritos TEXT DEFAULT 'Todos'
+    )
+    """)
+    
+    conn.commit()
+    conn.close()
+
+# 📌 Asegurar que la tabla `usuarios` existe al iniciar el bot
+crear_tabla_usuarios()
 
 @bot.message_handler(commands=['status'])
 def check_status(message):
@@ -43,4 +62,3 @@ if __name__ == "__main__":
             bot.infinity_polling(timeout=60, long_polling_timeout=10)
         except Exception as e:
             print(f"⚠️ Error en el bot: {e}")
-            time.sleep(5)
