@@ -103,7 +103,7 @@ def preprocess_data(df):
 
     return df
 
-df_lego = cargar_datos() #luis original
+#df_lego = cargar_datos() #luis original
 df_lego = load_data() #cambio erv
 
 # Formulario para guardar configuración del usuario
