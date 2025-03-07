@@ -47,7 +47,8 @@ def load_data():
         st.stop()
 
     df = pd.DataFrame(data)
-    #st.write("📊 Datos cargados desde MongoDB:", df.head())  # Mostrar primeras filas
+    df = preprocess_data(df)  # Aquí aplicas la función de preprocesamiento
+
     return df
 
 
@@ -77,7 +78,7 @@ def preprocess_data(df):
 df_ranking = load_data()
 
 # 📌 Preprocesamiento de datos
-df_ranking = preprocess_data(df_ranking)  # Llamada a la función de preprocesamiento
+#df_ranking = preprocess_data(df_ranking)  # Llamada a la función de preprocesamiento
 
 
 # # 📌 Interfaz en Streamlit
