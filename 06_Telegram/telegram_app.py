@@ -110,6 +110,15 @@ if st.button("💾 Guardar configuración"):
 
 # 📌 Mostrar los mejores sets de inversión según el modelo
 st.write("📊 **Top Sets Recomendados por el Modelo**:")
+# 📌 Aplicar el modelo de predicción antes de mostrar el ranking
+features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit', 
+            'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity', 
+            'SizeCategory', 'PricePerPiece', 'PricePerMinifig', 'YearsOnMarket']
+
+df_lego["PredictedInvestmentScore"] = modelo.predict(df_lego[features])
+
+# 📌 Mostrar los mejores sets de inversión según el modelo
+st.write("📊 **Top 10 Sets Recomendados por el Modelo**:")
 df_recomendados = df_lego.sort_values(by="PredictedInvestmentScore", ascending=False).head(10)
 st.dataframe(df_recomendados[["SetName", "Number", "USRetailPrice", "PredictedInvestmentScore", "Theme"]])
 
