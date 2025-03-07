@@ -140,7 +140,7 @@ df_lego.rename(columns={
 # Mostramos los sets recomendados en el orden correcto
 st.write("📊 **Sets Recomendados por IronbrickML**:")
 df_recomendados = df_lego.sort_values(by="PredictedInvestmentScore", ascending=False)
-st.dataframe(df_recomendados[["Set", "Nombre", "Precio", "Tema", "Revalorización"]])
+st.data_editor(df_recomendados[["Set", "Nombre", "Precio", "Tema", "Revalorización"]], disabled=True)
 
 
 # Mostramos usuarios registrados
@@ -154,7 +154,7 @@ usuarios = cursor.fetchall()
 
 if usuarios:
     df_usuarios = pd.DataFrame(usuarios, columns=["Telegram ID", "Presupuesto Mín", "Presupuesto Máx", "Temas Favoritos"])
-    st.dataframe(df_usuarios)
+    st.data_editor(df_usuarios, disabled=True)
 else:
     st.warning("❌ No hay usuarios registrados en el bot.")
 
