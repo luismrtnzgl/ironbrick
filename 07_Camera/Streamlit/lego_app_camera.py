@@ -51,7 +51,8 @@ if uploaded_file is not None:
     st.image(image, caption="Imagen subida", use_column_width=True)
 
     # 🔥 Realizar predicción
-    predicted_class, confidence = predict(image, model)
+    predicted_class, probabilities = predict(image, model)
+    confidence = probabilities[0][predicted_class] * 100  # Convertir a porcentaje
 
     # Buscar información en el dataset si está disponible
     if df_lego is not None:
