@@ -7,7 +7,7 @@ import os
 import numpy as np
 
 # 📌 Obtener la URL de la base de datos PostgreSQL desde Render
-DB_URL = os.getenv("DATABASE_URL", "postgresql://ironbrick_user:password@your-database-host.compute.amazonaws.com:5432/ironbrick")
+DB_URL = os.getenv("DATABASE_URL")
 
 # 📌 Función para conectar con la base de datos en Render
 def get_db_connection():
