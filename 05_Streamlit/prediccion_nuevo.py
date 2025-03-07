@@ -47,7 +47,7 @@ def load_data():
         st.stop()
 
     df = pd.DataFrame(data)
-    st.write("📊 Datos cargados desde MongoDB:", df.head())  # Mostrar primeras filas
+    #st.write("📊 Datos cargados desde MongoDB:", df.head())  # Mostrar primeras filas
     return df
 
 
