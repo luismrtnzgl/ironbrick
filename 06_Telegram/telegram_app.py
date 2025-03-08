@@ -110,6 +110,9 @@ def preprocess_data(df):
 #df_lego = cargar_datos() #luis original
 df_lego = load_data() #cambio erv
 
+
+
+
 # Formulario para guardar configuración del usuario
 st.title("📢 Alerta mensual de Inversión en LEGO por Telegram")
 st.write("**Bienvenido a IronbrickML - Alertas de Inversión en LEGO**")
@@ -161,6 +164,10 @@ features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit',
             'SizeCategory', 'PricePerPiece', 'PricePerMinifig', 'YearsOnMarket']
 
 df_lego["PredictedInvestmentScore"] = modelo.predict(df_lego[features])
+
+print("Columnas disponibles en df_lego:", df_lego.columns)
+print("Columnas esperadas en features:", features)
+
 
 # Transformamos los valores de revalorización en categorías
 #def clasificar_revalorizacion(score):
