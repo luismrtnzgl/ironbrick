@@ -5,3 +5,6 @@ pandas
 plotly
 streamlit
 pymongo #cambio erv
+requests
+os
+psycopg2
