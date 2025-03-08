@@ -167,12 +167,17 @@ features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit',
 
 #test erv sabado
 # Asegúrate de que no haya valores NaN o infinitos en las características
-df_lego[features] = df_lego[features].fillna(0)  # O usa .fillna(df_lego[features].mean()) para usar la media
-df_lego[features] = df_lego[features].replace([np.inf, -np.inf], 0)
+import pandas as pd
 
-# Escalar o normalizar las características si es necesario
-scaler = StandardScaler()
-df_lego[features] = scaler.fit_transform(df_lego[features])
+# Verifica si hay NaN o Infinitos
+if df_lego[features].isnull().any().any():
+    print("Hay valores NaN en los datos.")
+    df_lego[features] = df_lego[features].fillna(0)  # Rellenar NaN con 0 o puedes usar otro valor.
+
+if (df_lego[features] == float('inf')).any().any():
+    print("Hay valores infinitos en los datos.")
+    df_lego[features] = df_lego[features].replace([float('inf'), float('-inf')], 0)  # Reemplazar Infinitos con 0
+
 
 df_lego["PredictedInvestmentScore"] = modelo.predict(df_lego[features])
 
