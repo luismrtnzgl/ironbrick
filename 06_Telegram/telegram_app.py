@@ -6,6 +6,7 @@ import requests
 import os
 import numpy as np
 import pymongo #incluido erv
+from sklearn.preprocessing import StandardScaler  #cambio erv sabado
 
 
 # Obtenemos la URL de la base de datos PostgreSQL desde Render
@@ -99,11 +100,11 @@ def preprocess_data(df):
     #se comentan porque existen en la bbdd luis original fin
 
     # Filtramos solo columnas numéricas antes de limpiar datos
-    #numeric_cols = df.select_dtypes(include=[np.number]).columns
+    numeric_cols = df.select_dtypes(include=[np.number]).columns
 
     # Reemplazamos valores infinitos por NaN y luego llenarlos con la mediana
-    #df[numeric_cols] = df[numeric_cols].replace([np.inf, -np.inf], np.nan)
-    #df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].median())
+    df[numeric_cols] = df[numeric_cols].replace([np.inf, -np.inf], np.nan)
+    df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].median())
 
     return df
 
@@ -158,15 +159,24 @@ if st.button("💾 Alta en Alertas"):
     st.success("✅ ¡Tus preferencias han sido guardadas correctamente!")
 
 
+
 # Aplicamos el modelo de predicción antes de mostrar el ranking
 features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit',
             'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity',
             'SizeCategory', 'PricePerPiece', 'PricePerMinifig', 'YearsOnMarket']
 
+#test erv sabado
+# Asegúrate de que no haya valores NaN o infinitos en las características
+df_lego[features] = df_lego[features].fillna(0)  # O usa .fillna(df_lego[features].mean()) para usar la media
+df_lego[features] = df_lego[features].replace([np.inf, -np.inf], 0)
+
+# Escalar o normalizar las características si es necesario
+scaler = StandardScaler()
+df_lego[features] = scaler.fit_transform(df_lego[features])
+
 df_lego["PredictedInvestmentScore"] = modelo.predict(df_lego[features])
 
-print("Columnas disponibles en df_lego:", df_lego.columns)
-print("Columnas esperadas en features:", features)
+
 
 
 # Transformamos los valores de revalorización en categorías
