@@ -36,10 +36,6 @@ modelo_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/05_St
 def cargar_modelo():
     modelo_path = "/tmp/stacking_model.pkl"
 
-    if not os.path.exists(modelo_path) or os.path.getsize(modelo_path) == 0:
-        st.error("❌ Error al descargar el modelo. Verifica la URL y vuelve a intentarlo.")
-        st.stop()
-
     if not os.path.exists(modelo_path):
         response = requests.get(modelo_url)
         with open(modelo_path, "wb") as f:
