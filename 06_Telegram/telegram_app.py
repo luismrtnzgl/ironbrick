@@ -6,7 +6,7 @@ import requests
 import os
 import numpy as np
 import pymongo #incluido erv
-from sklearn.preprocessing import StandardScaler  #cambio erv sabado
+from sklearn.impute import SimpleImputer #cambio erv sabado
 
 
 # Obtenemos la URL de la base de datos PostgreSQL desde Render
@@ -167,7 +167,11 @@ features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit',
 
 #test erv sabado
 # Asegúrate de que no haya valores NaN o infinitos en las características
-import pandas as pd
+# Crea un imputador que reemplaza NaN con la media
+imputador = SimpleImputer(strategy='mean')  # Puedes usar 'median' o 'most_frequent' también
+
+# Imputa los valores faltantes
+df_lego[features] = imputador.fit_transform(df_lego[features])
 
 # Verifica si hay NaN o Infinitos
 if df_lego[features].isnull().any().any():
