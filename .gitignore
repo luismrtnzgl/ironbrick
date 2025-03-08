@@ -11,6 +11,8 @@
 
 
 
-#Ignora secrets.toml de la carpeta ERV
-/05_Streamlit/secrets.toml
-/05_Streamlit/.env
+#Ignora .env de la carpeta APP
+/04_APP/APP/.env
+
+#Ignora .env de la carpeta APP
+/13_ERV/.env
