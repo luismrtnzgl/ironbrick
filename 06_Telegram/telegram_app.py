@@ -178,6 +178,8 @@ if (df_lego[features] == float('inf')).any().any():
     print("Hay valores infinitos en los datos.")
     df_lego[features] = df_lego[features].replace([float('inf'), float('-inf')], 0)  # Reemplazar Infinitos con 0
 
+df_lego[features] = df_lego[features].astype(float)  # Convierte todas las características a flotante.
+
 
 df_lego["PredictedInvestmentScore"] = modelo.predict(df_lego[features])
 
