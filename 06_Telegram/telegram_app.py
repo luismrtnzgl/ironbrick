@@ -75,24 +75,26 @@ def load_data():
 def preprocess_data(df):
     df = df[df['USRetailPrice'] > 0].copy()
 
+    #se comentan porque existen en la bbdd luis original inicio
     # Aseguramos que estas columnas existen antes de mapear
-    if 'Exclusivity' in df.columns:
-        exclusivity_mapping = {'Regular': 0, 'Exclusive': 1}
-        df['Exclusivity'] = df['Exclusivity'].map(exclusivity_mapping)
+    # if 'Exclusivity' in df.columns:
+    #     exclusivity_mapping = {'Regular': 0, 'Exclusive': 1}
+    #     df['Exclusivity'] = df['Exclusivity'].map(exclusivity_mapping)
 
-    if 'SizeCategory' in df.columns:
-        size_category_mapping = {'Small': 0, 'Medium': 1, 'Large': 2}
-        df['SizeCategory'] = df['SizeCategory'].map(size_category_mapping)
+    # if 'SizeCategory' in df.columns:
+    #     size_category_mapping = {'Small': 0, 'Medium': 1, 'Large': 2}
+    #     df['SizeCategory'] = df['SizeCategory'].map(size_category_mapping)
 
-    # Creamos métricas solo si las columnas existen
-    if 'Pieces' in df.columns and 'USRetailPrice' in df.columns:
-        df["PricePerPiece"] = df["USRetailPrice"] / df["Pieces"]
+    # # Creamos métricas solo si las columnas existen
+    # if 'Pieces' in df.columns and 'USRetailPrice' in df.columns:
+    #     df["PricePerPiece"] = df["USRetailPrice"] / df["Pieces"]
 
-    if 'Minifigs' in df.columns and 'USRetailPrice' in df.columns:
-        df["PricePerMinifig"] = np.where(df["Minifigs"] > 0, df["USRetailPrice"] / df["Minifigs"], 0)
+    # if 'Minifigs' in df.columns and 'USRetailPrice' in df.columns:
+    #     df["PricePerMinifig"] = np.where(df["Minifigs"] > 0, df["USRetailPrice"] / df["Minifigs"], 0)
 
-    if 'ExitYear' in df.columns and 'LaunchYear' in df.columns:
-        df["YearsOnMarket"] = df["ExitYear"] - df["LaunchYear"]
+    # if 'ExitYear' in df.columns and 'LaunchYear' in df.columns:
+    #     df["YearsOnMarket"] = df["ExitYear"] - df["LaunchYear"]
+    #se comentan porque existen en la bbdd luis original fin
 
     # Filtramos solo columnas numéricas antes de limpiar datos
     numeric_cols = df.select_dtypes(include=[np.number]).columns
