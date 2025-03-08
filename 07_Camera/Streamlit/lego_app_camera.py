@@ -3,6 +3,7 @@ import torch
 import os
 import urllib.request
 import pandas as pd
+import json
 from model_utils import load_model
 from predict import predict
 
@@ -10,10 +11,8 @@ st.set_page_config(page_title="Identificación de Sets LEGO", layout="wide")
 
 # 📌 Ruta del modelo en la máquina de Streamlit
 MODEL_PATH = "modelo_lego_final.pth"
-state_dict = torch.load(MODEL_PATH, map_location="cpu")
-
-# 📌 URL del modelo en GitHub
 MODEL_URL = "https://github.com/luismrtnzgl/ironbrick/raw/93ee1070fbea6c5b42724b2e0bb4e9236bff2966/07_Camera/Streamlit/modelo_lego_final.pth"
+MAPPING_PATH = "idx_to_class.json"
 
 # 🔥 Descargar el modelo si no existe
 if not os.path.exists(MODEL_PATH):
@@ -24,13 +23,21 @@ if not os.path.exists(MODEL_PATH):
 # 📌 Cargar el modelo
 model = load_model(MODEL_PATH)
 
+# 📌 Cargar el mapeo de clases a sets
+if os.path.exists(MAPPING_PATH):
+    with open(MAPPING_PATH, "r") as f:
+        idx_to_class = json.load(f)
+else:
+    st.error("❌ Error: No se encontró el archivo de mapeo idx_to_class.json.")
+    idx_to_class = {}
+
 # 📌 Cargar datos de LEGO
 DATA_PATH = "scraped_lego_data.csv"
 if os.path.exists(DATA_PATH):
     df_lego = pd.read_csv(DATA_PATH)
 else:
     st.error("❌ Error: El archivo scraped_lego_data.csv no se encontró.")
-    df_lego = None  # Para evitar errores si el archivo falta
+    df_lego = None
 
 st.title("🧩 Identificación de Sets de LEGO")
 
@@ -54,19 +61,20 @@ if uploaded_file is not None:
     predicted_class, probabilities = predict(image, model)
     confidence = probabilities[0][predicted_class] * 100  # Convertir a porcentaje
 
+    # Convertir la predicción al número de set real
+    predicted_set_number = idx_to_class.get(str(predicted_class), "Desconocido")
+
     # Buscar información en el dataset si está disponible
     if df_lego is not None:
-        set_info = df_lego[df_lego.index == predicted_class]
+        set_info = df_lego[df_lego["Number"].astype(str) == predicted_set_number]
         if not set_info.empty:
-            set_number = set_info.iloc[0]['Number']
             set_name = set_info.iloc[0]['SetName']
             used_price = set_info.iloc[0]['CurrentValueUsed']
         else:
-            set_number = "Desconocido"
             set_name = "Desconocido"
             used_price = "N/A"
 
-        st.subheader(f"🔍 Set identificado: {set_name} ({set_number})")
+        st.subheader(f"🔍 Set identificado: {set_name} ({predicted_set_number})")
         st.write(f"📈 Confianza: {confidence:.2f}%")
         st.write(f"💰 Precio usado estimado: ${used_price}")
     else:
