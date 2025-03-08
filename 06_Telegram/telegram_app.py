@@ -99,11 +99,11 @@ def preprocess_data(df):
     #se comentan porque existen en la bbdd luis original fin
 
     # Filtramos solo columnas numéricas antes de limpiar datos
-    numeric_cols = df.select_dtypes(include=[np.number]).columns
+    #numeric_cols = df.select_dtypes(include=[np.number]).columns
 
     # Reemplazamos valores infinitos por NaN y luego llenarlos con la mediana
-    df[numeric_cols] = df[numeric_cols].replace([np.inf, -np.inf], np.nan)
-    df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].median())
+    #df[numeric_cols] = df[numeric_cols].replace([np.inf, -np.inf], np.nan)
+    #df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].median())
 
     return df
 
