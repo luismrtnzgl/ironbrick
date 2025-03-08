@@ -5,6 +5,12 @@ pandas
 plotly
 streamlit
 pymongo #cambio erv
+psycopg2-binary
 requests
-os
-psycopg2
+joblib==1.4.2
+xgboost
+plotly
+matplotlib
+python-telegram-bot
+pyTelegramBotAPI
+schedule
