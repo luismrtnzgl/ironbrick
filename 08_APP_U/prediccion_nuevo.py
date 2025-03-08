@@ -57,15 +57,15 @@ def load_data():
 def preprocess_data(df):
     df = df[df['USRetailPrice'] > 0].copy()
 
-    exclusivity_mapping = {'Regular': 0, 'Exclusive': 1}
-    df['Exclusivity'] = df['Exclusivity'].map(exclusivity_mapping)
+    # exclusivity_mapping = {'Regular': 0, 'Exclusive': 1}
+    # df['Exclusivity'] = df['Exclusivity'].map(exclusivity_mapping)
 
-    size_category_mapping = {'Small': 0, 'Medium': 1, 'Large': 2}
-    df['SizeCategory'] = df['SizeCategory'].map(size_category_mapping)
+    # size_category_mapping = {'Small': 0, 'Medium': 1, 'Large': 2}
+    # df['SizeCategory'] = df['SizeCategory'].map(size_category_mapping)
 
-    df["PricePerPiece"] = df["USRetailPrice"] / df["Pieces"]
-    df["PricePerMinifig"] = np.where(df["Minifigs"] > 0, df["USRetailPrice"] / df["Minifigs"], 0)
-    df["YearsOnMarket"] = df["ExitYear"] - df["LaunchYear"]
+    # df["PricePerPiece"] = df["USRetailPrice"] / df["Pieces"]
+    # df["PricePerMinifig"] = np.where(df["Minifigs"] > 0, df["USRetailPrice"] / df["Minifigs"], 0)
+    # df["YearsOnMarket"] = df["ExitYear"] - df["LaunchYear"]
 
     df.replace([np.inf, -np.inf], np.nan, inplace=True)
     numeric_cols = df.select_dtypes(include=[np.number]).columns
