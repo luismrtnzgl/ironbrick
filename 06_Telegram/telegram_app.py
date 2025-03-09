@@ -110,6 +110,19 @@ features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit',
 
 df_lego["PredictedInvestmentScore"] = modelo.predict(df_lego[features])
 
+# Transformamos los valores de revalorización en categorías
+def clasificar_revalorizacion(score):
+    if score > 13:
+        return "Muy Alta"
+    elif 10 <= score <= 13:
+        return "Alta"
+    elif 5 <= score < 10:
+        return "Media"
+    else:
+        return "Baja"
+
+df_lego["Revalorización"] = df_lego["PredictedInvestmentScore"].apply(clasificar_revalorizacion)
+
 df_lego.rename(columns={
     "Number": "Set",
     "SetName": "Nombre",
@@ -119,7 +132,7 @@ df_lego.rename(columns={
 
 st.write("📊 **Sets Recomendados por IronbrickML**:")
 df_recomendados = df_lego.sort_values(by="PredictedInvestmentScore", ascending=False)
-st.data_editor(df_recomendados[["Set", "Nombre", "Precio", "Tema", "PredictedInvestmentScore"]], disabled=True)
+st.data_editor(df_recomendados[["Set", "Nombre", "Precio", "Tema", "Revalorización"]], disabled=True)
 
 conn = get_db_connection()
 cursor = conn.cursor()
