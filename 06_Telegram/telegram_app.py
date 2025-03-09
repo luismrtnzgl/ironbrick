@@ -124,8 +124,10 @@ def clasificar_revalorizacion(score):
         return "Alta"
     elif 5 <= score < 10:
         return "Media"
-    else:
+    elif 0 <= score < 5:
         return "Baja"
+    else:
+        return "Ninguna"
 
 df_lego["Revalorización"] = df_lego["PredictedInvestmentScore"].apply(clasificar_revalorizacion)
 
