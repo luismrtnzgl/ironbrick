@@ -156,6 +156,7 @@ if st.button("Generar Predicciones"):
             st.error("❌ No hay sets disponibles para predecir. Prueba ajustando los filtros.")
             st.stop()
 
+        df_filtrado = df_filtrado.copy()
         df_filtrado.loc[:, "PredictedInvestmentScore"] = modelo.predict(df_filtrado[features])
         df_filtrado = df_filtrado[df_filtrado["PredictedInvestmentScore"] > 0]
 
