@@ -1,7 +1,6 @@
-
-<h1 align="center">IRONBRICK </h1>
-<h1 align="center">IA FOR LEGO INVESTMENTS</h1>
-
+<p align="left">
+  <img src="08_APP_U/logo_ironbrick.jpg" alt="Ironbrick IA for Lego Investments" width="500">
+</p>
 
 <h2>📌 Descripción </h2>
 
