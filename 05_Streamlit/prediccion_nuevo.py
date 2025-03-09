@@ -47,7 +47,7 @@ def load_data():
         st.stop()
 
     df = pd.DataFrame(data)
-    df = preprocess_data(df)  # Aquí aplicas la función de preprocesamiento
+    #df = preprocess_data(df)  # Aquí aplicas la función de preprocesamiento
 
     return df
 
