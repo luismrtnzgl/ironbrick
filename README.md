@@ -24,7 +24,9 @@ Este proyecto combina tecnología y datos para ofrecer:
 
 <h2>🎮 Uso</h2>
 
-Recomendador de Sets: Introduce tus preferencias y obtén sugerencias personalizadas.
+Recomendador de Sets Actuales para Invertir en LEGO: Introduce tus preferencias y obtén sugerencias personalizadas.
+
+Recomendador de Sets Retirados para Invertir en LEGO
 
 Alerta de Inversión: Recibe notificaciones sobre oportunidades basadas en análisis de mercado.
 
