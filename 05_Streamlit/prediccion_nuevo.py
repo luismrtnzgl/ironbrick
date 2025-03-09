@@ -5,8 +5,6 @@ import joblib
 import requests
 import os
 import pymongo
-import pickle
-
 
 
 # URL del modelo en GitHub
@@ -29,14 +27,13 @@ def cargar_modelo():
             st.error(f"Error al descargar el modelo: {response.status_code}")
             return None
 
-    # Intentar cargar el modelo con pickle
+    # Intentar cargar el modelo con joblib
     try:
-        with open(modelo_path, "rb") as f:
-            modelo = pickle.load(f)
-        st.write("Modelo cargado correctamente.")
+        modelo = joblib.load(modelo_path)
+        st.write("Modelo cargado correctamente con joblib.")
         return modelo
     except Exception as e:
-        st.error(f"Error al cargar el modelo con pickle: {e}")
+        st.error(f"Error al cargar el modelo con joblib: {e}")
         return None
 
 modelo = cargar_modelo()
@@ -55,9 +52,6 @@ modelo = cargar_modelo()
     # Verificar las primeras filas del DataFrame para asegurarse de que los datos están bien cargados
     #st.write("Datos cargados correctamente:", df.head())  # Mostrar las primeras filas del DataFrame
     #return df
-
-
-
 
 
 
