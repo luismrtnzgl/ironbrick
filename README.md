@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="08_APP_U/logo_ironbrick.jpg" alt="Ironbrick IA for Lego Investments" width="200">
+  <img src="08_APP_U/logo_ironbrick.jpg" alt="Ironbrick IA for Lego Investments" width="400">
 </p>
 
 <h2>📌 Descripción </h2>
