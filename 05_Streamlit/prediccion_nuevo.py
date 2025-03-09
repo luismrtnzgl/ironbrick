@@ -5,6 +5,8 @@ import joblib
 import requests
 import os
 import pymongo
+import pickle
+
 
 
 # URL del modelo en GitHub
@@ -16,10 +18,8 @@ def cargar_modelo():
 
     if not os.path.exists(modelo_path):
         st.write("Descargando modelo...")
-
         response = requests.get(modelo_url, stream=True)
-
-        # Verificar si la descarga fue exitosa (código 200)
+        
         if response.status_code == 200:
             with open(modelo_path, "wb") as f:
                 for chunk in response.iter_content(chunk_size=8192):
@@ -29,13 +29,14 @@ def cargar_modelo():
             st.error(f"Error al descargar el modelo: {response.status_code}")
             return None
 
-    # Cargar el modelo con joblib
+    # Intentar cargar el modelo con pickle
     try:
-        modelo = joblib.load(modelo_path)
+        with open(modelo_path, "rb") as f:
+            modelo = pickle.load(f)
         st.write("Modelo cargado correctamente.")
         return modelo
     except Exception as e:
-        st.error(f"Error al cargar el modelo: {e}")
+        st.error(f"Error al cargar el modelo con pickle: {e}")
         return None
 
 modelo = cargar_modelo()
