@@ -1,4 +1,4 @@
-<p align="center">
+<p align="left">
   <img src="08_APP_U/logo_ironbrick.jpg" alt="Ironbrick IA for Lego Investments" width="500">
 </p>
 
