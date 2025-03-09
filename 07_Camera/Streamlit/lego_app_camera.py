@@ -91,23 +91,23 @@ if uploaded_file is not None and model is not None:
             predicted_class, probabilities = predict(image, model)
             confidence = probabilities[0][predicted_class] * 100  # Convertir a porcentaje
 
-            # Convertir la predicción al número de set real
+            # Convertimos la predicción al número de set real
             predicted_set_number = str(idx_to_class.get(str(predicted_class), "Desconocido"))
 
-            # Generar la URL de la imagen desde Brickset
+            # Obtenemos la imagen desde la URL de Brickset
             image_url = f"https://images.brickset.com/sets/images/{predicted_set_number}-1.jpg"
 
-            # Verificar si la imagen existe en Brickset
+            # Verificamos si la imagen existe en Brickset
             try:
                 response = urllib.request.urlopen(image_url)
                 if response.status == 200:
-                    st.image(image_url, caption=f"Imagen de Brickset: {predicted_set_number}", use_container_width=True)
+                    st.image(image_url, caption=f"Imagen de Brickset: {predicted_set_number}", width=300)
                 else:
                     st.warning(f"⚠️ No se encontró imagen en Brickset para el set {predicted_set_number}.")
             except:
                 st.warning(f"⚠️ No se encontró imagen en Brickset para el set {predicted_set_number}.")
 
-            # Buscar información en el dataset si está disponible
+            # Buscamos información en el dataset si está disponible
             if df_lego is not None:
                 set_info = df_lego[df_lego["Number"] == predicted_set_number]
 
