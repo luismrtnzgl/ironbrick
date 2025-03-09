@@ -12,57 +12,43 @@ modelo_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/05_St
 
 @st.cache_resource
 def cargar_modelo():
-    modelo_path = "stacking_model.pkl"  # Guarda en el directorio actual
-
+    modelo_path = "/tmp/stacking_model.pkl"
     if not os.path.exists(modelo_path):
-        st.write("Descargando modelo...")
-        response = requests.get(modelo_url, stream=True)
-        
-        if response.status_code == 200:
-            with open(modelo_path, "wb") as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    f.write(chunk)
-            st.write("Modelo descargado con éxito.")
-        else:
-            st.error(f"Error al descargar el modelo: {response.status_code}")
-            return None
-
-    # Intentar cargar el modelo con joblib
-    try:
-        modelo = joblib.load(modelo_path)
-        st.write("Modelo cargado correctamente con joblib.")
-        return modelo
-    except Exception as e:
-        st.error(f"Error al cargar el modelo con joblib: {e}")
-        return None
+        response = requests.get(modelo_url)
+        with open(modelo_path, "wb") as f:
+            f.write(response.content)
+    return joblib.load(modelo_path)
 
 modelo = cargar_modelo()
 
-#@st.cache_data
-#def load_data():
-    # Ya no necesitas reconectar a la base de datos, ya que la colección se importa desde config.py
-    #data = list(collection.find())  # Usar la colección importada
 
-    #if len(data) == 0:
-        #st.error("❌ No se encontraron datos en la colección de MongoDB.")
-        #st.stop()  # Detener la ejecución si no hay datos
+#conexion con MOngoDB
+@st.cache_resource
+def init_connection():
+    return pymongo.MongoClient(st.secrets["mongo"]["uri"])
 
-    #df = pd.DataFrame(data)
+client = init_connection()
+db = client[st.secrets["mongo"]["db"]]
+collection = db[st.secrets["mongo"]["collection"]]
 
-    # Verificar las primeras filas del DataFrame para asegurarse de que los datos están bien cargados
-    #st.write("Datos cargados correctamente:", df.head())  # Mostrar las primeras filas del DataFrame
-    #return df
-
-
+#carga datos desde MongoDB
+@st.cache_data(ttl=600)
+def load_data():
+    data = list(collection.find({}, {"_id": 0}))
+    if not data:
+        st.error("❌ No se encontraron datos en la colección de MongoDB.")
+        st.stop()
+    df = pd.DataFrame(data)
+    return preprocess_data(df)
 
 #inicio original luis
 # 📌 URL del dataset en GitHub RAW
-dataset_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/01_Data_Cleaning/df_lego_final_venta.csv"
+#dataset_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/01_Data_Cleaning/df_lego_final_venta.csv"
 
-@st.cache_data
-def load_data():
-    df = pd.read_csv(dataset_url)
-    return preprocess_data(df)  # Aplicar preprocesamiento antes de usarlo
+#@st.cache_data
+#def load_data():
+    #df = pd.read_csv(dataset_url)
+    #return preprocess_data(df)  # Aplicar preprocesamiento antes de usarlo
 #fin original luis
 
 #inicio original luis
@@ -70,22 +56,27 @@ def load_data():
 def preprocess_data(df):
     df = df[df['USRetailPrice'] > 0].copy()
 
-    exclusivity_mapping = {'Regular': 0, 'Exclusive': 1}
-    df['Exclusivity'] = df['Exclusivity'].map(exclusivity_mapping)
+    if 'Exclusivity' in df.columns:
+        exclusivity_mapping = {'Regular': 0, 'Exclusive': 1}
+        df['Exclusivity'] = df['Exclusivity'].map(exclusivity_mapping)
 
-    size_category_mapping = {'Small': 0, 'Medium': 1, 'Large': 2}
-    df['SizeCategory'] = df['SizeCategory'].map(size_category_mapping)
+    if 'SizeCategory' in df.columns:
+        size_category_mapping = {'Small': 0, 'Medium': 1, 'Large': 2}
+        df['SizeCategory'] = df['SizeCategory'].map(size_category_mapping)
 
+    # Asegurar la creación de columnas faltantes
     df["PricePerPiece"] = df["USRetailPrice"] / df["Pieces"]
     df["PricePerMinifig"] = np.where(df["Minifigs"] > 0, df["USRetailPrice"] / df["Minifigs"], 0)
     df["YearsOnMarket"] = df["ExitYear"] - df["LaunchYear"]
 
-    df.replace([np.inf, -np.inf], np.nan, inplace=True)
+    # Llenar valores NaN o Inf con 0
+    df.replace([np.inf, -np.inf], 0, inplace=True)
     numeric_cols = df.select_dtypes(include=[np.number]).columns
     df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].median())
 
     return df
 #fin original Luis
+
 
 
 # 📌 Cargar dataset con preprocesamiento
@@ -129,7 +120,7 @@ if df_filtrado.empty:
     st.error("❌ No hay sets disponibles con los filtros seleccionados. Ajusta la franja de precios o los temas para ver opciones.")
     st.stop()
 
-# # 📌 Funciones auxiliares para obtener imágenes y colores 
+# # 📌 Funciones auxiliares para obtener imágenes y colores
 def get_lego_image(set_number):
     return f"https://img.bricklink.com/ItemImage/SN/0/{set_number}-1.png"
 

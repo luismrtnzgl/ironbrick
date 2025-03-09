@@ -8,12 +8,13 @@ import pymongo
 import psycopg2
 
 # Configuración de la app
-st.set_page_config(page_title="IronbrickML", page_icon="🧱", layout="wide")
+st.set_page_config(page_title="Ironbrick", page_icon="🧱", layout="wide")
 
 # Sidebar para la navegación
 st.sidebar.title("Navegación")
 page = st.sidebar.radio("Selecciona una página", ["Recomendador de Inversión", "Alertas de Telegram"])
 
+#ok
 # Conexión a MongoDB
 @st.cache_resource
 def init_mongo_connection():
@@ -23,12 +24,14 @@ mongo_client = init_mongo_connection()
 mongo_db = mongo_client[st.secrets["mongo"]["db"]]
 mongo_collection = mongo_db[st.secrets["mongo"]["collection"]]
 
+#ok
 # Conexión a PostgreSQL
 DB_URL = os.getenv("DATABASE_URL")
 
 def get_db_connection():
     return psycopg2.connect(DB_URL, sslmode="require")
 
+#ok
 # Cargar modelo de predicción
 modelo_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/05_Streamlit/models/stacking_model.pkl"
 
@@ -43,6 +46,7 @@ def load_model():
 
 modelo = load_model()
 
+#ok
 # Cargar datos desde MongoDB
 @st.cache_data(ttl=600)
 def load_data():
@@ -51,17 +55,32 @@ def load_data():
         st.error("❌ No se encontraron datos en MongoDB.")
         st.stop()
     df = pd.DataFrame(data)
-    #df = preprocess_data(df)
-    return df
+    return preprocess_data(df)
 
 def preprocess_data(df):
     df = df[df['USRetailPrice'] > 0].copy()
-    df.replace([np.inf, -np.inf], np.nan, inplace=True)
-    df.fillna(df.median(), inplace=True)
+
+    if 'Exclusivity' in df.columns:
+        exclusivity_mapping = {'Regular': 0, 'Exclusive': 1}
+        df['Exclusivity'] = df['Exclusivity'].map(exclusivity_mapping)
+
+    if 'SizeCategory' in df.columns:
+        size_category_mapping = {'Small': 0, 'Medium': 1, 'Large': 2}
+        df['SizeCategory'] = df['SizeCategory'].map(size_category_mapping)
+
+    # Asegurar la creación de columnas faltantes
+    df["PricePerPiece"] = df["USRetailPrice"] / df["Pieces"]
+    df["PricePerMinifig"] = np.where(df["Minifigs"] > 0, df["USRetailPrice"] / df["Minifigs"], 0)
+    df["YearsOnMarket"] = df["ExitYear"] - df["LaunchYear"]
+
+    # Llenar valores NaN o Inf con 0
+    df.replace([np.inf, -np.inf], 0, inplace=True)
+    numeric_cols = df.select_dtypes(include=[np.number]).columns
+    df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].median())
+
     return df
 
 df_lego = load_data()
-df_lego = preprocess_data(df_lego)
 
 if page == "Recomendador de Inversión":
     st.title("Recomendador de Inversión en LEGO 📊")
@@ -89,14 +108,19 @@ if page == "Recomendador de Inversión":
 
 elif page == "Alertas de Telegram":
     st.title("📢 Configuración de Alertas de Telegram")
+
     telegram_id = st.text_input("🔹 Tu ID de Telegram (@userinfobot)")
     presupuesto_min, presupuesto_max = st.slider("💰 Rango de presupuesto (USD)", 10, 500, (10, 200), step=10)
+
+    temas_unicos = sorted(df_lego["Theme"].unique().tolist())
+    temas_opciones = ["Todos"] + temas_unicos
     temas_favoritos = st.multiselect("🛒 Temas Favoritos", temas_opciones, default=["Todos"])
 
     if st.button("💾 Alta en Alertas"):
         temas_str = ",".join(temas_favoritos)
         conn = get_db_connection()
         cursor = conn.cursor()
+
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS usuarios (
             telegram_id TEXT PRIMARY KEY,
@@ -104,6 +128,7 @@ elif page == "Alertas de Telegram":
             presupuesto_max INTEGER,
             temas_favoritos TEXT
         )""")
+
         cursor.execute("""
         INSERT INTO usuarios (telegram_id, presupuesto_min, presupuesto_max, temas_favoritos)
         VALUES (%s, %s, %s, %s)
@@ -112,9 +137,43 @@ elif page == "Alertas de Telegram":
             presupuesto_max = EXCLUDED.presupuesto_max,
             temas_favoritos = EXCLUDED.temas_favoritos;
         """, (telegram_id, presupuesto_min, presupuesto_max, temas_str))
+
         conn.commit()
         conn.close()
         st.success("✅ Preferencias guardadas correctamente!")
+
+
+    features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit',
+            'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity',
+            'SizeCategory', 'PricePerPiece', 'PricePerMinifig', 'YearsOnMarket']
+
+    df_lego["PredictedInvestmentScore"] = modelo.predict(df_lego[features])
+
+    # Transformamos los valores de revalorización en categorías
+    def clasificar_revalorizacion(score):
+        if score > 13:
+            return "Muy Alta"
+        elif 10 <= score <= 13:
+            return "Alta"
+        elif 5 <= score < 10:
+            return "Media"
+        elif 0 <= score < 5:
+            return "Baja"
+        else:
+            return "Ninguna"
+
+    df_lego["Revalorización"] = df_lego["PredictedInvestmentScore"].apply(clasificar_revalorizacion)
+
+    df_lego.rename(columns={
+        "Number": "Set",
+        "SetName": "Nombre",
+        "USRetailPrice": "Precio",
+        "Theme": "Tema"
+    }, inplace=True)
+
+    st.write("📊 **Sets Recomendados por IronbrickML**:")
+    df_recomendados = df_lego[df_lego["PredictedInvestmentScore"] > 0].sort_values(by="PredictedInvestmentScore", ascending=False)
+    st.data_editor(df_recomendados[["Set", "Nombre", "Precio", "Tema", "Revalorización"]], disabled=True)
 
     conn = get_db_connection()
     cursor = conn.cursor()
