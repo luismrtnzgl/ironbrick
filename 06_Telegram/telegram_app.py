@@ -60,8 +60,9 @@ def preprocess_data(df):
     df["YearsOnMarket"] = df["ExitYear"] - df["LaunchYear"]
 
     # Llenar valores NaN o Inf con 0
-    df.fillna(0, inplace=True)
     df.replace([np.inf, -np.inf], 0, inplace=True)
+    numeric_cols = df.select_dtypes(include=[np.number]).columns
+    df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].median())
 
     return df
 
