@@ -182,6 +182,6 @@ if st.button("Generar Predicciones"):
                 st.markdown("<div style='margin-bottom:10px'></div>", unsafe_allow_html=True)
                 st.write(f"**Tema:** {row['Theme']}")
                 st.write(f"💰 **Precio:** ${row['USRetailPrice']:.2f}")
-                url_lego = f"https://www.lego.com/en-us/product/{row['Number']}"
+                url_lego = f"https://www.lego.com/en-us/product/{row['Number']}-1"
                 st.markdown(f'<a href="{url_lego}" target="_blank"><button style="background-color:#ff4b4b; border:none; padding:10px; border-radius:5px; cursor:pointer; font-size:14px;">🛒 Comprar en LEGO</button></a>', unsafe_allow_html=True)
                 st.write("---")
