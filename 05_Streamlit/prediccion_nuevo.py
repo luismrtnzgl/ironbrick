@@ -131,7 +131,7 @@ if df_filtrado.empty:
 
 # # 📌 Funciones auxiliares para obtener imágenes y colores
 def get_lego_image(set_number):
-    return f"https://images.brickset.com/sets/images/{set_number}-1.jpg"
+    return f"https://img.bricklink.com/ItemImage/SN/0/{set_number}-1.png"
 
 
 def get_color(score):
