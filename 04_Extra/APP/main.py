@@ -7,23 +7,23 @@ import itertools
 import matplotlib.pyplot as plt
 import pymongo #cambio erv
 
-# 📌 Obtener la ruta del archivo CSV
+# Obtenemos la ruta del archivo CSV
 BASE_DIR = os.getcwd()
 CSV_PATH = os.path.join(BASE_DIR, "04_Extra/APP/data/scraped_lego_data.csv")
 
-# 📌 Verificar si el archivo existe
+# Verificamos si el archivo existe
 if not os.path.exists(CSV_PATH):
     st.error("❌ ERROR: El archivo CSV NO EXISTE en la ruta especificada.")
     st.stop()
 
-# 📌 Cargar el archivo CSV
+# Cargamos el archivo CSV
 try:
     df = pd.read_csv(CSV_PATH)
 except Exception as e:
     st.error(f"❌ ERROR al leer el archivo CSV: {e}")
     st.stop()
 
-# 📌 Procesar el dataset
+# Procesamos el dataset
 df["PriceDate"] = pd.to_datetime(df["PriceDate"], errors='coerce')
 df = df.dropna(subset=["PriceDate"])
 df_sorted = df.sort_values(by=['Number', 'PriceDate'])
@@ -41,7 +41,7 @@ df_transformed.loc[:, 'RetailPriceUSD'] = df_transformed['RetailPriceUSD'].filln
 df_transformed.loc[df_transformed['CurrentValueNew'] == 0, 'CurrentValueNew'] = df_transformed['RetailPriceUSD']
 df_transformed = df_transformed.dropna()
 
-# 📌 Cargar modelos de predicción
+# Cargamos modelos de predicción
 pkl_path_2y = os.path.join(BASE_DIR, "04_Extra/APP/models/xgb_2y.pkl")
 pkl_path_5y = os.path.join(BASE_DIR, "04_Extra/APP/models/xgb_5y.pkl")
 
@@ -57,7 +57,7 @@ def load_model(filename):
 model_2y = load_model(pkl_path_2y)
 model_5y = load_model(pkl_path_5y)
 
-# 📌 Generar predicciones
+# Generamos predicciones
 df_identification = df_transformed[['Number', 'SetName', 'Theme', 'CurrentValueNew']].copy()
 df_model = df_transformed.drop(columns=['Number', 'SetName', 'Theme'], errors='ignore').copy()
 df_model = pd.get_dummies(df_model, drop_first=True)
@@ -69,7 +69,7 @@ df_model = df_model[expected_columns]
 df_identification.loc[:, 'PredictedValue2Y'] = model_2y.predict(df_model)
 df_identification.loc[:, 'PredictedValue5Y'] = model_5y.predict(df_model)
 
-# 📌 Calcular rentabilidad porcentual por tema
+# Calculamos rentabilidad porcentual por tema
 df_identification["Rentabilidad2Y"] = ((df_identification["PredictedValue2Y"] - df_identification["CurrentValueNew"]) / df_identification["CurrentValueNew"]) * 100
 df_identification["Rentabilidad5Y"] = ((df_identification["PredictedValue5Y"] - df_identification["CurrentValueNew"]) / df_identification["CurrentValueNew"]) * 100
 
@@ -81,11 +81,10 @@ df_rentabilidad_temas = df_identification.groupby("Theme").agg(
 
 df_rentabilidad_temas = df_rentabilidad_temas.sort_values(by="Rentabilidad5Y", ascending=False)
 
-# 📌 Título y descripción
 st.title("🎯 Recomendador de inversión en sets de LEGO retirados")
 st.write("Este recomendador te ayuda a encontrar las mejores combinaciones de sets de LEGO retirados para invertir, basándose en su rentabilidad futura.")
 
-# 📌 Mostrar rentabilidad media porcentual por tema con total de sets
+# Mostramos rentabilidad media porcentual por tema con total de sets
 st.subheader("📊 Rentabilidad media porcentual por tema")
 st.write("Este cuadro muestra la rentabilidad media estimada de los sets nuevos en 2 y 5 años para cada tema de LEGO, junto con el número total de sets evaluados en cada tema.")
 
@@ -95,7 +94,7 @@ st.dataframe(
     use_container_width=True  # Tabla ocupe todo el ancho
 )
 
-# 📌 Selección de temas
+# Selección de temas
 st.subheader("🎯 Selecciona tus temas de interés")
 temas_disponibles = sorted(df_identification["Theme"].unique())
 temas_seleccionados = st.multiselect("Selecciona los temas de interés", ["Todos"] + temas_disponibles, default=["Todos"])
@@ -103,22 +102,22 @@ temas_seleccionados = st.multiselect("Selecciona los temas de interés", ["Todos
 if "Todos" in temas_seleccionados:
     temas_seleccionados = temas_disponibles
 
-# 📌 Filtro por presupuesto
+# Filtramos por presupuesto
 presupuesto = st.slider("Presupuesto máximo ($)", min_value=100, max_value=2000, value=200, step=10)
 
-# 📌 Filtrar el dataframe
+# Filtramos el dataframe
 df_filtrado = df_identification[df_identification["Theme"].isin(temas_seleccionados)]
 df_filtrado = df_filtrado[df_filtrado["CurrentValueNew"] <= presupuesto]
 
-# 📌 Optimización: Seleccionar los 10 mejores sets primero
+# Optimización: Seleccionamos los 10 mejores sets primero
 df_top_sets = df_filtrado.sort_values(by="PredictedValue5Y", ascending=False).head(10)
 
-# 📌 Buscar combinaciones óptimas de inversión
+# Buscamos combinaciones óptimas de inversión
 def encontrar_mejores_inversiones(df, presupuesto, num_opciones=3):
     sets_lista = df[['SetName', 'CurrentValueNew', 'PredictedValue2Y', 'PredictedValue5Y']].values.tolist()
     mejores_combinaciones = []
 
-    for r in range(1, 5):  # Limitar combinaciones a 1-4 sets para optimizar
+    for r in range(1, 5):  # Limitamos combinaciones a 1-4 sets para optimizar
         for combinacion in itertools.combinations(sets_lista, r):
             total_precio = sum(item[1] for item in combinacion)
             retorno_2y = sum(item[2] for item in combinacion)
@@ -127,12 +126,12 @@ def encontrar_mejores_inversiones(df, presupuesto, num_opciones=3):
             if total_precio <= presupuesto:
                 mejores_combinaciones.append((combinacion, retorno_2y, retorno_5y, total_precio))
 
-    # Ordenar por rentabilidad en 5 años (descendente)
+    # Ordenamos por rentabilidad en 5 años (descendente)
     mejores_combinaciones.sort(key=lambda x: x[2], reverse=True)
     return mejores_combinaciones[:num_opciones]
 
 
-# 📌 Mostrar inversiones óptimas con imágenes y texto centrado
+# Mostramos inversiones óptimas con imágenes y texto centrado
 if st.button("🔍 Buscar inversiones óptimas"):
     opciones = encontrar_mejores_inversiones(df_top_sets, presupuesto)
 
@@ -147,7 +146,7 @@ if st.button("🔍 Buscar inversiones óptimas"):
             st.write(f"🚀 **Valor estimado en 5 años:** ${ret_5y:.2f}")
             st.write("🧩 **Sets incluidos:**")
 
-            # 📌 Mostrar sets con imágenes y datos centrados
+            # Mostramos sets con imágenes y datos centrados
             cols = st.columns(len(combo))  # Crear columnas dinámicas para mostrar imágenes
             for col, (set_name, price, _, _) in zip(cols, combo):
                 set_number = df_top_sets[df_top_sets["SetName"] == set_name]["Number"].values[0]  # Obtener el número del set

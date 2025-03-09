@@ -83,18 +83,21 @@ if uploaded_file is not None and model is not None:
 
     # Columna 1: Mostramos la imagen cargada
     with col1:
-        st.image(image, caption="Imagen subida", use_column_width=True)
+        st.image(image, caption="Imagen subida", use_container_width=True)
 
     # Realizamos predicción en la Columna 2
     with col2:
         try:
             predicted_class, probabilities = predict(image, model)
-            confidence = probabilities[0][predicted_class] * 100
+            confidence = probabilities[0][predicted_class] * 100  # Convertir a porcentaje
 
-            # Convertimos la predicción al número de set real (si está disponible)
+            # Convertir la predicción al número de set real
             predicted_set_number = str(idx_to_class.get(str(predicted_class), "Desconocido"))
 
-            # Buscamos la información en el dataset si estuviera disponible y mostramos los detalles
+            # Generar la URL de la imagen desde Brickset
+            image_url = f"https://images.brickset.com/sets/images/{predicted_set_number}.jpg"
+
+            # Buscar información en el dataset si está disponible
             if df_lego is not None:
                 set_info = df_lego[df_lego["Number"] == predicted_set_number]
 
@@ -105,6 +108,10 @@ if uploaded_file is not None and model is not None:
                     retail_price = set_info.iloc[0].get('USRetailPrice', 'N/A')
                     used_price = set_info.iloc[0].get('BrickLinkSoldPriceUsed', 'N/A')
 
+                    # Mostrar imagen del set desde Brickset
+                    st.image(image_url, caption=f"Imagen de Brickset: {set_name}", use_container_width=True)
+
+                    # Mostrar información del set
                     st.subheader(f"🔍 Set identificado: {set_name} ({predicted_set_number})")
                     st.write(f"🎭 **Tema:** {theme}")
                     st.write(f"👥 **Personas interesadas:** {interested_people}")
