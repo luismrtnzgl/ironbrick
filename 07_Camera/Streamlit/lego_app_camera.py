@@ -17,12 +17,12 @@ st.set_page_config(page_title="Identificación de Sets LEGO", layout="wide")
 # 📌 Rutas de archivos locales
 MODEL_PATH = "modelo_lego_final.pth"
 MAPPING_PATH = "idx_to_class.json"
-DATA_PATH = "scraped_lego_data.csv"
+DATA_PATH = "df_lego_camera.csv"
 
 # 📌 URLs de los archivos en GitHub (DEBEN ESTAR EN FORMATO RAW)
 MODEL_URL = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/07_Camera/Streamlit/modelo_lego_final.pth"
 MAPPING_URL = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/07_Camera/Streamlit/idx_to_class.json"
-DATASET_URL = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/04_Extra/APP/data/scraped_lego_data.csv"
+DATASET_URL = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/07_Camera/Streamlit/df_lego_camera.csv"
 
 # 🔥 Descargar archivos si no existen
 def download_file(url, path):
@@ -53,18 +53,15 @@ else:
     st.error("❌ Error: No se encontró el archivo de mapeo idx_to_class.json.")
     idx_to_class = {}
 
-# 📌 Cargar el dataset de precios de LEGO y corregir formato de "Number"
+# 📌 Cargar el dataset actualizado
 if os.path.exists(DATA_PATH):
     df_lego = pd.read_csv(DATA_PATH)
-    
-    # ✅ Eliminar el sufijo "-1" en la columna "Number" para hacer coincidir la predicción
-    df_lego["Number"] = df_lego["Number"].astype(str).str.replace("-1", "", regex=False)
-
+    df_lego["Number"] = df_lego["Number"].astype(str)  # ✅ Asegurar que "Number" es string para evitar errores
 else:
-    st.error("❌ Error: El archivo scraped_lego_data.csv no se encontró.")
+    st.error("❌ Error: El archivo df_lego_camera.csv no se encontró.")
     df_lego = None
 
-st.title("🧩 Identificación de Sets de LEGO")
+st.title("🧩 Identificación de Sets LEGO")
 
 st.markdown(
     """
@@ -88,7 +85,7 @@ if uploaded_file is not None and model is not None:
         confidence = probabilities[0][predicted_class] * 100  # Convertir a porcentaje
 
         # Convertir la predicción al número de set real
-        predicted_set_number = idx_to_class.get(str(predicted_class), "Desconocido")
+        predicted_set_number = str(idx_to_class.get(str(predicted_class), "Desconocido"))
 
         # Buscar información en el dataset si está disponible
         if df_lego is not None:
@@ -96,11 +93,17 @@ if uploaded_file is not None and model is not None:
 
             if not set_info.empty:
                 set_name = set_info.iloc[0].get('SetName', 'Desconocido')
+                theme = set_info.iloc[0].get('Theme', 'Desconocido')
+                interested_people = set_info.iloc[0].get('InterestedPeople', 'N/A')
+                retail_price = set_info.iloc[0].get('RetailPriceUSD', 'N/A')
                 used_price = set_info.iloc[0].get('CurrentValueUsed', 'N/A')
 
                 st.subheader(f"🔍 Set identificado: {set_name} ({predicted_set_number})")
-                st.write(f"📈 Confianza: {confidence:.2f}%")
-                st.write(f"💰 Precio usado estimado: ${used_price}")
+                st.write(f"🎭 **Tema:** {theme}")
+                st.write(f"👥 **Personas interesadas:** {interested_people}")
+                st.write(f"💰 **Precio original:** ${retail_price}")
+                st.write(f"🛒 **Precio usado:** ${used_price}")
+                st.write(f"📈 **Confianza en la predicción:** {confidence:.2f}%")
             else:
                 st.warning(f"⚠️ No se encontró información del set {predicted_set_number}.")
         else:
