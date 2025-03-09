@@ -51,7 +51,7 @@ def load_data():
         st.error("❌ No se encontraron datos en MongoDB.")
         st.stop()
     df = pd.DataFrame(data)
-    df = preprocess_data(df)
+    #df = preprocess_data(df)
     return df
 
 def preprocess_data(df):
@@ -61,6 +61,7 @@ def preprocess_data(df):
     return df
 
 df_lego = load_data()
+df_lego = preprocess_data(df_lego)
 
 if page == "Recomendador de Inversión":
     st.title("Recomendador de Inversión en LEGO 📊")
