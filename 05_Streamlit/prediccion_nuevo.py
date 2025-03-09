@@ -7,12 +7,11 @@ import os
 import pymongo
 
 
-# 📌 URL del modelo en GitHub RAW
+# Cargamos el modelo
 modelo_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/05_Streamlit/models/stacking_model.pkl"
 
 @st.cache_resource
-def load_model():
-    """Descarga el modelo desde GitHub y lo carga en Streamlit."""
+def cargar_modelo():
     modelo_path = "/tmp/stacking_model.pkl"
 
     if not os.path.exists(modelo_path):
@@ -22,8 +21,7 @@ def load_model():
 
     return joblib.load(modelo_path)
 
-# 📌 Cargar el modelo
-modelo = load_model()
+modelo = cargar_modelo()
 
 #@st.cache_data
 #def load_data():
