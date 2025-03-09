@@ -95,7 +95,7 @@ if uploaded_file is not None and model is not None:
             predicted_set_number = str(idx_to_class.get(str(predicted_class), "Desconocido"))
 
             # Generar la URL de la imagen desde Brickset
-            image_url = f"https://images.brickset.com/sets/images/{predicted_set_number}.jpg"
+            image_url = f"https://images.brickset.com/sets/images/{predicted_set_number}-1.jpg"
 
             # Verificar si la imagen existe en Brickset
             try:
