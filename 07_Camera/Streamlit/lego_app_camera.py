@@ -53,10 +53,13 @@ else:
     st.error("❌ Error: No se encontró el archivo de mapeo idx_to_class.json.")
     idx_to_class = {}
 
-# 📌 Cargar el dataset de precios de LEGO
+# 📌 Cargar el dataset de precios de LEGO y corregir formato de "Number"
 if os.path.exists(DATA_PATH):
     df_lego = pd.read_csv(DATA_PATH)
-    df_lego["Number"] = df_lego["Number"].astype(str)  # ✅ Asegura que los números de set sean strings
+    
+    # ✅ Eliminar el sufijo "-1" en la columna "Number" para hacer coincidir la predicción
+    df_lego["Number"] = df_lego["Number"].astype(str).str.replace("-1", "", regex=False)
+
 else:
     st.error("❌ Error: El archivo scraped_lego_data.csv no se encontró.")
     df_lego = None
