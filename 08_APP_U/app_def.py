@@ -51,7 +51,8 @@ def load_data():
         st.error("❌ No se encontraron datos en MongoDB.")
         st.stop()
     df = pd.DataFrame(data)
-    return preprocess_data(df)
+    df = preprocess_data(df)
+    return df
 
 def preprocess_data(df):
     df = df[df['USRetailPrice'] > 0].copy()
