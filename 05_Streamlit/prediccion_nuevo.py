@@ -78,7 +78,7 @@ def preprocess_data(df):
 df_ranking = load_data()
 
 # 📌 Preprocesamiento de datos
-#df_ranking = preprocess_data(df_ranking)  # Llamada a la función de preprocesamiento
+df_ranking = preprocess_data(df_ranking)  # Llamada a la función de preprocesamiento
 
 
 # # 📌 Interfaz en Streamlit
