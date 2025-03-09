@@ -129,7 +129,7 @@ if df_filtrado.empty:
     st.error("❌ No hay sets disponibles con los filtros seleccionados. Ajusta la franja de precios o los temas para ver opciones.")
     st.stop()
 
-# # 📌 Funciones auxiliares para obtener imágenes y colores
+# # 📌 Funciones auxiliares para obtener imágenes y colores 
 def get_lego_image(set_number):
     return f"https://img.bricklink.com/ItemImage/SN/0/{set_number}-1.png"
 
