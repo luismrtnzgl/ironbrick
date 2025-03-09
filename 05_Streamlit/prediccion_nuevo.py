@@ -25,20 +25,20 @@ def load_model():
 # 📌 Cargar el modelo
 modelo = load_model()
 
-@st.cache_data
-def load_data():
+#@st.cache_data
+#def load_data():
     # Ya no necesitas reconectar a la base de datos, ya que la colección se importa desde config.py
-    data = list(collection.find())  # Usar la colección importada
+    #data = list(collection.find())  # Usar la colección importada
 
-    if len(data) == 0:
-        st.error("❌ No se encontraron datos en la colección de MongoDB.")
-        st.stop()  # Detener la ejecución si no hay datos
+    #if len(data) == 0:
+        #st.error("❌ No se encontraron datos en la colección de MongoDB.")
+        #st.stop()  # Detener la ejecución si no hay datos
 
-    df = pd.DataFrame(data)
+    #df = pd.DataFrame(data)
 
     # Verificar las primeras filas del DataFrame para asegurarse de que los datos están bien cargados
-    st.write("Datos cargados correctamente:", df.head())  # Mostrar las primeras filas del DataFrame
-    return df
+    #st.write("Datos cargados correctamente:", df.head())  # Mostrar las primeras filas del DataFrame
+    #return df
 
 
 
