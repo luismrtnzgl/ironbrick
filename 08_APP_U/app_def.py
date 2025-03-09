@@ -24,10 +24,10 @@ mongo_db = mongo_client[st.secrets["mongo"]["db"]]
 mongo_collection = mongo_db[st.secrets["mongo"]["collection"]]
 
 # Conexión a PostgreSQL
-#DB_URL = os.getenv("DATABASE_URL")
+DB_URL = os.getenv("DATABASE_URL")
 
-#def get_db_connection():
-    #return psycopg2.connect(DB_URL, sslmode="require")
+def get_db_connection():
+    return psycopg2.connect(DB_URL, sslmode="require")
 
 # Cargar modelo de predicción
 modelo_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/05_Streamlit/models/stacking_model.pkl"
