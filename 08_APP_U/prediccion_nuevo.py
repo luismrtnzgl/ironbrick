@@ -62,11 +62,7 @@ st.write("**Explicación:** Según el presupuesto y los temas de interés selecc
  # 📌 Configuración de presupuesto y temas
 presupuesto_min, presupuesto_max = st.slider("💰 Selecciona el rango de presupuesto (USD)", 10, 500, (10, 200), step=10)
 
-if "Todos" not in selected_themes:
-    df_filtrado = df_filtrado[df_filtrado["Theme"].isin(selected_themes)]
-
-
- # 📌 Funciones auxiliares para obtener imágenes y colores
+# 📌 Funciones auxiliares para obtener imágenes y colores
 def get_lego_image(set_number):
     return f"https://images.brickset.com/sets/images/{set_number}-1.jpg"
 
