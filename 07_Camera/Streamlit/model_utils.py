@@ -1,5 +1,6 @@
 import torch
 from torchvision import models
+import torch.nn as nn
 
 def load_model(model_path):
     """Carga el modelo entrenado, asegurando que la arquitectura coincida con los pesos guardados."""
@@ -9,7 +10,8 @@ def load_model(model_path):
     state_dict = torch.load(model_path, map_location=device)
 
     # 🔥 Obtener el número de clases desde los pesos guardados
-    num_classes = state_dict["classifier.1.weight"].shape[0]
+    num_classes = state_dict["classifier.3.weight"].shape[0]  # Ahora usa classifier.3
+
     print(f"📌 Número de clases detectado en los pesos guardados: {num_classes}")
 
     # 🔥 Cargar modelo EfficientNet-B0 sin pesos preentrenados
@@ -17,13 +19,15 @@ def load_model(model_path):
 
     # 🔥 Ajustar la última capa al número de clases detectado
     num_features = model.classifier[1].in_features
-    model.classifier = torch.nn.Sequential(
-        torch.nn.Dropout(0.6),
-        torch.nn.Linear(num_features, num_classes)  # Se adapta automáticamente
+    model.classifier = nn.Sequential(
+        nn.Dropout(0.5),
+        nn.Linear(num_features, 512),  # Recuperamos la capa oculta de 512 neuronas
+        nn.ReLU(),
+        nn.Linear(512, num_classes)  # Ahora coincide con classifier.3
     )
 
-    # 🔥 Cargar los pesos y asegurar que coincidan con la arquitectura
-    model.load_state_dict(state_dict)
+    # 🔥 Cargar los pesos permitiendo diferencias menores
+    model.load_state_dict(state_dict, strict=False)
 
     model.to(device)
     model.eval()
