@@ -5,12 +5,21 @@ import joblib
 import requests
 import os
 
- # 📌 URL del modelo en GitHub RAW
+
+ # 📌 URL del dataset en GitHub RAW
+dataset_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/01_Data_Cleaning/df_lego_final_venta.csv"
+
+@st.cache_data
+def load_data():
+    df = pd.read_csv(dataset_url)
+    return preprocess_data(df)  # Aplicar preprocesamiento antes de usarlo
+
+
+ # Cargamos el modelo
 modelo_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/05_Streamlit/models/stacking_model.pkl"
 
 @st.cache_resource
-def load_model():
-    """Descarga el modelo desde GitHub y lo carga en Streamlit."""
+def cargar_modelo():
     modelo_path = "/tmp/stacking_model.pkl"
 
     if not os.path.exists(modelo_path):
@@ -20,16 +29,11 @@ def load_model():
 
     return joblib.load(modelo_path)
 
- # 📌 Cargar el modelo
-modelo = load_model()
+modelo = cargar_modelo()
 
- # 📌 URL del dataset en GitHub RAW
-dataset_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/01_Data_Cleaning/df_lego_final_venta.csv"
 
-@st.cache_data
-def load_data():
-    df = pd.read_csv(dataset_url)
-    return preprocess_data(df)  # Aplicar preprocesamiento antes de usarlo
+
+
 
  # 📌 Función de preprocesamiento (igual que en telegram_app.py)
 def preprocess_data(df):
