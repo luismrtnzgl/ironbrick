@@ -97,6 +97,16 @@ if uploaded_file is not None and model is not None:
             # Generar la URL de la imagen desde Brickset
             image_url = f"https://images.brickset.com/sets/images/{predicted_set_number}.jpg"
 
+            # Verificar si la imagen existe en Brickset
+            try:
+                response = urllib.request.urlopen(image_url)
+                if response.status == 200:
+                    st.image(image_url, caption=f"Imagen de Brickset: {predicted_set_number}", use_container_width=True)
+                else:
+                    st.warning(f"⚠️ No se encontró imagen en Brickset para el set {predicted_set_number}.")
+            except:
+                st.warning(f"⚠️ No se encontró imagen en Brickset para el set {predicted_set_number}.")
+
             # Buscar información en el dataset si está disponible
             if df_lego is not None:
                 set_info = df_lego[df_lego["Number"] == predicted_set_number]
@@ -107,9 +117,6 @@ if uploaded_file is not None and model is not None:
                     interested_people = set_info.iloc[0].get('WantCount', 'N/A')
                     retail_price = set_info.iloc[0].get('USRetailPrice', 'N/A')
                     used_price = set_info.iloc[0].get('BrickLinkSoldPriceUsed', 'N/A')
-
-                    # Mostrar imagen del set desde Brickset
-                    st.image(image_url, caption=f"Imagen de Brickset: {set_name}", use_container_width=True)
 
                     # Mostrar información del set
                     st.subheader(f"🔍 Set identificado: {set_name} ({predicted_set_number})")
