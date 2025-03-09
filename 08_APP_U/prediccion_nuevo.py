@@ -15,19 +15,36 @@ def load_data():
     return preprocess_data(df)  # Aplicar preprocesamiento antes de usarlo
 
 
- # Cargamos el modelo
+# URL del modelo en GitHub
 modelo_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/05_Streamlit/models/stacking_model.pkl"
 
 @st.cache_resource
 def cargar_modelo():
-    modelo_path = "/tmp/stacking_model.pkl"
+    modelo_path = "stacking_model.pkl"  # Guarda en el directorio actual
 
     if not os.path.exists(modelo_path):
-        response = requests.get(modelo_url)
-        with open(modelo_path, "wb") as f:
-            f.write(response.content)
+        st.write("Descargando modelo...")
 
-    return joblib.load(modelo_path)
+        response = requests.get(modelo_url, stream=True)
+
+        # Verificar si la descarga fue exitosa (código 200)
+        if response.status_code == 200:
+            with open(modelo_path, "wb") as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
+            st.write("Modelo descargado con éxito.")
+        else:
+            st.error(f"Error al descargar el modelo: {response.status_code}")
+            return None
+
+    # Cargar el modelo con joblib
+    try:
+        modelo = joblib.load(modelo_path)
+        st.write("Modelo cargado correctamente.")
+        return modelo
+    except Exception as e:
+        st.error(f"Error al cargar el modelo: {e}")
+        return None
 
 modelo = cargar_modelo()
 
