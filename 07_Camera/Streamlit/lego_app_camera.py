@@ -35,6 +35,7 @@ else:
 DATA_PATH = "scraped_lego_data.csv"
 if os.path.exists(DATA_PATH):
     df_lego = pd.read_csv(DATA_PATH)
+    df_lego["Number"] = df_lego["Number"].astype(str)  # ✅ Asegura que los números de set sean strings
 else:
     st.error("❌ Error: El archivo scraped_lego_data.csv no se encontró.")
     df_lego = None
@@ -66,16 +67,16 @@ if uploaded_file is not None:
 
     # Buscar información en el dataset si está disponible
     if df_lego is not None:
-        set_info = df_lego[df_lego["Number"].astype(str) == predicted_set_number]
-        if not set_info.empty:
-            set_name = set_info.iloc[0]['SetName']
-            used_price = set_info.iloc[0]['CurrentValueUsed']
-        else:
-            set_name = "Desconocido"
-            used_price = "N/A"
+        set_info = df_lego[df_lego["Number"] == predicted_set_number]
 
-        st.subheader(f"🔍 Set identificado: {set_name} ({predicted_set_number})")
-        st.write(f"📈 Confianza: {confidence:.2f}%")
-        st.write(f"💰 Precio usado estimado: ${used_price}")
+        if not set_info.empty:
+            set_name = set_info.iloc[0].get('SetName', 'Desconocido')
+            used_price = set_info.iloc[0].get('CurrentValueUsed', 'N/A')
+
+            st.subheader(f"🔍 Set identificado: {set_name} ({predicted_set_number})")
+            st.write(f"📈 Confianza: {confidence:.2f}%")
+            st.write(f"💰 Precio usado estimado: ${used_price}")
+        else:
+            st.warning(f"⚠️ No se encontró información del set {predicted_set_number}.")
     else:
         st.error("❌ No se puede mostrar información del set porque el dataset no está disponible.")

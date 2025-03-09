@@ -4,3 +4,6 @@ numpy
 pillow
 streamlit
 opencv-python-headless
+pandas
+urllib3
+tqdm
