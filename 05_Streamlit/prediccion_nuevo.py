@@ -168,7 +168,7 @@ if st.button("Generar Predicciones"):
                         </div>
                     """, unsafe_allow_html=True)
                     image_url = get_lego_image(row["Number"])
-                    st.image(image_url, caption=row["SetName"], use_column_width=True)
+                    st.image(image_url, caption=row["SetName"], use_container_width=True)
                     st.write(f"**Tema:** {row['Theme']}")
                     st.write(f"💰 **Precio:** ${row['USRetailPrice']:.2f}")
                     url_lego = f"https://www.lego.com/en-us/product/{row['Number']}"
