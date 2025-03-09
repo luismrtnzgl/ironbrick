@@ -83,20 +83,56 @@ def preprocess_data(df):
 df_lego = load_data()
 
 if page == "Recomendador de Inversión":
-    st.title("Recomendador de Inversión en LEGO 📊")
+    st.title("Recomendador de sets actuales para Inversión en LEGO 📊")
+
+    st.write("**Explicación:** Según el presupuesto y los temas de interés seleccionados, el sistema generará un ranking de los 3 sets más rentables para invertir en LEGO. Se ha entrenado un modelo de Machine Learning que predice la rentabilidad de un set en los próximos años, basado en características como el precio, el número de piezas, la exclusividad, etc.")
+
+    st.markdown("""
+    ### Código de Color para Evaluación de Riesgo:        """)
+    st.write("**Todos los sets recomendados tienen una alta rentabilidad basada en sus características.**. Hemos analizado el riesgo y  clasificado con una escala de color:")
+    st.markdown("""
+    - 🟢 **Verde**: Set con una alta probabilidad de revalorización y rentabilidad.
+    - 🟡 **Amarillo**: Set con potencial de revalorización y con un riesgo medio.
+    - 🟠 **Naranja**: Set posibilidades de bajas de rentabilidad pero con riesgo medio-bajo
+    - 🔴 **Rojo**: Set con posibilidades de revalorización pero con una baja rentabilidad.
+    """)
+
+    st.subheader("Configura tu Inversión en LEGO")
+
+    # 📌 Configuración de presupuesto y temas
     presupuesto_min, presupuesto_max = st.slider("💰 Rango de presupuesto (USD)", 10, 1000, (10, 200), step=10)
+
     temas_unicos = sorted(df_lego["Theme"].unique().tolist())
     temas_opciones = ["Todos"] + temas_unicos
     selected_themes = st.multiselect("🛒 Selecciona los Themes de Interés", temas_opciones, default=["Todos"])
 
+    # 📌 Filtrar por presupuesto y temas
     df_filtrado = df_lego[(df_lego["USRetailPrice"] >= presupuesto_min) & (df_lego["USRetailPrice"] <= presupuesto_max)]
+
     if "Todos" not in selected_themes:
         df_filtrado = df_filtrado[df_filtrado["Theme"].isin(selected_themes)]
 
+    # 📌 Si `df_filtrado` está vacío, mostrar error y detener ejecución
     if df_filtrado.empty:
         st.error("❌ No hay sets disponibles con los filtros seleccionados.")
         st.stop()
 
+    # 📌 Funciones auxiliares para obtener imágenes y colores
+    def get_lego_image(set_number):
+        return f"https://img.bricklink.com/ItemImage/SN/0/{set_number}-1.png"
+
+
+    def get_color(score):
+        if score > 12:
+            return "#00736d"  # Verde
+        elif score > 6:
+            return "#FFC300"  # Amarillo
+        elif score > 2:
+            return "#FF9944"  # Naranja
+        else:
+            return "#FF4B4B"  # Rojo
+
+    # 📌 Generar Predicciones y Mostrar Top 3 Sets
     if st.button("Generar Predicciones"):
         features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit',
                     'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity',
