@@ -139,7 +139,7 @@ df_lego.rename(columns={
 }, inplace=True)
 
 st.write("📊 **Sets Recomendados por IronbrickML**:")
-df_recomendados = df_lego.sort_values(by="PredictedInvestmentScore", ascending=False)>0
+df_recomendados = df_lego[df_lego["PredictedInvestmentScore"] > 0].sort_values(by="PredictedInvestmentScore", ascending=False)
 st.data_editor(df_recomendados[["Set", "Nombre", "Precio", "Tema", "Revalorización"]], disabled=True)
 
 conn = get_db_connection()
