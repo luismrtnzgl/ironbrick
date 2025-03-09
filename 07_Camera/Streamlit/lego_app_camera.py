@@ -94,9 +94,10 @@ if uploaded_file is not None and model is not None:
             if not set_info.empty:
                 set_name = set_info.iloc[0].get('SetName', 'Desconocido')
                 theme = set_info.iloc[0].get('Theme', 'Desconocido')
-                interested_people = set_info.iloc[0].get('InterestedPeople', 'N/A')
-                retail_price = set_info.iloc[0].get('RetailPriceUSD', 'N/A')
-                used_price = set_info.iloc[0].get('CurrentValueUsed', 'N/A')
+                interested_people = set_info.iloc[0].get('WantCount', 'N/A')
+                retail_price = set_info.iloc[0].get('USRetailPrice', 'N/A')
+                used_price = set_info.iloc[0].get('BrickLinkSoldPriceUsed', 'N/A')
+
 
                 st.subheader(f"🔍 Set identificado: {set_name} ({predicted_set_number})")
                 st.write(f"🎭 **Tema:** {theme}")
