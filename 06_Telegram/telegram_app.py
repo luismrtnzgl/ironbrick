@@ -9,6 +9,7 @@ import pymongo #incluido erv
 from sklearn.impute import SimpleImputer #cambio erv sabado
 
 
+
 # Obtenemos la URL de la base de datos PostgreSQL desde Render
 DB_URL = os.getenv("DATABASE_URL")
 
@@ -80,23 +81,23 @@ def preprocess_data(df):
 
     #se comentan porque existen en la bbdd luis original inicio
     # Aseguramos que estas columnas existen antes de mapear
-    # if 'Exclusivity' in df.columns:
-    #     exclusivity_mapping = {'Regular': 0, 'Exclusive': 1}
-    #     df['Exclusivity'] = df['Exclusivity'].map(exclusivity_mapping)
+    if 'Exclusivity' in df.columns:
+        exclusivity_mapping = {'Regular': 0, 'Exclusive': 1}
+        df['Exclusivity'] = df['Exclusivity'].map(exclusivity_mapping)
 
-    # if 'SizeCategory' in df.columns:
-    #     size_category_mapping = {'Small': 0, 'Medium': 1, 'Large': 2}
-    #     df['SizeCategory'] = df['SizeCategory'].map(size_category_mapping)
+    if 'SizeCategory' in df.columns:
+        size_category_mapping = {'Small': 0, 'Medium': 1, 'Large': 2}
+        df['SizeCategory'] = df['SizeCategory'].map(size_category_mapping)
 
     # # Creamos métricas solo si las columnas existen
-    # if 'Pieces' in df.columns and 'USRetailPrice' in df.columns:
-    #     df["PricePerPiece"] = df["USRetailPrice"] / df["Pieces"]
+    if 'Pieces' in df.columns and 'USRetailPrice' in df.columns:
+        df["PricePerPiece"] = df["USRetailPrice"] / df["Pieces"]
 
-    # if 'Minifigs' in df.columns and 'USRetailPrice' in df.columns:
-    #     df["PricePerMinifig"] = np.where(df["Minifigs"] > 0, df["USRetailPrice"] / df["Minifigs"], 0)
+    if 'Minifigs' in df.columns and 'USRetailPrice' in df.columns:
+        df["PricePerMinifig"] = np.where(df["Minifigs"] > 0, df["USRetailPrice"] / df["Minifigs"], 0)
 
-    # if 'ExitYear' in df.columns and 'LaunchYear' in df.columns:
-    #     df["YearsOnMarket"] = df["ExitYear"] - df["LaunchYear"]
+    if 'ExitYear' in df.columns and 'LaunchYear' in df.columns:
+        df["YearsOnMarket"] = df["ExitYear"] - df["LaunchYear"]
     #se comentan porque existen en la bbdd luis original fin
 
     # Filtramos solo columnas numéricas antes de limpiar datos
@@ -168,21 +169,21 @@ features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit',
 #test erv sabado
 # Asegúrate de que no haya valores NaN o infinitos en las características
 # Crea un imputador que reemplaza NaN con la media
-imputador = SimpleImputer(strategy='mean')  # Puedes usar 'median' o 'most_frequent' también
+#imputador = SimpleImputer(strategy='mean')  # Puedes usar 'median' o 'most_frequent' también
 
 # Imputa los valores faltantes
-df_lego[features] = imputador.fit_transform(df_lego[features])
+#df_lego[features] = imputador.fit_transform(df_lego[features])
 
-# Verifica si hay NaN o Infinitos
-if df_lego[features].isnull().any().any():
-    print("Hay valores NaN en los datos.")
-    df_lego[features] = df_lego[features].fillna(0)  # Rellenar NaN con 0 o puedes usar otro valor.
+# # Verifica si hay NaN o Infinitos
+# if df_lego[features].isnull().any().any():
+#     print("Hay valores NaN en los datos.")
+#     df_lego[features] = df_lego[features].fillna(0)  # Rellenar NaN con 0 o puedes usar otro valor.
 
-if (df_lego[features] == float('inf')).any().any():
-    print("Hay valores infinitos en los datos.")
-    df_lego[features] = df_lego[features].replace([float('inf'), float('-inf')], 0)  # Reemplazar Infinitos con 0
+# if (df_lego[features] == float('inf')).any().any():
+#     print("Hay valores infinitos en los datos.")
+#     df_lego[features] = df_lego[features].replace([float('inf'), float('-inf')], 0)  # Reemplazar Infinitos con 0
 
-df_lego[features] = df_lego[features].astype(float)  # Convierte todas las características a flotante.
+# df_lego[features] = df_lego[features].astype(float)  # Convierte todas las características a flotante.
 
 
 df_lego["PredictedInvestmentScore"] = modelo.predict(df_lego[features])
