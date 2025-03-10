@@ -16,9 +16,13 @@ import asyncio
 from model_utils import load_model
 from predict import predict
 
-# Leer el archivo CSS
-with open('8_APP_U/styles.css') as f:
-    st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+st.markdown("""
+<style>
+body {
+    background-color: #ffef47;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # Configuración de la app
 st.set_page_config(page_title="Ironbrick", page_icon="08_APP_U/ironbrick.ico", layout="wide")
