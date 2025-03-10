@@ -512,9 +512,11 @@ if st.session_state.page == "Identificador de Sets":
     download_file(MAPPING_URL, MAPPING_PATH)
     download_file(DATASET_URL, DATA_PATH)
 
+    from model_utils import load_model
+
     # Cargamos el modelo entrenado correctamente
     try:
-        model = load_model(MODEL_PATH)  # Usar la función definida en `model_utils.py`
+        model = load_model(MODEL_PATH)  # Ahora usa la versión correcta de `load_model`
     except Exception as e:
         st.error(f"❌ Error al cargar el modelo: {e}")
         model = None
