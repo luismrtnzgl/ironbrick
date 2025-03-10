@@ -153,17 +153,6 @@ df_lego = load_data()
 
 # ✅ Muestra la página seleccionada
 if st.session_state.page == "Recomendador de Inversión en sets Actuales":
-    # Agregar una imagen de cabecera
-    col1, col2, col3 = st.columns(3, gap="small", vertical_alignment="top")
-    with col1:
-        st.image("08_APP_U/IRONBRICK_APP_1_PEQ.png", width=200)
-
-    with col2:
-        st.title("Recomendador de sets actuales para Inversión en LEGO")
-
-    with col3:
-        st.title("")
-
     # Abrir la imagen en modo binario
     with open("08_APP_U/IRONBRICK_APP_1_PEQ.png", "rb") as img_file:
         img_data = b64encode(img_file.read()).decode("utf-8")  # Codificar la imagen en base64
@@ -173,7 +162,7 @@ if st.session_state.page == "Recomendador de Inversión en sets Actuales":
         f"""
         <div style="display: flex; align-items: center;">
             <img src="data:image/png;base64,{img_data}" alt="lego" style="width: 150px; height: 150px; margin-right: 20px;">
-            <h3 style="margin: 0;">prueba</h3>
+            <h3 style="margin: 0;">Recomendador de sets actuales para Inversión en LEGO</h3>
         </div>
         """,
         unsafe_allow_html=True
