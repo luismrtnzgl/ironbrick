@@ -165,7 +165,7 @@ if st.session_state.page == "Recomendador de Inversión en sets Actuales":
         st.title("")
 
     with open("08_APP_U/IRONBRICK_APP_1_PEQ.png", "rb") as img_file:
-        img = "data:image/png;base64, " + b64decode(img_file.read()).decode()
+        img = "data:image/png;base64, " + b64decode(img_file.read()).decode("utf-8")
 
         st.write(f"""
         <div class= "box">
