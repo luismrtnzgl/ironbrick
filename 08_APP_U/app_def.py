@@ -128,7 +128,7 @@ df_lego = load_data()
 # ✅ Página principal por defecto
 if app == "Inicio":
     # Centrar el título y subtítulo usando HTML y CSS
-    st.image("08_APP_U\CABECERA.jpg", use_column_width=True)  # Ajusta la imagen según necesites
+    st.image("08_APP_U\CABECERA.jpg", use_container_width=True)  # Ajusta la imagen según necesites
 
 
     st.markdown(
