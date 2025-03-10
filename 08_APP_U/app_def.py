@@ -208,83 +208,84 @@ if st.button("Generar Predicciones"):
                     st.markdown(f'<a href="{url_lego}" target="_blank"><button style="background-color:#ff4b4b; border:none; padding:10px; border-radius:5px; cursor:pointer; font-size:14px;">🛒 Comprar en LEGO</button></a>', unsafe_allow_html=True)
                     st.write("---")
 
-# elif page == "Alertas de Telegram":
-#     st.title("📢 Configuración de Alertas de Telegram")
+# ✅ Muestra la página seleccionada
+if st.session_state.page == "Alertas de Telegram":
+    st.title("📢 Configuración de Alertas de Telegram")
 
-#     telegram_id = st.text_input("🔹 Tu ID de Telegram (@userinfobot)")
-#     presupuesto_min, presupuesto_max = st.slider("💰 Rango de presupuesto (USD)", 10, 500, (10, 200), step=10)
+    telegram_id = st.text_input("🔹 Tu ID de Telegram (@userinfobot)")
+    presupuesto_min, presupuesto_max = st.slider("💰 Rango de presupuesto (USD)", 10, 500, (10, 200), step=10)
 
-#     temas_unicos = sorted(df_lego["Theme"].unique().tolist())
-#     temas_opciones = ["Todos"] + temas_unicos
-#     temas_favoritos = st.multiselect("🛒 Temas Favoritos", temas_opciones, default=["Todos"])
+    temas_unicos = sorted(df_lego["Theme"].unique().tolist())
+    temas_opciones = ["Todos"] + temas_unicos
+    temas_favoritos = st.multiselect("🛒 Temas Favoritos", temas_opciones, default=["Todos"])
 
-#     if st.button("💾 Alta en Alertas"):
-#         temas_str = ",".join(temas_favoritos)
-#         conn = get_db_connection()
-#         cursor = conn.cursor()
+    if st.button("💾 Alta en Alertas"):
+        temas_str = ",".join(temas_favoritos)
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
-#         cursor.execute("""
-#         CREATE TABLE IF NOT EXISTS usuarios (
-#             telegram_id TEXT PRIMARY KEY,
-#             presupuesto_min INTEGER,
-#             presupuesto_max INTEGER,
-#             temas_favoritos TEXT
-#         )""")
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS usuarios (
+            telegram_id TEXT PRIMARY KEY,
+            presupuesto_min INTEGER,
+            presupuesto_max INTEGER,
+            temas_favoritos TEXT
+        )""")
 
-#         cursor.execute("""
-#         INSERT INTO usuarios (telegram_id, presupuesto_min, presupuesto_max, temas_favoritos)
-#         VALUES (%s, %s, %s, %s)
-#         ON CONFLICT (telegram_id) DO UPDATE
-#         SET presupuesto_min = EXCLUDED.presupuesto_min,
-#             presupuesto_max = EXCLUDED.presupuesto_max,
-#             temas_favoritos = EXCLUDED.temas_favoritos;
-#         """, (telegram_id, presupuesto_min, presupuesto_max, temas_str))
+        cursor.execute("""
+        INSERT INTO usuarios (telegram_id, presupuesto_min, presupuesto_max, temas_favoritos)
+        VALUES (%s, %s, %s, %s)
+        ON CONFLICT (telegram_id) DO UPDATE
+        SET presupuesto_min = EXCLUDED.presupuesto_min,
+            presupuesto_max = EXCLUDED.presupuesto_max,
+            temas_favoritos = EXCLUDED.temas_favoritos;
+        """, (telegram_id, presupuesto_min, presupuesto_max, temas_str))
 
-#         conn.commit()
-#         conn.close()
-#         st.success("✅ Preferencias guardadas correctamente!")
+        conn.commit()
+        conn.close()
+        st.success("✅ Preferencias guardadas correctamente!")
 
 
-#     features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit',
-#             'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity',
-#             'SizeCategory', 'PricePerPiece', 'PricePerMinifig', 'YearsOnMarket']
+    features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit',
+            'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity',
+            'SizeCategory', 'PricePerPiece', 'PricePerMinifig', 'YearsOnMarket']
 
-#     df_lego["PredictedInvestmentScore"] = modelo.predict(df_lego[features])
+    df_lego["PredictedInvestmentScore"] = modelo.predict(df_lego[features])
 
-#     # Transformamos los valores de revalorización en categorías
-#     def clasificar_revalorizacion(score):
-#         if score > 13:
-#             return "Muy Alta"
-#         elif 10 <= score <= 13:
-#             return "Alta"
-#         elif 5 <= score < 10:
-#             return "Media"
-#         elif 0 <= score < 5:
-#             return "Baja"
-#         else:
-#             return "Ninguna"
+    # Transformamos los valores de revalorización en categorías
+    def clasificar_revalorizacion(score):
+        if score > 13:
+            return "Muy Alta"
+        elif 10 <= score <= 13:
+            return "Alta"
+        elif 5 <= score < 10:
+            return "Media"
+        elif 0 <= score < 5:
+            return "Baja"
+        else:
+            return "Ninguna"
 
-#     df_lego["Revalorización"] = df_lego["PredictedInvestmentScore"].apply(clasificar_revalorizacion)
+    df_lego["Revalorización"] = df_lego["PredictedInvestmentScore"].apply(clasificar_revalorizacion)
 
-#     df_lego.rename(columns={
-#         "Number": "Set",
-#         "SetName": "Nombre",
-#         "USRetailPrice": "Precio",
-#         "Theme": "Tema"
-#     }, inplace=True)
+    df_lego.rename(columns={
+        "Number": "Set",
+        "SetName": "Nombre",
+        "USRetailPrice": "Precio",
+        "Theme": "Tema"
+    }, inplace=True)
 
-#     st.write("📊 **Sets Recomendados por IronbrickML**:")
-#     df_recomendados = df_lego[df_lego["PredictedInvestmentScore"] > 0].sort_values(by="PredictedInvestmentScore", ascending=False)
-#     st.data_editor(df_recomendados[["Set", "Nombre", "Precio", "Tema", "Revalorización"]], disabled=True)
+    st.write("📊 **Sets Recomendados por IronbrickML**:")
+    df_recomendados = df_lego[df_lego["PredictedInvestmentScore"] > 0].sort_values(by="PredictedInvestmentScore", ascending=False)
+    st.data_editor(df_recomendados[["Set", "Nombre", "Precio", "Tema", "Revalorización"]], disabled=True)
 
-#     conn = get_db_connection()
-#     cursor = conn.cursor()
-#     cursor.execute("SELECT telegram_id, presupuesto_min, presupuesto_max, temas_favoritos FROM usuarios")
-#     usuarios = cursor.fetchall()
-#     conn.close()
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT telegram_id, presupuesto_min, presupuesto_max, temas_favoritos FROM usuarios")
+    usuarios = cursor.fetchall()
+    conn.close()
 
-#     if usuarios:
-#         df_usuarios = pd.DataFrame(usuarios, columns=["Telegram ID", "Presupuesto Mín", "Presupuesto Máx", "Temas Favoritos"])
-#         st.dataframe(df_usuarios)
-#     else:
-#         st.warning("❌ No hay usuarios registrados.")
+    if usuarios:
+        df_usuarios = pd.DataFrame(usuarios, columns=["Telegram ID", "Presupuesto Mín", "Presupuesto Máx", "Temas Favoritos"])
+        st.dataframe(df_usuarios)
+    else:
+        st.warning("❌ No hay usuarios registrados.")
