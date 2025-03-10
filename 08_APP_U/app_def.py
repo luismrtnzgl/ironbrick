@@ -16,6 +16,7 @@ import asyncio
 from model_utils import load_model
 from predict import predict
 from streamlit_option_menu import option_menu
+from base64 import b64decode
 
 # Configuración de la app
 st.set_page_config(page_title="Ironbrick", page_icon="08_APP_U/ironbrick.ico", layout="wide")
@@ -163,11 +164,12 @@ if st.session_state.page == "Recomendador de Inversión en sets Actuales":
     with col3:
         st.title("")
 
-    with st.image("08_APP_U/IRONBRICK_APP_1_PEQ.png", width=200):
+    with open("08_APP_U/IRONBRICK_APP_1_PEQ.png", "rb") as img_file:
+        img = "data:image/png;base64, " + b64decode(img_file.read()).decode()
 
         st.write(f"""
         <div class= "box">
-        <img src="{image}" alt="lego" style="width: 150px; height: 150px;">)
+        <img src="{img}" alt="lego" style="width: 150px; height: 150px;">)
         </div>
         """,
         unsafe_allow_html=True
