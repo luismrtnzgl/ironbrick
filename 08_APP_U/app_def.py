@@ -153,7 +153,7 @@ if st.session_state.page == "Recomendador de Inversión en sets Actuales":
     st.title("Recomendador de sets actuales para Inversión en LEGO 📊")
 
     #test imagen
-    st.image("08_APP_U\IRONBRICK_APP_1_PEQ.png", width=50)  # Ajusta el tamaño según necesites
+    st.image("IRONBRICK_APP_1_PEQ.png", width=50)  # Ajusta el tamaño según necesites
     st.title("Recomendador de sets actuales para Inversión en LEGO 📊")
 
 
