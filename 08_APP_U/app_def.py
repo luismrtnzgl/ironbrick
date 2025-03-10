@@ -117,8 +117,8 @@ def preprocess_data(df):
 
 df_lego = load_data()
 
-if "page" not in st.session_state :
-    st.session_state.page= "Recomendador de Inversión"
+# ✅ Muestra la página seleccionada
+if st.session_state.page == "Recomendador de Inversión":
     st.title("Recomendador de sets actuales para Inversión en LEGO 📊")
 
     st.write("**Explicación:** Según el presupuesto y los temas de interés seleccionados, el sistema generará un ranking de los 3 sets más rentables para invertir en LEGO. Se ha entrenado un modelo de Machine Learning que predice la rentabilidad de un set en los próximos años, basado en características como el precio, el número de piezas, la exclusividad, etc.")
