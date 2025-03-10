@@ -164,17 +164,19 @@ if st.session_state.page == "Recomendador de Inversión en sets Actuales":
     with col3:
         st.title("")
 
+    # Abrir la imagen en modo binario
     with open("08_APP_U/IRONBRICK_APP_1_PEQ.png", "rb") as img_file:
-        img = "data:image/png;base64, " + b64decode(img_file.read()).decode("utf-8")
+        img_data = b64encode(img_file.read()).decode("utf-8")  # Codificar la imagen en base64
 
-        st.write(f"""
-        <div class= "box">
-        <img src="{img}" alt="lego" style="width: 150px; height: 150px;">)
+    # Usar HTML para mostrar la imagen
+    st.markdown(
+        f"""
+        <div class="box">
+            <img src="data:image/png;base64,{img_data}" alt="lego" style="width: 150px; height: 150px;">
         </div>
         """,
         unsafe_allow_html=True
-        )
-
+    )
     st.write("**Explicación:** Según el presupuesto y los temas de interés seleccionados, el sistema generará un ranking de los 3 sets más rentables para invertir en LEGO. Se ha entrenado un modelo de Machine Learning que predice la rentabilidad de un set en los próximos años, basado en características como el precio, el número de piezas, la exclusividad, etc.")
 
     st.markdown("""
