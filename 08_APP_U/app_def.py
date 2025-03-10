@@ -53,7 +53,7 @@ with st.sidebar:
         options=["Recomendador de Inversión en sets Actuales", "Recomendador de Inversión en sets Retirados","Alertas de Telegram", "Identificador de Sets"],
         icons=["📌", "📌", "📌", "📌"],
         styles = {
-            "container": {"background-color": "#ffef47", "margin-top": "20px"},
+            "container": {"background-color": "#ffef47", "margin-top": "20px", "padding": "10px"},
             "nav-link": {"background-color": "#92cfce", "color": "black"},
             "nav-link-selected": {"background-color": "#e87577", "color": "white"}
 
@@ -257,7 +257,9 @@ if app == "Recomendador de Inversión en sets Actuales":
                         st.write("---")
 
 # ✅ Muestra la página seleccionada
-if st.session_state.page == "Recomendador de Inversión en sets Retirados":
+#if st.session_state.page == "Recomendador de Inversión en sets Retirados":
+
+if app == "Recomendador de Inversión en sets Retirados":
     # Obtenemos la ruta del archivo CSV
     BASE_DIR = os.getcwd()
     CSV_PATH = os.path.join(BASE_DIR, "04_Extra/APP/data/scraped_lego_data.csv")
@@ -421,7 +423,8 @@ if st.session_state.page == "Recomendador de Inversión en sets Retirados":
 
 
 # ✅ Muestra la página seleccionada
-if st.session_state.page == "Alertas de Telegram":
+#if st.session_state.page == "Alertas de Telegram":
+if app == "Alertas de Telegram":
     st.title("📢 Alerta mensual de Inversión en LEGO por Telegram")
 
     st.write("**Bienvenido a IronbrickML - Alertas de Inversión en LEGO**")
@@ -513,7 +516,8 @@ if st.session_state.page == "Alertas de Telegram":
     conn.close()
 
 # ✅ Muestra la página seleccionada
-if st.session_state.page == "Identificador de Sets":
+#if st.session_state.page == "Identificador de Sets":
+if app == "Identificador de Sets":
 
     # Intentamos solucionar el error "no running event loop" en Streamlit
     if not hasattr(asyncio, "WindowsSelectorEventLoopPolicy") and os.name == "nt":
