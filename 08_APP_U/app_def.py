@@ -150,6 +150,9 @@ df_lego = load_data()
 
 # ✅ Muestra la página seleccionada
 if st.session_state.page == "Recomendador de Inversión en sets Actuales":
+    # Agregar una imagen de cabecera
+    st.image("08_APP_U\IRONBRICK_APP_1_PEQ.png", use_container_width=True)
+
     st.title("Recomendador de sets actuales para Inversión en LEGO 📊")
 
     #test imagen
