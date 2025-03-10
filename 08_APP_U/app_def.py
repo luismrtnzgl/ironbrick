@@ -10,6 +10,7 @@ import pickle
 import itertools
 import matplotlib.pyplot as plt
 import torch
+import torch.nn as nn
 import urllib.request
 import json
 import asyncio
@@ -512,17 +513,27 @@ if st.session_state.page == "Identificador de Sets":
     download_file(MAPPING_URL, MAPPING_PATH)
     download_file(DATASET_URL, DATA_PATH)
 
+    #Definimos la arquitectura del modelo
+    class LegoModel(nn.Module):
+        def __init__(self, num_classes=100):  # Ajusta el número de clases según tu dataset
+            super(LegoModel, self).__init__()
+            self.fc = nn.Linear(512, num_classes)  # Este es solo un ejemplo, ajusta según tu modelo
+
+        def forward(self, x):
+            return self.fc(x)
+
     # Cargamos el modelo entrenado forzando la carga de CPU
     def load_model(model_path):
-        model = torch.load(model_path, map_location=torch.device('cpu'))  # Cargar en CPU
-        model.eval()  # Poner en modo de evaluación
-        return model
+        try:
+            model = LegoModel(num_classes=100)  # Ajusta el número de clases
+            model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))  # Cargar los pesos
+            model.eval()  # Modo evaluación
+            return model
+        except Exception as e:
+            st.error(f"❌ Error al cargar el modelo: {e}")
+            return None
 
-    try:
-        model = load_model(MODEL_PATH)
-    except Exception as e:
-        st.error(f"❌ Error al cargar el modelo: {e}")
-        model = None  # Aseguramos que model sea None si falla la carga
+    model = load_model(MODEL_PATH)
 
     # Cargamos el mapeo de clases de sets de LEGO
     if os.path.exists(MAPPING_PATH):
