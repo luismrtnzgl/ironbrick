@@ -70,7 +70,7 @@ with st.sidebar:
         options=["Recomendador de Inversión en sets Actuales", "Recomendador de Inversión en sets Retirados","Alertas de Telegram", "Identificador de Sets"],
         styles = {
             "container": {"background-color": "#ffef47"},
-            "nav-link": {"background-color": "#92cfce", "color": "black"}
+            "nav-link": {"background-color": "#92cfce", "color": "black"},
             "nav-link-selected": {"background-color": "ffef47", "color": "black"}
 
         }
