@@ -156,7 +156,7 @@ if st.session_state.page == "Recomendador de Inversión en sets Actuales":
     st.markdown(
     """
     <h1 style="display: flex; align-items: center;">
-        <img src="08_APP_U\IRONBRICK_APP_1_PEQ.png" width="50" style="margin-right: 10px;">
+        <img src="IRONBRICK_APP_1_PEQ.png" width="50" style="margin-right: 10px;">
         Recomendador de sets actuales para Inversión en LEGO 📊
     </h1>
     """,
