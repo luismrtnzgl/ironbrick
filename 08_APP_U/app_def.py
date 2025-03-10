@@ -12,7 +12,7 @@ from PIL import Image
 st.set_page_config(page_title="Ironbrick", page_icon="ironbrick.ico", layout="wide")
 
 # Sidebar para la navegación
-image = Image.open("logo_ironbrick.jpg")
+image = Image.open("./logo_ironbrick.jpg")
 st.sidebar.image(image, use_container_width=True)
 page = st.sidebar.radio("Selecciona una página", ["Recomendador de Inversión", "Alertas de Telegram"])
 
