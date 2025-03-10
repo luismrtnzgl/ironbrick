@@ -13,6 +13,7 @@ st.set_page_config(page_title="Ironbrick", page_icon="ironbrick.ico", layout="wi
 # Sidebar para la navegación
 image = "08_APP_U/logo_ironbrick.jpg"
 st.sidebar.image(image,use_container_width=True)
+color = st.get_option("theme.primaryColor")
 page = st.sidebar.radio("Selecciona una página", ["Recomendador de Inversión", "Alertas de Telegram"])
 
 #ok
