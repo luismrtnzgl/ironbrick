@@ -160,9 +160,9 @@ if st.session_state.page == "Recomendador de Inversión en sets Actuales":
   # Usar HTML para mostrar la imagen y el texto a la derecha
     st.markdown(
         f"""
-        <div style="display: flex; align-items: center;">
+        <div style="display: flex; align-items: left;">
             <img src="data:image/png;base64,{img_data}" alt="lego" style="width: 150px; height: 150px; margin-right: 20px;">
-            <h3 style="margin: 0;">Recomendador de sets actuales para Inversión en LEGO</h3>
+            <h3 style="margin-left: 10;">Recomendador de sets actuales para Inversión en LEGO</h3>
         </div>
         """,
         unsafe_allow_html=True
