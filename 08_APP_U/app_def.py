@@ -53,7 +53,7 @@ with st.sidebar:
         options=["Inicio","Recomendador de Inversión en sets Actuales", "Recomendador de Inversión en sets Retirados","Alertas de Telegram", "Identificador de Sets"],
         icons=["", "📌", "📌", "📌", "📌"],
         styles = {
-            "container": {"background-color": "#ffef47", "margin-top": "10px", "padding": "8px"},
+            "container": {"background-color": "#FFCF47", "margin-top": "10px", "padding": "8px"},
             "nav-link": {"background-color": "#92cfce", "color": "black"},
             "nav-link-selected": {"background-color": "#e87577", "color": "white"}
 
