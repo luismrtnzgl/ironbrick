@@ -23,7 +23,7 @@ st.set_page_config(page_title="Ironbrick", page_icon="08_APP_U/ironbrick.ico", l
 
 # Inicializar session_state
 if "page" not in st.session_state:
-    st.session_state.page = "Recomendador de Inversión"
+    st.session_state.page = "Recomendador de Inversión en sets Actuales"
 
 
 # Sidebar para la navegación
