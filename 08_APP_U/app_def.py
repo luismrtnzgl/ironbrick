@@ -17,7 +17,7 @@ from model_utils import load_model
 from predict import predict
 
 # Leer el archivo CSS
-with open('styles.css') as f:
+with open('8_APP_U/styles.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
 # Configuración de la app
