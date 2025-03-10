@@ -17,16 +17,18 @@ from model_utils import load_model
 from predict import predict
 
 
-# Configuración de la app
-st.set_page_config(page_title="Ironbrick", page_icon="08_APP_U/ironbrick.ico", layout="wide")
-
 st.markdown("""
 <style>
-body {
+/* Cambiar el color de fondo del sidebar */
+.sidebar .sidebar-content {
     background-color: #ffef47;
 }
 </style>
 """, unsafe_allow_html=True)
+
+
+# Configuración de la app
+st.set_page_config(page_title="Ironbrick", page_icon="08_APP_U/ironbrick.ico", layout="wide")
 
 # Inicializar session_state
 if "page" not in st.session_state:
