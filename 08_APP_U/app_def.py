@@ -210,9 +210,17 @@ if st.button("Generar Predicciones"):
 
 # ✅ Muestra la página seleccionada
 if st.session_state.page == "Alertas de Telegram":
-    st.title("📢 Configuración de Alertas de Telegram")
+    st.title("📢 Alerta mensual de Inversión en LEGO por Telegram")
 
-    telegram_id = st.text_input("🔹 Tu ID de Telegram (@userinfobot)")
+    st.write("**Bienvenido a IronbrickML - Alertas de Inversión en LEGO**")
+    st.write(
+        "📊 IronbrickML analiza la rentabilidad de sets de LEGO utilizando modelos de predicción de inversión. "
+        "Cada mes, recibirás una recomendación personalizada en Telegram con el set que mejor se ajuste a tu presupuesto y preferencias. "
+        "Solo se te sugerirán sets con alto potencial de revalorización y sin repeticiones para que siempre tengas nuevas oportunidades de inversión. "
+        "Configura tus preferencias y deja que la inteligencia artificial haga el resto."
+    )
+
+    telegram_id = st.text_input("🔹 Tu ID de Telegram (usa @userinfobot en Telegram para obtenerlo)")
     presupuesto_min, presupuesto_max = st.slider("💰 Rango de presupuesto (USD)", 10, 500, (10, 200), step=10)
 
     temas_unicos = sorted(df_lego["Theme"].unique().tolist())
@@ -282,10 +290,12 @@ if st.session_state.page == "Alertas de Telegram":
     cursor = conn.cursor()
     cursor.execute("SELECT telegram_id, presupuesto_min, presupuesto_max, temas_favoritos FROM usuarios")
     usuarios = cursor.fetchall()
-    conn.close()
+
 
     if usuarios:
         df_usuarios = pd.DataFrame(usuarios, columns=["Telegram ID", "Presupuesto Mín", "Presupuesto Máx", "Temas Favoritos"])
         st.dataframe(df_usuarios)
     else:
         st.warning("❌ No hay usuarios registrados.")
+
+    conn.close()
