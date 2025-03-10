@@ -136,7 +136,7 @@ if app == "Inicio":
     st.markdown(
         f"""
         <div style="display: flex; align-items: center;">
-            <img src="data:image/png;base64,{img_data}" alt="lego" style="width: 150px; height: 150px; margin-right: 20px;">
+            <img src="data:image/png;base64,{img_data}" alt="lego" style="width: 200px; height: 150px; margin-right: 20px;">
         </div>
         """,
         unsafe_allow_html=True
