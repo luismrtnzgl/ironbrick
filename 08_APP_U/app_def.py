@@ -15,20 +15,10 @@ import json
 import asyncio
 from model_utils import load_model
 from predict import predict
-
+from streamlit_option_menu import option_menu
 
 # Configuración de la app
 st.set_page_config(page_title="Ironbrick", page_icon="08_APP_U/ironbrick.ico", layout="wide")
-
-# Cambiar el color de fondo del sidebar
-st.markdown("""
-<style>
-/* Cambiar el color de fondo del sidebar */
-.css-1d391kg {
-    background-color: #ffef47;
-}
-</style>
-""", unsafe_allow_html=True)
 
 
 # Inicializar session_state
@@ -72,6 +62,11 @@ with st.sidebar.container():
         st.session_state.page = "Identificador de Sets"
 
     st.markdown('</div>', unsafe_allow_html=True)
+
+with st.sidebar:
+    app = option_menu(
+        styles = {"container": {"nav-link": {"background-color": "ffef47"}}}
+    )
 
 
 
