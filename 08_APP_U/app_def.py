@@ -168,11 +168,12 @@ if st.session_state.page == "Recomendador de Inversión en sets Actuales":
     with open("08_APP_U/IRONBRICK_APP_1_PEQ.png", "rb") as img_file:
         img_data = b64encode(img_file.read()).decode("utf-8")  # Codificar la imagen en base64
 
-    # Usar HTML para mostrar la imagen
+  # Usar HTML para mostrar la imagen y el texto a la derecha
     st.markdown(
         f"""
-        <div class="box">
-            <img src="data:image/png;base64,{img_data}" alt="lego" style="width: 150px; height: 150px;">
+        <div style="display: flex; align-items: center;">
+            <img src="data:image/png;base64,{img_data}" alt="lego" style="width: 150px; height: 150px; margin-right: 20px;">
+            <h3 style="margin: 0;">prueba</h3>
         </div>
         """,
         unsafe_allow_html=True
