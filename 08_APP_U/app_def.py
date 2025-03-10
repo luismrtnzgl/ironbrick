@@ -513,19 +513,25 @@ if st.session_state.page == "Identificador de Sets":
     download_file(DATASET_URL, DATA_PATH)
 
     # Cargamos el modelo entrenado forzando la carga de CPU
-    try:
-        model = load_model(MODEL_PATH)
-    except Exception as e:
-        st.error(f"❌ Error al cargar el modelo: {e}")
-        model = None
+    def load_model(model_path):
+        try:
+            model = torch.load(model_path, map_location=torch.device('cpu'))  # Cargar en CPU
+            model.eval()  # Modo evaluación
+            return model
+        except Exception as e:
+            st.error(f"❌ Error al cargar el modelo: {e}")
+            return None
 
-    # Cargamos el mapeo de clases de sets de LEGO
+    model = load_model(MODEL_PATH)
+
+    # Cargamos el mapeo de clases
     if os.path.exists(MAPPING_PATH):
         with open(MAPPING_PATH, "r") as f:
             idx_to_class = json.load(f)
     else:
         st.error("❌ Error: No se encontró el archivo de mapeo idx_to_class.json.")
         idx_to_class = {}
+
 
     # Cargamos el dataset actualizado con información de sets de LEGO convirtiendo el número del set a string
     if os.path.exists(DATA_PATH):
