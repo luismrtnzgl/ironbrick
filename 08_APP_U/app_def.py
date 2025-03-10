@@ -128,7 +128,19 @@ df_lego = load_data()
 # ✅ Página principal por defecto
 if app == "Inicio":
     # Centrar el título y subtítulo usando HTML y CSS
-    st.image("08_APP_U\CABECERA.jpg", use_container_width=True)  # Ajusta la imagen según necesites
+      # Abrir la imagen en modo binario
+    with open("08_APP_U\CABECERA.jpg", "rb") as img_file:
+        img_data = b64encode(img_file.read()).decode("utf-8")  # Codificar la imagen en base64
+
+  # Usar HTML para mostrar la imagen y el texto a la derecha
+    st.markdown(
+        f"""
+        <div style="display: flex; align-items: center;">
+            <img src="data:image/png;base64,{img_data}" alt="lego" style="width: 150px; height: 150px; margin-right: 20px;">
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 
     st.markdown(
