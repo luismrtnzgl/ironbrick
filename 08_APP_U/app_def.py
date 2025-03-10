@@ -151,6 +151,17 @@ def preprocess_data(df):
 
 df_lego = load_data()
 
+
+# ✅ Página principal por defecto
+if not app:
+    st.title("Ironbrick")
+    st.write("Bienvenido a IA for Lego Investments.")
+    st.write("Selecciona una opción del menú lateral para comenzar.")
+
+
+
+
+
 # ✅ Muestra la página seleccionada
 #if st.session_state.page == "Recomendador de Inversión en sets Actuales": #opcion menu 2
 # Controlar qué página mostrar según la opción seleccionada
