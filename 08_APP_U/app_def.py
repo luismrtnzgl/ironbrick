@@ -64,6 +64,8 @@ with st.sidebar.container():
     st.markdown('</div>', unsafe_allow_html=True)
 
 with st.sidebar:
+
+    st.image("08_APP_U/IRONBRICK_APP_1_PEQ.png", use_column_width=True)
     app = option_menu(
         menu_title="",
         options=["Recomendador de Inversión en sets Actuales", "Recomendador de Inversión en sets Retirados","Alertas de Telegram", "Identificador de Sets"],
