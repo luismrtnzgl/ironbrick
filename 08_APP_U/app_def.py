@@ -578,7 +578,7 @@ if st.session_state.page == "Identificador de Sets":
                 try:
                     response = urllib.request.urlopen(image_url)
                     if response.status == 200:
-                        st.image(image_url, caption=f"Imagen de Brickset: {predicted_set_number}", width=300)
+                        st.image(image_url, caption=f"Set: {predicted_set_number}", width=300)
                     else:
                         st.warning(f"⚠️ No se encontró imagen en Brickset para el set {predicted_set_number}.")
                 except:
