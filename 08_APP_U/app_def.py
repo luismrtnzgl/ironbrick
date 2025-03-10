@@ -10,6 +10,11 @@ import psycopg2
 # Configuración de la app
 st.set_page_config(page_title="Ironbrick", page_icon="ironbrick.ico", layout="wide")
 
+# Inicializar session_state
+if "page" not in st.session_state:
+    st.session_state.page = "Recomendador de Inversión"
+
+
 # Sidebar para la navegación
 image = "08_APP_U/logo_ironbrick.jpg"
 st.sidebar.image(image,use_container_width=True)
