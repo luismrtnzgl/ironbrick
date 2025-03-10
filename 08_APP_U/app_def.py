@@ -483,13 +483,10 @@ if st.session_state.page == "Alertas de Telegram":
 
 # ✅ Muestra la página seleccionada
 if st.session_state.page == "Identificador de Sets":
-    st.session_state.page = "Identificador de Sets"
 
     # Intentamos solucionar el error "no running event loop" en Streamlit
     if not hasattr(asyncio, "WindowsSelectorEventLoopPolicy") and os.name == "nt":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
-    st.set_page_config(page_title="Identificación de Sets LEGO", layout="wide")
 
     # Definimos las rutas de archivos locales
     MODEL_PATH = "modelo_lego_final.pth"
