@@ -155,7 +155,7 @@ if st.session_state.page == "Recomendador de Inversión en sets Actuales":
     # Agregar una imagen de cabecera
     col1, col2, col3 = st.columns(3, gap="medium", vertical_alignment="center")
     with col1:
-        st.image("08_APP_U/IRONBRICK_APP_1_PEQ.png", width=250)
+        st.image("08_APP_U/IRONBRICK_APP_1_PEQ.png", width=200)
 
     with col2:
         st.title("Recomendador de sets actuales para Inversión en LEGO")
