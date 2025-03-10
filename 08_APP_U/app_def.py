@@ -68,7 +68,7 @@ with st.sidebar:
     app = option_menu(
         menu_title="",
         options=["Recomendador de Inversión en sets Actuales", "Recomendador de Inversión en sets Retirados","Alertas de Telegram", "Identificador de Sets"],
-        icons="",
+        icons=["ironbrick.ico"],
         styles = {
             "container": {"background-color": "#ffef47"},
             "nav-link": {"background-color": "#92cfce", "color": "black"},
