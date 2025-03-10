@@ -168,15 +168,45 @@ if st.session_state.page == "Recomendador de Inversión":
         else:
             return "#FF4B4B"  # Rojo
 
-    # 📌 Generar Predicciones y Mostrar Top 3 Sets
-    if st.button("Generar Predicciones"):
+    # # 📌 Generar Predicciones y Mostrar Top 3 Sets
+if st.button("Generar Predicciones"):
+    if "PredictedInvestmentScore" not in df_filtrado.columns:
         features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit',
                     'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity',
                     'SizeCategory', 'PricePerPiece', 'PricePerMinifig', 'YearsOnMarket']
-        df_filtrado["PredictedInvestmentScore"] = modelo.predict(df_filtrado[features])
-        df_filtrado = df_filtrado[df_filtrado["PredictedInvestmentScore"] > 0].sort_values(by="PredictedInvestmentScore", ascending=False).head(3)
+
+#         # 📌 Asegurar que hay datos antes de predecir
+        if df_filtrado.shape[0] == 0:
+            st.error("❌ No hay sets disponibles para predecir. Prueba ajustando los filtros.")
+            st.stop()
+
+        df_filtrado = df_filtrado.copy()
+        df_filtrado.loc[:, "PredictedInvestmentScore"] = modelo.predict(df_filtrado[features])
+        df_filtrado = df_filtrado[df_filtrado["PredictedInvestmentScore"] > 0]
+
+        if df_filtrado.shape[0] < 3:
+            st.warning("⚠️ Menos de 3 sets cumplen con los criterios seleccionados. Mostrando los disponibles.")
+
+        df_filtrado = df_filtrado.sort_values(by="PredictedInvestmentScore", ascending=False).head(3)
+
         st.subheader("📊 Top 3 Sets Más Rentables")
-        st.write(df_filtrado[["SetName", "Theme", "USRetailPrice", "PredictedInvestmentScore"]])
+        if not df_filtrado.empty:
+            cols = st.columns(len(df_filtrado))
+            for col, (_, row) in zip(cols, df_filtrado.iterrows()):
+                with col:
+                    color = get_color(row["PredictedInvestmentScore"])
+                    st.markdown(f"""
+                        <div style='background-color:{color}; padding:10px; border-radius:5px; text-align:center; margin-bottom:10px;'>
+                            <strong>{row['SetName']}</strong>
+                        </div>
+                    """, unsafe_allow_html=True)
+                    image_url = get_lego_image(row["Number"])
+                    st.image(image_url, caption=row["SetName"], use_container_width=True)
+                    st.write(f"**Tema:** {row['Theme']}")
+                    st.write(f"💰 **Precio:** ${row['USRetailPrice']:.2f}")
+                    url_lego = f"https://www.lego.com/en-us/product/{row['Number']}"
+                    st.markdown(f'<a href="{url_lego}" target="_blank"><button style="background-color:#ff4b4b; border:none; padding:10px; border-radius:5px; cursor:pointer; font-size:14px;">🛒 Comprar en LEGO</button></a>', unsafe_allow_html=True)
+                    st.write("---")
 
 # elif page == "Alertas de Telegram":
 #     st.title("📢 Configuración de Alertas de Telegram")
