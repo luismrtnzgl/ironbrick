@@ -153,7 +153,7 @@ df_lego = load_data()
 # ✅ Muestra la página seleccionada
 if st.session_state.page == "Recomendador de Inversión en sets Actuales":
     # Agregar una imagen de cabecera
-    col1, col2, col3 = st.columns(3, gap="small", vertical_alignment="center")
+    col1, col2, col3 = st.columns(3, gap="small", vertical_alignment="top")
     with col1:
         st.image("08_APP_U/IRONBRICK_APP_1_PEQ.png", width=200)
 
@@ -162,6 +162,8 @@ if st.session_state.page == "Recomendador de Inversión en sets Actuales":
 
     with col3:
         st.title("")
+
+
 
     st.write("**Explicación:** Según el presupuesto y los temas de interés seleccionados, el sistema generará un ranking de los 3 sets más rentables para invertir en LEGO. Se ha entrenado un modelo de Machine Learning que predice la rentabilidad de un set en los próximos años, basado en características como el precio, el número de piezas, la exclusividad, etc.")
 
