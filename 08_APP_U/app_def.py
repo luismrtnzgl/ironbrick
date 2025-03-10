@@ -11,7 +11,7 @@ import psycopg2
 st.set_page_config(page_title="Ironbrick", page_icon="ironbrick.ico", layout="wide")
 
 # Sidebar para la navegación
-st.sidebar.image("08_APP_U\logo_ironbrick.jpg", use_container_width=True)
+st.sidebar.image("assests\logo_ironbrick.jpg", use_container_width=True)
 page = st.sidebar.radio("Selecciona una página", ["Recomendador de Inversión", "Alertas de Telegram"])
 
 #ok
