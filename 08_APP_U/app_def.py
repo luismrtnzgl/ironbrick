@@ -68,7 +68,7 @@ with st.sidebar:
     app = option_menu(
         menu_title="",
         options=["Recomendador de Inversión en sets Actuales", "Recomendador de Inversión en sets Retirados","Alertas de Telegram", "Identificador de Sets"],
-        icons=["📌", "📌", "📌", "08_APP_U/ironbrick.ico"],
+        icons=["📌", "📌", "📌", "📌"],
         styles = {
             "container": {"background-color": "#ffef47"},
             "nav-link": {"background-color": "#92cfce", "color": "black"},
@@ -151,6 +151,20 @@ df_lego = load_data()
 # ✅ Muestra la página seleccionada
 if st.session_state.page == "Recomendador de Inversión en sets Actuales":
     st.title("Recomendador de sets actuales para Inversión en LEGO 📊")
+
+    #test imagen
+    st.markdown(
+    """
+    <h1 style="display: flex; align-items: center;">
+        <img src="08_APP_U\IRONBRICK_APP_1_PEQ.png" width="50" style="margin-right: 10px;">
+        Recomendador de sets actuales para Inversión en LEGO 📊
+    </h1>
+    """,
+    unsafe_allow_html=True
+    )
+
+
+
 
     st.write("**Explicación:** Según el presupuesto y los temas de interés seleccionados, el sistema generará un ranking de los 3 sets más rentables para invertir en LEGO. Se ha entrenado un modelo de Machine Learning que predice la rentabilidad de un set en los próximos años, basado en características como el precio, el número de piezas, la exclusividad, etc.")
 
