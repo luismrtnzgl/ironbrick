@@ -51,7 +51,7 @@ with st.sidebar:
     app = option_menu(
         menu_title="",
         options=["Inicio","Recomendador de Inversión en sets Actuales", "Recomendador de Inversión en sets Retirados","Alertas de Telegram", "Identificador de Sets"],
-        icons=["📌", "📌", "📌", "📌"],
+        icons=["", "📌", "📌", "📌", "📌"],
         styles = {
             "container": {"background-color": "#ffef47", "margin-top": "10px", "padding": "8px"},
             "nav-link": {"background-color": "#92cfce", "color": "black"},
