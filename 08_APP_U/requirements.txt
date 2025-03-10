@@ -14,3 +14,10 @@ matplotlib
 python-telegram-bot
 pyTelegramBotAPI
 schedule
+torcht
+torchvision
+pillow
+opencv-python-headless
+urllib3
+tqdm
+asyncio
