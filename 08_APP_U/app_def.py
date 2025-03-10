@@ -501,18 +501,16 @@ if st.session_state.page == "Identificador de Sets":
     DATASET_URL = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/07_Camera/Streamlit/df_lego_camera.csv"
 
     # Descargamos los archivos si no existen mostramos un error
-    def download_file(url, path):
-        try:
-            if not os.path.exists(path):
-                st.write(f"📥 Descargando {path} desde GitHub...")
-                urllib.request.urlretrieve(url, path)
-                st.write(f"✅ {path} descargado exitosamente.")
-        except Exception as e:
-            st.error(f"❌ Error al descargar {path}: {e}")
+    def load_model(model_path):
+        model = torch.load(model_path, map_location=torch.device('cpu'))  # Cargar en CPU
+        model.eval()  # Poner en modo de evaluación
+        return model
 
-    download_file(MODEL_URL, MODEL_PATH)
-    download_file(MAPPING_URL, MAPPING_PATH)
-    download_file(DATASET_URL, DATA_PATH)
+    try:
+        model = load_model(MODEL_PATH)
+    except Exception as e:
+        st.error(f"❌ Error al cargar el modelo: {e}")
+        model = None  # Aseguramos que model sea None si falla la carga
 
     # Cargamos el modelo entrenado forzando la carga de CPU
     def load_model(model_path):
@@ -523,7 +521,7 @@ if st.session_state.page == "Identificador de Sets":
     try:
         model = load_model(MODEL_PATH)
     except Exception as e:
-        
+
     st.error(f"❌ Error al cargar el modelo: {e}")
     model = None
 
