@@ -163,6 +163,9 @@ if app == "Inicio":
         unsafe_allow_html=True
     )
 
+    # Agregar espacio extra
+    st.markdown("<br><br>", unsafe_allow_html=True)
+
     # Lista de beneficios, cada uno en una fila separada
     st.write("Bienvenido a **Ironbrick**, tu asistente inteligente para analizar y predecir el valor de inversión en sets de LEGO.")
     st.write("")
