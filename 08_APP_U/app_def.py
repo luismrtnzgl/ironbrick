@@ -65,7 +65,7 @@ with st.sidebar.container():
 
 with st.sidebar:
     app = option_menu(
-        menu_title="Ironbrick",
+        menu_title="",
         options=["inicio"],
         styles = {"container": {"nav-link": {"background-color": "ffef47"}}, "secondary-background-color": "#ffef47"}
     )
