@@ -156,14 +156,14 @@ if st.session_state.page == "Recomendador de Inversión en sets Actuales":
     st.title("Recomendador de sets actuales para Inversión en LEGO")
 
     st.markdown(
-    """
-    <div style="display: flex; align-items: center;">
-        <img src="08_APP_U/IRONBRICK_APP_1_PEQ.png" width="100" style="margin-right: 15px;">
-        <h1 style="margin: 0;">Recomendador de sets actuales para Inversión en LEGO</h1>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+        """
+        <div style="display: flex; align-items: center;">
+            <img src="08_APP_U/IRONBRICK_APP_1_PEQ.png" width="80" style="margin-right: 30px;">
+            <h1 style="margin: 0;">Recomendador de sets actuales para Inversión en LEGO</h1>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
     st.write("**Explicación:** Según el presupuesto y los temas de interés seleccionados, el sistema generará un ranking de los 3 sets más rentables para invertir en LEGO. Se ha entrenado un modelo de Machine Learning que predice la rentabilidad de un set en los próximos años, basado en características como el precio, el número de piezas, la exclusividad, etc.")
 
