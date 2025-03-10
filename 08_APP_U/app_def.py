@@ -49,7 +49,7 @@ st.markdown(
 with st.sidebar:
 
     app = option_menu(
-        menu_title="",
+        menu_title="Ironbrick",
         options=["Recomendador de Inversión en sets Actuales", "Recomendador de Inversión en sets Retirados","Alertas de Telegram", "Identificador de Sets"],
         icons=["📌", "📌", "📌", "📌"],
         styles = {
