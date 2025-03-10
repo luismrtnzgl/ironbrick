@@ -16,7 +16,7 @@ import asyncio
 from model_utils import load_model
 from predict import predict
 from streamlit_option_menu import option_menu
-from base64 import b64decode
+from base64 import b64encode
 
 # Configuración de la app
 st.set_page_config(page_title="Ironbrick", page_icon="08_APP_U/ironbrick.ico", layout="wide")
