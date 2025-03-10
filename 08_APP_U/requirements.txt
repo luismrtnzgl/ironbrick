@@ -21,3 +21,4 @@ opencv-python-headless
 urllib3
 tqdm
 asyncio
+streamlit_option_menu
