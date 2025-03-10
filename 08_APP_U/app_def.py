@@ -154,17 +154,23 @@ df_lego = load_data()
 
 # ✅ Página principal por defecto
 if app == "Inicio":
-    st.title("Ironbrick - IA for Lego Investments")
-    st.subheader("Convierte tus sets de LEGO en inversiones inteligentes 🚀")
-    st.write("""
-        Bienvenido a **Ironbrick**, tu asistente inteligente para analizar y
-        predecir el valor de inversión en sets de LEGO.
+    # Centrar el título y subtítulo usando HTML y CSS
+    st.markdown(
+        """
+        <h1 style='text-align: center;'>Ironbrick - IA for Lego Investments</h1>
+        <h3 style='text-align: center;'>Convierte tus sets de LEGO en inversiones inteligentes 🚀</h3>
+        """,
+        unsafe_allow_html=True
+    )
 
-        🔹 Descubre qué sets actuales tienen mayor potencial de revalorización.
-        🔹 Explora sets retirados con alto rendimiento en el mercado secundario.
-        🔹 Recibe alertas en Telegram sobre oportunidades de inversión.
-        🔹 Identifica cualquier set con IA y accede a su información clave.
-        """)
+    # Lista de beneficios, cada uno en una fila separada
+    st.write("Bienvenido a **Ironbrick**, tu asistente inteligente para analizar y predecir el valor de inversión en sets de LEGO.")
+    st.write("")
+
+    st.write("🔹 Descubre qué sets actuales tienen mayor potencial de revalorización.")
+    st.write("🔹 Explora sets retirados con alto rendimiento en el mercado secundario.")
+    st.write("🔹 Recibe alertas en Telegram sobre oportunidades de inversión.")
+    st.write("🔹 Identifica cualquier set con IA y accede a su información clave.")
     st.write("Selecciona una opción del menú lateral para comenzar.")
 
 
