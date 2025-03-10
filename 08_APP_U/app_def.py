@@ -552,11 +552,11 @@ elif app == "Alertas de Telegram":
     usuarios = cursor.fetchall()
 
 
-    if usuarios:
-        df_usuarios = pd.DataFrame(usuarios, columns=["Telegram ID", "Presupuesto Mín", "Presupuesto Máx", "Temas Favoritos"])
-        st.dataframe(df_usuarios)
-    else:
-        st.warning("❌ No hay usuarios registrados.")
+    # if usuarios:
+    #     df_usuarios = pd.DataFrame(usuarios, columns=["Telegram ID", "Presupuesto Mín", "Presupuesto Máx", "Temas Favoritos"])
+    #     st.dataframe(df_usuarios)
+    # else:
+    #     st.warning("❌ No hay usuarios registrados.")
 
     conn.close()
 
