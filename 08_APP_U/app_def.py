@@ -6,14 +6,12 @@ import requests
 import os
 import pymongo
 import psycopg2
-from PIL import Image
 
 # Configuración de la app
 st.set_page_config(page_title="Ironbrick", page_icon="ironbrick.ico", layout="wide")
 
 # Sidebar para la navegación
-image = Image.open("08_APP_U\logo_ironbrick.jpg")
-st.sidebar.image(image, use_container_width=True)
+st.sidebar.image("08_APP_U\logo_ironbrick.jpg", use_container_width=True)
 page = st.sidebar.radio("Selecciona una página", ["Recomendador de Inversión", "Alertas de Telegram"])
 
 #ok
