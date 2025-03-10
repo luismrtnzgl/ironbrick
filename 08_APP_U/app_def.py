@@ -153,7 +153,7 @@ df_lego = load_data()
 
 
 # ✅ Página principal por defecto
-if not app:
+if app == "Inicio":
     st.title("Ironbrick")
     st.write("Bienvenido a IA for Lego Investments.")
     st.write("Selecciona una opción del menú lateral para comenzar.")
