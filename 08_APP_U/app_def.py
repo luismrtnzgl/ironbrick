@@ -59,24 +59,24 @@ with st.sidebar:
 
         }
     )
+#opcion 2 menu sidebar
+# # Contenedor de botones centrados
+# with st.sidebar.container():
+#     st.markdown('<div class="button-container">', unsafe_allow_html=True)
 
-# Contenedor de botones centrados
-with st.sidebar.container():
-    st.markdown('<div class="button-container">', unsafe_allow_html=True)
+#     if st.button("Recomendador de Inversión en sets Actuales"):
+#         st.session_state.page = "Recomendador de Inversión en sets Actuales"
 
-    if st.button("Recomendador de Inversión en sets Actuales"):
-        st.session_state.page = "Recomendador de Inversión en sets Actuales"
+#     if st.button("Recomendador de Inversión en sets Retirados"):
+#         st.session_state.page = "Recomendador de Inversión en sets Retirados"
 
-    if st.button("Recomendador de Inversión en sets Retirados"):
-        st.session_state.page = "Recomendador de Inversión en sets Retirados"
+#     if st.button("Alertas de Telegram"):
+#         st.session_state.page = "Alertas de Telegram"
 
-    if st.button("Alertas de Telegram"):
-        st.session_state.page = "Alertas de Telegram"
+#     if st.button("Identificador de Sets"):
+#         st.session_state.page = "Identificador de Sets"
 
-    if st.button("Identificador de Sets"):
-        st.session_state.page = "Identificador de Sets"
-
-    st.markdown('</div>', unsafe_allow_html=True)
+#     st.markdown('</div>', unsafe_allow_html=True)
 
 
 
@@ -152,7 +152,9 @@ def preprocess_data(df):
 df_lego = load_data()
 
 # ✅ Muestra la página seleccionada
-if st.session_state.page == "Recomendador de Inversión en sets Actuales":
+#if st.session_state.page == "Recomendador de Inversión en sets Actuales": #opcion menu 2
+# Controlar qué página mostrar según la opción seleccionada
+if app == "Recomendador de Inversión en sets Actuales":
     # Abrir la imagen en modo binario
     with open("08_APP_U/IRONBRICK_APP_1_PEQ.png", "rb") as img_file:
         img_data = b64encode(img_file.read()).decode("utf-8")  # Codificar la imagen en base64
