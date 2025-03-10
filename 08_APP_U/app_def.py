@@ -135,8 +135,8 @@ if app == "Inicio":
   # Usar HTML para mostrar la imagen y el texto a la derecha
     st.markdown(
         f"""
-        <div style="display: flex; align-items: center;">
-            <img src="data:image/png;base64,{img_data}" alt="lego" style="width: 300px; height: 150px; margin-right: 20px;">
+        <div style="display: flex; justify-content: center; align-items: center;">
+            <img src="data:image/png;base64,{img_data}" alt="lego" style="width: 300px; height: 150px;">
         </div>
         """,
         unsafe_allow_html=True
