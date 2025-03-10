@@ -146,7 +146,7 @@ if app == "Inicio":
     st.markdown(
         """
         <h1 style='text-align: center;'>Ironbrick - IA for Lego Investments</h1>
-        <h3 style='text-align: center;'>Convierte tus sets de LEGO en inversiones inteligentes 🚀</h3>
+        <h3 style='text-align: center;'>Convierte tus sets de LEGO en inversiones inteligentes</h3>
         """,
         unsafe_allow_html=True
     )
