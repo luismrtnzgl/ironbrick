@@ -13,8 +13,6 @@ import torch
 import urllib.request
 import json
 import asyncio
-import sys
-sys.path.append('07_Camera\Streamlit\model_utils.py')
 from model_utils import load_model
 from predict import predict
 
