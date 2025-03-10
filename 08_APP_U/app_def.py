@@ -20,10 +20,11 @@ from predict import predict
 # Configuración de la app
 st.set_page_config(page_title="Ironbrick", page_icon="08_APP_U/ironbrick.ico", layout="wide")
 
+# Cambiar el color de fondo del sidebar
 st.markdown("""
 <style>
 /* Cambiar el color de fondo del sidebar */
-.sidebar .sidebar-content {
+.css-1d391kg {
     background-color: #ffef47;
 }
 </style>
