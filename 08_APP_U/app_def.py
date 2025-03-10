@@ -349,9 +349,6 @@ if app == "Recomendador de Inversión en sets Retirados":
         """,
         unsafe_allow_html=True
     )
-
-
-    st.title("🎯 Recomendador de inversión en sets de LEGO retirados")
     st.write("Este recomendador te ayuda a encontrar las mejores combinaciones de sets de LEGO retirados para invertir, basándose en su rentabilidad futura.")
 
     # Mostramos rentabilidad media porcentual por tema con total de sets
@@ -442,7 +439,21 @@ if app == "Recomendador de Inversión en sets Retirados":
 # ✅ Muestra la página seleccionada
 #if st.session_state.page == "Alertas de Telegram":
 if app == "Alertas de Telegram":
-    st.title("📢 Alerta mensual de Inversión en LEGO por Telegram")
+
+     # Abrir la imagen en modo binario
+    with open("08_APP_U/IRONBRICK_APP_3_PEQ.png", "rb") as img_file:
+        img_data = b64encode(img_file.read()).decode("utf-8")  # Codificar la imagen en base64
+
+  # Usar HTML para mostrar la imagen y el texto a la derecha
+    st.markdown(
+        f"""
+        <div style="display: flex; align-items: center;">
+            <img src="data:image/png;base64,{img_data}" alt="lego" style="width: 150px; height: 150px; margin-right: 20px;">
+            <h3 style="margin: 0;">Alerta mensual de Inversión en LEGO por Telegram</h3>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
     st.write("**Bienvenido a IronbrickML - Alertas de Inversión en LEGO**")
     st.write(
@@ -590,7 +601,21 @@ if app == "Identificador de Sets":
         st.error("❌ Error: El archivo df_lego_camera.csv no se encontró.")
         df_lego = None
 
-    st.title("🧩 Identificación de Sets LEGO")
+
+         # Abrir la imagen en modo binario
+    with open("08_APP_U/IRONBRICK_APP_4_PEQ.png", "rb") as img_file:
+        img_data = b64encode(img_file.read()).decode("utf-8")  # Codificar la imagen en base64
+
+  # Usar HTML para mostrar la imagen y el texto a la derecha
+    st.markdown(
+        f"""
+        <div style="display: flex; align-items: center;">
+            <img src="data:image/png;base64,{img_data}" alt="lego" style="width: 150px; height: 150px; margin-right: 20px;">
+            <h3 style="margin: 0;">Identificación de Sets LEGO</h3>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
     st.markdown(
         """
