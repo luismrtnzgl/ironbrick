@@ -165,7 +165,7 @@ if not app:
 # ✅ Muestra la página seleccionada
 #if st.session_state.page == "Recomendador de Inversión en sets Actuales": #opcion menu 2
 # Controlar qué página mostrar según la opción seleccionada
-if app == "Recomendador de Inversión en sets Actuales":
+elif app == "Recomendador de Inversión en sets Actuales":
 
     # Abrir la imagen en modo binario
     with open("08_APP_U/IRONBRICK_APP_1_PEQ.png", "rb") as img_file:
@@ -271,7 +271,7 @@ if app == "Recomendador de Inversión en sets Actuales":
 # ✅ Muestra la página seleccionada
 #if st.session_state.page == "Recomendador de Inversión en sets Retirados":
 
-if app == "Recomendador de Inversión en sets Retirados":
+elif app == "Recomendador de Inversión en sets Retirados":
     # Obtenemos la ruta del archivo CSV
     BASE_DIR = os.getcwd()
     CSV_PATH = os.path.join(BASE_DIR, "04_Extra/APP/data/scraped_lego_data.csv")
@@ -449,7 +449,7 @@ if app == "Recomendador de Inversión en sets Retirados":
 
 # ✅ Muestra la página seleccionada
 #if st.session_state.page == "Alertas de Telegram":
-if app == "Alertas de Telegram":
+elif app == "Alertas de Telegram":
 
      # Abrir la imagen en modo binario
     with open("08_APP_U/IRONBRICK_APP_3_PEQ.png", "rb") as img_file:
@@ -556,7 +556,7 @@ if app == "Alertas de Telegram":
 
 # ✅ Muestra la página seleccionada
 #if st.session_state.page == "Identificador de Sets":
-if app == "Identificador de Sets":
+elif app == "Identificador de Sets":
 
     # Intentamos solucionar el error "no running event loop" en Streamlit
     if not hasattr(asyncio, "WindowsSelectorEventLoopPolicy") and os.name == "nt":
