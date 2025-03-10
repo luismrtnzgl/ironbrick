@@ -155,6 +155,7 @@ df_lego = load_data()
 #if st.session_state.page == "Recomendador de Inversión en sets Actuales": #opcion menu 2
 # Controlar qué página mostrar según la opción seleccionada
 if app == "Recomendador de Inversión en sets Actuales":
+
     # Abrir la imagen en modo binario
     with open("08_APP_U/IRONBRICK_APP_1_PEQ.png", "rb") as img_file:
         img_data = b64encode(img_file.read()).decode("utf-8")  # Codificar la imagen en base64
@@ -333,6 +334,22 @@ if app == "Recomendador de Inversión en sets Retirados":
     ).reset_index()
 
     df_rentabilidad_temas = df_rentabilidad_temas.sort_values(by="Rentabilidad5Y", ascending=False)
+
+    # Abrir la imagen en modo binario
+    with open("08_APP_U/IRONBRICK_APP_2_PEQ.png", "rb") as img_file:
+        img_data = b64encode(img_file.read()).decode("utf-8")  # Codificar la imagen en base64
+
+  # Usar HTML para mostrar la imagen y el texto a la derecha
+    st.markdown(
+        f"""
+        <div style="display: flex; align-items: center;">
+            <img src="data:image/png;base64,{img_data}" alt="lego" style="width: 150px; height: 150px; margin-right: 20px;">
+            <h3 style="margin: 0;">Recomendador de inversión en sets de LEGO retirados</h3>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
 
     st.title("🎯 Recomendador de inversión en sets de LEGO retirados")
     st.write("Este recomendador te ayuda a encontrar las mejores combinaciones de sets de LEGO retirados para invertir, basándose en su rentabilidad futura.")
