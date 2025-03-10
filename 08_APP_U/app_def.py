@@ -512,17 +512,12 @@ if st.session_state.page == "Identificador de Sets":
     download_file(MAPPING_URL, MAPPING_PATH)
     download_file(DATASET_URL, DATA_PATH)
 
-    # Cargamos el modelo entrenado forzando la carga de CPU
-    def load_model(model_path):
-        try:
-            model = torch.load(model_path, map_location=torch.device('cpu'))  # Cargar en CPU
-            model.eval()  # Modo evaluación
-            return model
-        except Exception as e:
-            st.error(f"❌ Error al cargar el modelo: {e}")
-            return None
-
-    model = load_model(MODEL_PATH)
+    # Cargamos el modelo entrenado correctamente
+    try:
+        model = load_model(MODEL_PATH)  # Usar la función definida en `model_utils.py`
+    except Exception as e:
+        st.error(f"❌ Error al cargar el modelo: {e}")
+        model = None
 
     # Cargamos el mapeo de clases
     if os.path.exists(MAPPING_PATH):
