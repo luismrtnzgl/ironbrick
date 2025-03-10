@@ -59,31 +59,7 @@ with st.sidebar:
 
         }
     )
-#opcion 2 menu sidebar
-# # Contenedor de botones centrados
-# with st.sidebar.container():
-#     st.markdown('<div class="button-container">', unsafe_allow_html=True)
 
-#     if st.button("Recomendador de Inversión en sets Actuales"):
-#         st.session_state.page = "Recomendador de Inversión en sets Actuales"
-
-#     if st.button("Recomendador de Inversión en sets Retirados"):
-#         st.session_state.page = "Recomendador de Inversión en sets Retirados"
-
-#     if st.button("Alertas de Telegram"):
-#         st.session_state.page = "Alertas de Telegram"
-
-#     if st.button("Identificador de Sets"):
-#         st.session_state.page = "Identificador de Sets"
-
-#     st.markdown('</div>', unsafe_allow_html=True)
-
-
-
-
-
-
-#ok
 # Conexión a MongoDB
 @st.cache_resource
 def init_mongo_connection():
@@ -93,14 +69,12 @@ mongo_client = init_mongo_connection()
 mongo_db = mongo_client[st.secrets["mongo"]["db"]]
 mongo_collection = mongo_db[st.secrets["mongo"]["collection"]]
 
-#ok
 # Conexión a PostgreSQL
 DB_URL = os.getenv("DATABASE_URL")
 
 def get_db_connection():
     return psycopg2.connect(DB_URL, sslmode="require")
 
-#ok
 # Cargar modelo de predicción
 modelo_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/05_Streamlit/models/stacking_model.pkl"
 
@@ -115,7 +89,6 @@ def load_model():
 
 modelo = load_model()
 
-#ok
 # Cargar datos desde MongoDB
 @st.cache_data(ttl=600)
 def load_data():
@@ -155,6 +128,9 @@ df_lego = load_data()
 # ✅ Página principal por defecto
 if app == "Inicio":
     # Centrar el título y subtítulo usando HTML y CSS
+    st.image("08_APP_U\CABECERA.jpg", use_column_width=True)  # Ajusta la imagen según necesites
+
+
     st.markdown(
         """
         <h1 style='text-align: center;'>Ironbrick - IA for Lego Investments</h1>
@@ -233,7 +209,7 @@ elif app == "Recomendador de Inversión en sets Actuales":
 
     # 📌 Funciones auxiliares para obtener imágenes y colores
     def get_lego_image(set_number):
-        return f"https://img.bricklink.com/ItemImage/SN/0/{set_number}-1.png"
+        return f"https://images.brickset.com/sets/images/{set_number}-1.png"
 
 
     def get_color(score):
