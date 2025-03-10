@@ -153,15 +153,9 @@ if st.session_state.page == "Recomendador de Inversión en sets Actuales":
     st.title("Recomendador de sets actuales para Inversión en LEGO 📊")
 
     #test imagen
-    st.markdown(
-    """
-    <h1 style="display: flex; align-items: center;">
-        <img src="IRONBRICK_APP_1_PEQ.png" width="50" style="margin-right: 10px;">
-        Recomendador de sets actuales para Inversión en LEGO 📊
-    </h1>
-    """,
-    unsafe_allow_html=True
-    )
+    st.image("08_APP_U\IRONBRICK_APP_1_PEQ.png", width=50)  # Ajusta el tamaño según necesites
+    st.title("Recomendador de sets actuales para Inversión en LEGO 📊")
+
 
 
 
