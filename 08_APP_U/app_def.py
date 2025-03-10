@@ -15,13 +15,31 @@ image = "08_APP_U/logo_ironbrick.jpg"
 st.sidebar.image(image,use_container_width=True)
 #page = st.sidebar.radio("Selecciona una página", ["Recomendador de Inversión", "Alertas de Telegram"])
 
-if st.sidebar.button("Recomendador de Inversión"):
-    st.session_state.page = "Recomendador de Inversión"
+st.markdown(
+    """
+    <style>
+        [data-testid=stSidebar] [data-testid=stButton]{
+            text-align: center;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            width: 100%;
+        }
+    </style>
+    """, unsafe_allow_html=True
+)
 
-if st.sidebar.button("Alertas de Telegram"):
-    st.session_state.page = "Alertas de Telegram"
+# Contenedor de botones centrados
+with st.sidebar.container():
+    st.markdown('<div class="button-container">', unsafe_allow_html=True)
 
+    if st.button("Recomendador de Inversión"):
+        st.session_state.page = "Recomendador de Inversión"
 
+    if st.button("Alertas de Telegram"):
+        st.session_state.page = "Alertas de Telegram"
+
+    st.markdown('</div>', unsafe_allow_html=True)
 
 
 
