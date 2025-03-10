@@ -153,7 +153,7 @@ df_lego = load_data()
 # ✅ Muestra la página seleccionada
 if st.session_state.page == "Recomendador de Inversión en sets Actuales":
     # Agregar una imagen de cabecera
-    col1, col2 = st.columns(2, gap="medium")
+    col1, col2 = st.columns(2, gap="medium", vertical_alignment="center")
     with col1:
         st.image("08_APP_U/IRONBRICK_APP_1_PEQ.png", width=250)
 
