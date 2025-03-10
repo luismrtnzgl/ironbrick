@@ -71,7 +71,7 @@ with st.sidebar:
         styles = {
             "container": {"background-color": "#ffef47"},
             "nav-link": {"background-color": "#92cfce", "color": "black"},
-            "nav-link-selected": {"background-color": "ffef47", "color": "black"}
+            "nav-link-selected": {"background-color": "e87577", "color": "black"}
 
         }
     )
