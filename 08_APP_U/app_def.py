@@ -513,9 +513,10 @@ elif app == "Alertas de Telegram":
         conn.commit()
         conn.close()
 
-        # 📌 Enviar mensaje de confirmación por Telegram
-        from bot_telegram import confirmar_suscripcion
-        confirmar_suscripcion(telegram_id)
+        # Enviamos  mensaje de confirmación y primera recomendación por Telegram
+        from bot_telegram import confirmar_suscripcion, enviar_recomendacion_manual
+        confirmar_suscripcion(telegram_id)    
+        enviar_recomendacion_manual(telegram_id)
 
         st.success("✅ ¡Tus preferencias han sido guardadas correctamente!")
 
