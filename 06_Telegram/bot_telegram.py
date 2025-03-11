@@ -126,7 +126,35 @@ def enviar_recomendaciones():
 # 📌 Función para enviar recomendación manual a un usuario específico
 def enviar_recomendacion_manual(telegram_id):
     print(f"🔹 Enviando recomendación manual a {telegram_id}...")
-    enviar_recomendaciones()
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT presupuesto_min, presupuesto_max, temas_favoritos FROM usuarios WHERE telegram_id = %s", (str(telegram_id),))
+    usuario = cursor.fetchone()
+
+    if usuario:
+        presupuesto_min, presupuesto_max, temas_favoritos = usuario
+        temas_favoritos = temas_favoritos.split(",")
+
+        mejor_set = obtener_nueva_recomendacion(telegram_id, presupuesto_min, presupuesto_max, temas_favoritos)
+
+        if mejor_set is not None:
+            mensaje = f"📊 *Recomendación de Inversión en LEGO*\n\n"
+            mensaje += f"🧱 *{mejor_set['SetName']}* ({mejor_set['Number']})\n"
+            mensaje += f"💰 *Precio:* ${mejor_set['USRetailPrice']:.2f}\n"
+            mensaje += f"📈 *Rentabilidad Estimada:* {mejor_set['PredictedInvestmentScore']:.2f}\n"
+            mensaje += f"🛒 *Tema:* {mejor_set['Theme']}\n"
+            mensaje += f"🔗 [Ver en BrickLink](https://www.bricklink.com/v2/catalog/catalogitem.page?S={mejor_set['Number']})\n"
+
+            bot.send_message(telegram_id, mensaje, parse_mode="Markdown")
+        else:
+            bot.send_message(telegram_id, "😞 No encontramos sets adecuados en tu rango de presupuesto y temas seleccionados.")
+    
+    else:
+        print(f"❌ No se encontró al usuario con ID {telegram_id} en la base de datos.")
+    
+    conn.close()
 
 # 📌 Programar el envío cada 30 días
 schedule.every(30).days.do(enviar_recomendaciones)
