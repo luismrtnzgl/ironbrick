@@ -225,3 +225,35 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"⚠️ Error en el bot: {e}")
             time.sleep(60)  # Evita que Render lo reinicie constantemente
+
+def enviar_recomendacion_manual(telegram_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT presupuesto_min, presupuesto_max, temas_favoritos FROM usuarios WHERE telegram_id = %s", (str(telegram_id),))
+    usuario = cursor.fetchone()
+
+    if usuario:
+        presupuesto_min, presupuesto_max, temas_favoritos = usuario
+        temas_favoritos = temas_favoritos.split(",")
+
+        mejor_set = obtener_nueva_recomendacion(telegram_id, presupuesto_min, presupuesto_max, temas_favoritos)
+
+        if mejor_set is not None:
+            mensaje = f"📊 *Recomendación de Prueba de Inversión en LEGO*\n\n"
+            mensaje += f"🧱 *{mejor_set['Nombre']}* ({mejor_set['Set']})\n"
+            mensaje += f"💰 *Precio:* ${mejor_set['Precio']:.2f}\n"
+            mensaje += f"📈 *Rentabilidad Estimada:* {mejor_set['Revalorización']}\n"
+            mensaje += f"🛒 *Tema:* {mejor_set['Tema']}\n"
+            mensaje += f"🔗 [Ver en BrickLink](https://www.bricklink.com/v2/catalog/catalogitem.page?S={mejor_set['Set']})\n"
+
+            bot.send_message(telegram_id, mensaje, parse_mode="Markdown")
+        else:
+            bot.send_message(telegram_id, "😞 No encontramos sets adecuados en tu rango de presupuesto y temas seleccionados.")
+
+    conn.close()
+
+# 📌 Llamar a la función con tu ID de Telegram
+if __name__ == "__main__":
+    tu_telegram_id = "15322346"
+    enviar_recomendacion_manual(tu_telegram_id)
