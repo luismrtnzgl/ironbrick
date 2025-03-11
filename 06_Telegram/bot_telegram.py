@@ -90,119 +90,38 @@ def obtener_nueva_recomendacion(telegram_id, presupuesto_min, presupuesto_max, t
 
     return df_filtrado.sort_values(by="PredictedInvestmentScore", ascending=False).iloc[0]
 
-
-# 📌 Asegurar que las tablas `usuarios` y `recomendaciones` existen
-def crear_tablas():
+# 📌 Función para enviar recomendación manual a un usuario específico
+def enviar_recomendacion_manual(telegram_id):
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS usuarios (
-        telegram_id TEXT PRIMARY KEY,
-        presupuesto_min INTEGER DEFAULT 10,
-        presupuesto_max INTEGER DEFAULT 200,
-        temas_favoritos TEXT DEFAULT 'Todos'
-    )
-    """)
-
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS recomendaciones (
-        telegram_id TEXT,
-        set_id TEXT,
-        PRIMARY KEY (telegram_id, set_id)
-    )
-    """)
-
-    conn.commit()
-    conn.close()
-
-crear_tablas()
-
-@bot.message_handler(commands=['status'])
-def check_status(message):
-    user_id = message.chat.id
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT presupuesto_min, presupuesto_max, temas_favoritos FROM usuarios WHERE telegram_id = %s", (str(user_id),))
+    cursor.execute("SELECT presupuesto_min, presupuesto_max, temas_favoritos FROM usuarios WHERE telegram_id = %s", (str(telegram_id),))
     usuario = cursor.fetchone()
 
     if usuario:
         presupuesto_min, presupuesto_max, temas_favoritos = usuario
-        mensaje = f"📊 *Estado de tu suscripción:*\n\n"
-        mensaje += f"💰 *Presupuesto:* ${presupuesto_min} - ${presupuesto_max}\n"
-        mensaje += f"🛒 *Temas favoritos:* {temas_favoritos}\n"
-        mensaje += "✅ Tu suscripción está activa y funcionando correctamente."
-    else:
-        mensaje = "❌ No estás registrado en el sistema. Usa `/start` para suscribirte."
-
-    conn.close()
-    bot.send_message(user_id, mensaje, parse_mode="Markdown")
-
-# 📌 Función para obtener el mejor set que aún no ha sido recomendado
-def obtener_nueva_recomendacion(telegram_id, presupuesto_min, presupuesto_max, temas_favoritos):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    # 📌 Obtener sets que ya han sido recomendados al usuario
-    cursor.execute("SELECT set_id FROM recomendaciones WHERE telegram_id = %s", (str(telegram_id),))
-    sets_recomendados = {row[0] for row in cursor.fetchall()}
-    
-    # 📌 Filtrar sets dentro del presupuesto
-    df_filtrado = df_lego[(df_lego["USRetailPrice"] >= presupuesto_min) & 
-                           (df_lego["USRetailPrice"] <= presupuesto_max)]
-
-    # 📌 Filtrar por temas favoritos si el usuario ha seleccionado alguno
-    if "Todos" not in temas_favoritos:
-        df_filtrado = df_filtrado[df_filtrado["Theme"].isin(temas_favoritos)]
-
-    # 📌 Excluir sets que ya fueron recomendados
-    df_filtrado = df_filtrado[~df_filtrado["Number"].astype(str).isin(sets_recomendados)]
-
-    if df_filtrado.empty:
-        return None
-
-    # 📌 Aplicar el modelo de predicción
-    features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit', 
-                'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity', 
-                'SizeCategory', 'PricePerPiece', 'PricePerMinifig', 'YearsOnMarket']
-
-    df_filtrado["PredictedInvestmentScore"] = modelo.predict(df_filtrado[features])
-
-    # 📌 Seleccionar el mejor set basado en la rentabilidad
-    mejor_set = df_filtrado.sort_values(by="PredictedInvestmentScore", ascending=False).iloc[0]
-
-    return mejor_set
-
-# 📌 Función para enviar alertas automáticas de inversión
-def enviar_recomendaciones():
-    print("📢 Enviando recomendaciones a los usuarios...")
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute("SELECT telegram_id, presupuesto_min, presupuesto_max, temas_favoritos FROM usuarios")
-    usuarios = cursor.fetchall()
-    
-    for user in usuarios:
-        user_id, presupuesto_min, presupuesto_max, temas_favoritos = user
         temas_favoritos = temas_favoritos.split(",")
 
-        mejor_set = obtener_nueva_recomendacion(user_id, presupuesto_min, presupuesto_max, temas_favoritos)
+        mejor_set = obtener_nueva_recomendacion(telegram_id, presupuesto_min, presupuesto_max, temas_favoritos)
 
         if mejor_set is not None:
-            mensaje = f"📊 *Nueva Oportunidad de Inversión en LEGO*\n\n"
+            mensaje = f"📊 *Recomendación de Prueba de Inversión en LEGO*\n\n"
             mensaje += f"🧱 *{mejor_set['SetName']}* ({mejor_set['Number']})\n"
             mensaje += f"💰 *Precio:* ${mejor_set['USRetailPrice']:.2f}\n"
+            mensaje += f"📈 *Rentabilidad Estimada:* {mejor_set['PredictedInvestmentScore']:.2f}\n"
             mensaje += f"🛒 *Tema:* {mejor_set['Theme']}\n"
+            mensaje += f"🔗 [Ver en BrickLink](https://www.bricklink.com/v2/catalog/catalogitem.page?S={mejor_set['Number']})\n"
 
-            bot.send_message(user_id, mensaje, parse_mode="Markdown")
-
-            # 📌 Registrar la recomendación
-            cursor.execute("INSERT INTO recomendaciones (telegram_id, set_id) VALUES (%s, %s)", (str(user_id), mejor_set['Number']))
-            conn.commit()
+            bot.send_message(telegram_id, mensaje, parse_mode="Markdown")
+        else:
+            bot.send_message(telegram_id, "😞 No encontramos sets adecuados en tu rango de presupuesto y temas seleccionados.")
 
     conn.close()
 
+# 📌 Programar el envío cada 30 días
+schedule.every(30).days.do(enviar_recomendaciones)
+
+# 📌 Iniciar el bot y el sistema de alertas
 if __name__ == "__main__":
     print("🔄 Iniciando bot con alertas de inversión...")
     
@@ -225,35 +144,3 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"⚠️ Error en el bot: {e}")
             time.sleep(60)  # Evita que Render lo reinicie constantemente
-
-def enviar_recomendacion_manual(telegram_id):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute("SELECT presupuesto_min, presupuesto_max, temas_favoritos FROM usuarios WHERE telegram_id = %s", (str(telegram_id),))
-    usuario = cursor.fetchone()
-
-    if usuario:
-        presupuesto_min, presupuesto_max, temas_favoritos = usuario
-        temas_favoritos = temas_favoritos.split(",")
-
-        mejor_set = obtener_nueva_recomendacion(telegram_id, presupuesto_min, presupuesto_max, temas_favoritos)
-
-        if mejor_set is not None:
-            mensaje = f"📊 *Recomendación de Prueba de Inversión en LEGO*\n\n"
-            mensaje += f"🧱 *{mejor_set['Nombre']}* ({mejor_set['Set']})\n"
-            mensaje += f"💰 *Precio:* ${mejor_set['Precio']:.2f}\n"
-            mensaje += f"📈 *Rentabilidad Estimada:* {mejor_set['Revalorización']}\n"
-            mensaje += f"🛒 *Tema:* {mejor_set['Tema']}\n"
-            mensaje += f"🔗 [Ver en BrickLink](https://www.bricklink.com/v2/catalog/catalogitem.page?S={mejor_set['Set']})\n"
-
-            bot.send_message(telegram_id, mensaje, parse_mode="Markdown")
-        else:
-            bot.send_message(telegram_id, "😞 No encontramos sets adecuados en tu rango de presupuesto y temas seleccionados.")
-
-    conn.close()
-
-# 📌 Llamar a la función con tu ID de Telegram
-if __name__ == "__main__":
-    tu_telegram_id = "15322346"
-    enviar_recomendacion_manual(tu_telegram_id)
