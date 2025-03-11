@@ -498,7 +498,8 @@ elif app == "Alertas de Telegram":
             presupuesto_min INTEGER,
             presupuesto_max INTEGER,
             temas_favoritos TEXT
-        )""")
+        )
+        """)
 
         cursor.execute("""
         INSERT INTO usuarios (telegram_id, presupuesto_min, presupuesto_max, temas_favoritos)
@@ -511,8 +512,12 @@ elif app == "Alertas de Telegram":
 
         conn.commit()
         conn.close()
-        st.success("✅ Preferencias guardadas correctamente!")
 
+        # 📌 Enviar mensaje de confirmación por Telegram
+        from bot_telegram import confirmar_suscripcion
+        confirmar_suscripcion(telegram_id)
+
+        st.success("✅ ¡Tus preferencias han sido guardadas correctamente!")
 
     features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit',
             'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity',
