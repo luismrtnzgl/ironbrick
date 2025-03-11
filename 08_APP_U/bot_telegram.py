@@ -177,7 +177,7 @@ def enviar_recomendacion_manual(telegram_id):
             mensaje += f"💰 *Precio:* ${mejor_set['USRetailPrice']:.2f}\n"
             mensaje += f"📈 *Rentabilidad Estimada:* {clasificar_revalorizacion(mejor_set['PredictedInvestmentScore'])}\n"
             mensaje += f"🛒 *Tema:* {mejor_set['Theme']}\n"
-            mensaje += f"🔗 [Ver en BrickLink](https://www.bricklink.com/v2/catalog/catalogitem.page?S={mejor_set['Number']})\n"
+            mensaje += f"🔗 [Ver en Lego](https://www.lego.com/es-es/product/{mejor_set['Number']})\n"
 
             bot.send_message(telegram_id, mensaje, parse_mode="Markdown")
         else:
