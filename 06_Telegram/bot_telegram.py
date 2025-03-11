@@ -166,6 +166,10 @@ if __name__ == "__main__":
     while True:
         try:
             bot.infinity_polling(timeout=60, long_polling_timeout=10)
+        except telebot.apihelper.ApiTelegramException as e:
+            if e.error_code == 409:  # Conflicto de múltiples instancias
+                print("⚠️ Se detectó una segunda instancia del bot. Cerrando esta para evitar conflictos.")
+                break  # Detiene esta instancia
         except Exception as e:
             print(f"⚠️ Error en el bot: {e}")
             time.sleep(60)  # Evita que Render lo reinicie constantemente
