@@ -83,14 +83,13 @@ def obtener_nueva_recomendacion(telegram_id, presupuesto_min, presupuesto_max, t
     if df_filtrado.empty:
         return None
 
-    # 📌 Asegurar que todas las características del modelo están en el DataFrame
     features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit', 'ResaleDemand', 
                 'AnnualPriceIncrease', 'Exclusivity', 'SizeCategory', 'PricePerPiece', 
                 'PricePerMinifig', 'YearsOnMarket']
     
     for col in features:
         if col not in df_filtrado.columns:
-            df_filtrado[col] = 0  # O rellenar con la mediana
+            df_filtrado[col] = 0  
 
     df_filtrado["PredictedInvestmentScore"] = modelo.predict(df_filtrado[features])
 
@@ -124,22 +123,30 @@ def enviar_recomendaciones():
 
     conn.close()
 
+# 📌 Función para enviar recomendación manual a un usuario específico
+def enviar_recomendacion_manual(telegram_id):
+    print(f"🔹 Enviando recomendación manual a {telegram_id}...")
+    enviar_recomendaciones()
+
 # 📌 Programar el envío cada 30 días
 schedule.every(30).days.do(enviar_recomendaciones)
 
 # 📌 Iniciar el bot y el sistema de alertas
 if __name__ == "__main__":
     print("🔄 Iniciando bot con alertas de inversión...")
-    
+
+    # 📌 Probar manualmente (descomentar para enviar una prueba)
+    # enviar_recomendacion_manual("TU_TELEGRAM_ID")
+
     import threading
     def run_scheduler():
         while True:
             try:
                 schedule.run_pending()
-                time.sleep(86400)  # Revisar alertas cada 24 horas
+                time.sleep(86400)  
             except Exception as e:
                 print(f"⚠️ Error en el sistema de alertas: {e}")
-                time.sleep(60)  # Esperar 1 minuto antes de reintentar
+                time.sleep(60)  
 
     scheduler_thread = threading.Thread(target=run_scheduler, daemon=True)
     scheduler_thread.start()
