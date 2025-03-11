@@ -56,10 +56,7 @@ def preprocess_data(df):
     df["PricePerMinifig"] = np.where(df["Minifigs"] > 0, df["USRetailPrice"] / df["Minifigs"], 0)
     df["YearsOnMarket"] = df["ExitYear"] - df["LaunchYear"]
 
-    # 📌 Filtrar solo columnas numéricas antes de limpiar datos
     numeric_cols = df.select_dtypes(include=[np.number]).columns
-
-    # 📌 Reemplazar valores infinitos por NaN y luego llenarlos con la mediana
     df[numeric_cols] = df[numeric_cols].replace([np.inf, -np.inf], np.nan)
     df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].median())
 
@@ -89,6 +86,34 @@ def obtener_nueva_recomendacion(telegram_id, presupuesto_min, presupuesto_max, t
     df_filtrado["PredictedInvestmentScore"] = modelo.predict(df_filtrado[['USRetailPrice', 'Pieces', 'Minifigs', 'YearsOnMarket']])
 
     return df_filtrado.sort_values(by="PredictedInvestmentScore", ascending=False).iloc[0]
+
+# 📌 Función para enviar recomendación a todos los usuarios registrados (automática cada 30 días)
+def enviar_recomendaciones():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT telegram_id, presupuesto_min, presupuesto_max, temas_favoritos FROM usuarios")
+    usuarios = cursor.fetchall()
+    
+    for user in usuarios:
+        user_id, presupuesto_min, presupuesto_max, temas_favoritos = user
+        temas_favoritos = temas_favoritos.split(",")
+
+        mejor_set = obtener_nueva_recomendacion(user_id, presupuesto_min, presupuesto_max, temas_favoritos)
+
+        if mejor_set is not None:
+            mensaje = f"📊 *Nueva Oportunidad de Inversión en LEGO*\n\n"
+            mensaje += f"🧱 *{mejor_set['SetName']}* ({mejor_set['Number']})\n"
+            mensaje += f"💰 *Precio:* ${mejor_set['USRetailPrice']:.2f}\n"
+            mensaje += f"📈 *Rentabilidad Estimada:* {mejor_set['PredictedInvestmentScore']:.2f}\n"
+            mensaje += f"🛒 *Tema:* {mejor_set['Theme']}\n"
+            mensaje += f"🔗 [Ver en BrickLink](https://www.bricklink.com/v2/catalog/catalogitem.page?S={mejor_set['Number']})\n"
+
+            bot.send_message(user_id, mensaje, parse_mode="Markdown")
+        else:
+            bot.send_message(user_id, "😞 No encontramos sets adecuados en tu rango de presupuesto y temas seleccionados.")
+
+    conn.close()
 
 # 📌 Función para enviar recomendación manual a un usuario específico
 def enviar_recomendacion_manual(telegram_id):
