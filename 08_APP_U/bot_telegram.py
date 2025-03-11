@@ -142,6 +142,18 @@ def confirmar_suscripcion(telegram_id):
 
     conn.close()
 
+# Función para clasificar la rentabilidad en categorías
+def clasificar_revalorizacion(score):
+    if score > 13:
+        return "Muy Alta"
+    elif 10 <= score <= 13:
+        return "Alta"
+    elif 5 <= score < 10:
+        return "Media"
+    elif 0 <= score < 5:
+        return "Baja"
+    else:
+        return "Ninguna"
 
 # Función para enviar recomendación manual a un usuario específico
 def enviar_recomendacion_manual(telegram_id):
@@ -160,14 +172,14 @@ def enviar_recomendacion_manual(telegram_id):
         mejor_set = obtener_nueva_recomendacion(telegram_id, presupuesto_min, presupuesto_max, temas_favoritos)
 
         if mejor_set is not None:
-            mensaje = f"📊 *Recomendación de Inversión en LEGO*\n\n"
+            mensaje = f"📊 *Nueva Oportunidad de Inversión en LEGO*\n\n"
             mensaje += f"🧱 *{mejor_set['SetName']}* ({mejor_set['Number']})\n"
             mensaje += f"💰 *Precio:* ${mejor_set['USRetailPrice']:.2f}\n"
-            mensaje += f"📈 *Rentabilidad Estimada:* {mejor_set['PredictedInvestmentScore']:.2f}\n"
+            mensaje += f"📈 *Rentabilidad Estimada:* {clasificar_revalorizacion(mejor_set['PredictedInvestmentScore'])}\n"
             mensaje += f"🛒 *Tema:* {mejor_set['Theme']}\n"
             mensaje += f"🔗 [Ver en BrickLink](https://www.bricklink.com/v2/catalog/catalogitem.page?S={mejor_set['Number']})\n"
 
-            bot.send_message(telegram_id, mensaje, parse_mode="Markdown")
+            bot.send_message(user_id, mensaje, parse_mode="Markdown")
         else:
             bot.send_message(telegram_id, "😞 No encontramos sets adecuados en tu rango de presupuesto y temas seleccionados.")
     
