@@ -129,7 +129,7 @@ df_lego = load_data()
 if app == "Inicio":
     # Centrar el título y subtítulo usando HTML y CSS
       # Abrir la imagen en modo binario
-    with open("08_APP_U/CABECERA.svg", "rb") as img_file:
+    with open("08_APP_U/CABECERA.png", "rb") as img_file:
         img_data = b64encode(img_file.read()).decode("utf-8")  # Codificar la imagen en base64
 
   # Usar HTML para mostrar la imagen y el texto a la derecha
