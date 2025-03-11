@@ -8,24 +8,24 @@ import numpy as np
 import schedule
 import time
 
-# 📌 Obtener el token del bot
+# Obtenemos el token del bot
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
-# 📌 URL de la base de datos PostgreSQL en Render
+# URL de la base de datos PostgreSQL en Render
 DB_URL = os.getenv("DATABASE_URL")
 
-# 📌 URL del modelo de predicción en GitHub
+# URL del modelo de predicción en GitHub
 modelo_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/05_Streamlit/models/stacking_model.pkl"
 
-# 📌 URL del dataset de LEGO en GitHub
+# URL del dataset de LEGO en GitHub
 dataset_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/01_Data_Cleaning/df_lego_final_venta.csv"
 
-# 📌 Función para conectar a la base de datos PostgreSQL en Render
+# Función para conectar a la base de datos PostgreSQL en Render
 def get_db_connection():
     return psycopg2.connect(DB_URL, sslmode="require")
 
-# 📌 Cargar el modelo de predicción
+# Cargamos el modelo de predicción
 def load_model():
     modelo_path = "/tmp/stacking_model.pkl"
     
@@ -38,7 +38,7 @@ def load_model():
 
 modelo = load_model()
 
-# 📌 Cargar y procesar el dataset de LEGO
+# Cargamos y procesamos el dataset de LEGO
 def load_data():
     df = pd.read_csv(dataset_url)
     return preprocess_data(df)
@@ -64,7 +64,7 @@ def preprocess_data(df):
 
 df_lego = load_data()
 
-# 📌 Función para obtener el mejor set sin repetir recomendaciones
+# Función para obtener el mejor set sin repetir recomendaciones
 def obtener_nueva_recomendacion(telegram_id, presupuesto_min, presupuesto_max, temas_favoritos):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -95,7 +95,7 @@ def obtener_nueva_recomendacion(telegram_id, presupuesto_min, presupuesto_max, t
 
     return df_filtrado.sort_values(by="PredictedInvestmentScore", ascending=False).iloc[0]
 
-# 📌 Función para enviar recomendación a todos los usuarios registrados (mensual)
+# Función para enviar recomendación a todos los usuarios registrados (mensual)
 def enviar_recomendaciones():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -123,7 +123,7 @@ def enviar_recomendaciones():
 
     conn.close()
 
-# 📌 Función para enviar recomendación manual a un usuario específico
+# Función para enviar recomendación manual a un usuario específico
 def enviar_recomendacion_manual(telegram_id):
     print(f"🔹 Enviando recomendación manual a {telegram_id}...")
 
@@ -156,15 +156,60 @@ def enviar_recomendacion_manual(telegram_id):
     
     conn.close()
 
-# 📌 Programar el envío cada 30 días
+# Manejo del comando /start
+@bot.message_handler(commands=['start'])
+def start(message):
+    telegram_id = str(message.chat.id)
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Verificar si el usuario ya está registrado
+    cursor.execute("SELECT * FROM usuarios WHERE telegram_id = %s", (telegram_id,))
+    usuario = cursor.fetchone()
+
+    if usuario:
+        bot.send_message(telegram_id, "✅ ¡Ya estás registrado en el sistema de alertas de inversión en LEGO!")
+    else:
+        # Registrar al usuario con valores por defecto
+        cursor.execute("""
+            INSERT INTO usuarios (telegram_id, presupuesto_min, presupuesto_max, temas_favoritos) 
+            VALUES (%s, %s, %s, %s)
+        """, (telegram_id, 10, 200, 'Todos'))
+        conn.commit()
+        bot.send_message(telegram_id, "🎉 ¡Bienvenido al sistema de alertas de inversión en LEGO! "
+                                      "Te hemos registrado con un rango de precios de $10 a $200 y todos los temas. "
+                                      "Puedes modificar tus preferencias en la web de Streamlit.")
+
+    conn.close()
+
+# Manejo del comando /status
+@bot.message_handler(commands=['status'])
+def status(message):
+    telegram_id = str(message.chat.id)
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT presupuesto_min, presupuesto_max, temas_favoritos FROM usuarios WHERE telegram_id = %s", (telegram_id,))
+    usuario = cursor.fetchone()
+
+    if usuario:
+        presupuesto_min, presupuesto_max, temas_favoritos = usuario
+        mensaje = (f"📊 *Estado de tu suscripción:*\n\n"
+                   f"💰 *Rango de precios:* ${presupuesto_min} - ${presupuesto_max}\n"
+                   f"🛒 *Temas favoritos:* {temas_favoritos}\n\n"
+                   "Puedes modificar tus preferencias en la web de Streamlit.")
+        bot.send_message(telegram_id, mensaje, parse_mode="Markdown")
+    else:
+        bot.send_message(telegram_id, "⚠️ No estás registrado en el sistema. Escribe /start para registrarte.")
+
+    conn.close()
+
+# Programar el envío cada 30 días
 schedule.every(30).days.do(enviar_recomendaciones)
 
-# 📌 Iniciar el bot y el sistema de alertas
+# Iniciar el bot y el sistema de alertas
 if __name__ == "__main__":
     print("🔄 Iniciando bot con alertas de inversión...")
-
-    # 📌 Probar manualmente (descomentar para enviar una prueba)
-    # enviar_recomendacion_manual("TU_TELEGRAM_ID")
 
     import threading
     def run_scheduler():
