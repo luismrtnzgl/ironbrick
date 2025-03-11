@@ -83,11 +83,20 @@ def obtener_nueva_recomendacion(telegram_id, presupuesto_min, presupuesto_max, t
     if df_filtrado.empty:
         return None
 
-    df_filtrado["PredictedInvestmentScore"] = modelo.predict(df_filtrado[['USRetailPrice', 'Pieces', 'Minifigs', 'YearsOnMarket']])
+    # 📌 Asegurar que todas las características del modelo están en el DataFrame
+    features = ['USRetailPrice', 'Pieces', 'Minifigs', 'YearsSinceExit', 'ResaleDemand', 
+                'AnnualPriceIncrease', 'Exclusivity', 'SizeCategory', 'PricePerPiece', 
+                'PricePerMinifig', 'YearsOnMarket']
+    
+    for col in features:
+        if col not in df_filtrado.columns:
+            df_filtrado[col] = 0  # O rellenar con la mediana
+
+    df_filtrado["PredictedInvestmentScore"] = modelo.predict(df_filtrado[features])
 
     return df_filtrado.sort_values(by="PredictedInvestmentScore", ascending=False).iloc[0]
 
-# 📌 Función para enviar recomendación a todos los usuarios registrados (automática cada 30 días)
+# 📌 Función para enviar recomendación a todos los usuarios registrados (mensual)
 def enviar_recomendaciones():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -115,34 +124,6 @@ def enviar_recomendaciones():
 
     conn.close()
 
-# 📌 Función para enviar recomendación manual a un usuario específico
-def enviar_recomendacion_manual(telegram_id):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute("SELECT presupuesto_min, presupuesto_max, temas_favoritos FROM usuarios WHERE telegram_id = %s", (str(telegram_id),))
-    usuario = cursor.fetchone()
-
-    if usuario:
-        presupuesto_min, presupuesto_max, temas_favoritos = usuario
-        temas_favoritos = temas_favoritos.split(",")
-
-        mejor_set = obtener_nueva_recomendacion(telegram_id, presupuesto_min, presupuesto_max, temas_favoritos)
-
-        if mejor_set is not None:
-            mensaje = f"📊 *Recomendación de Prueba de Inversión en LEGO*\n\n"
-            mensaje += f"🧱 *{mejor_set['SetName']}* ({mejor_set['Number']})\n"
-            mensaje += f"💰 *Precio:* ${mejor_set['USRetailPrice']:.2f}\n"
-            mensaje += f"📈 *Rentabilidad Estimada:* {mejor_set['PredictedInvestmentScore']:.2f}\n"
-            mensaje += f"🛒 *Tema:* {mejor_set['Theme']}\n"
-            mensaje += f"🔗 [Ver en BrickLink](https://www.bricklink.com/v2/catalog/catalogitem.page?S={mejor_set['Number']})\n"
-
-            bot.send_message(telegram_id, mensaje, parse_mode="Markdown")
-        else:
-            bot.send_message(telegram_id, "😞 No encontramos sets adecuados en tu rango de presupuesto y temas seleccionados.")
-
-    conn.close()
-
 # 📌 Programar el envío cada 30 días
 schedule.every(30).days.do(enviar_recomendaciones)
 
@@ -167,9 +148,9 @@ if __name__ == "__main__":
         try:
             bot.infinity_polling(timeout=60, long_polling_timeout=10)
         except telebot.apihelper.ApiTelegramException as e:
-            if e.error_code == 409:  # Conflicto de múltiples instancias
+            if e.error_code == 409:  
                 print("⚠️ Se detectó una segunda instancia del bot. Cerrando esta para evitar conflictos.")
-                break  # Detiene esta instancia
+                break  
         except Exception as e:
             print(f"⚠️ Error en el bot: {e}")
-            time.sleep(60)  # Evita que Render lo reinicie constantemente
+            time.sleep(60)  
