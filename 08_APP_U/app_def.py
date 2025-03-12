@@ -475,7 +475,7 @@ elif app == "Alertas de Telegram":
     st.write("**Bienvenido a IronbrickML - Alertas de Inversión en LEGO**")
     st.markdown(
         '<p style="color:red; font-size:16px;">'
-        'Tenemos el servidor detenido para evitar sobrecostes, si necesitas que lo encendamos para evaluar el servicio no tienes más que ponerte en contacto con nosotros. Muchas gracias y disculpa las molestias.'
+        'Tenemos <b>el servidor detenido </b>para evitar sobrecostes, si necesitas que lo encendamos para evaluar el servicio no tienes más que ponerte en contacto con nosotros. Muchas gracias y disculpa las molestias.'
         '</p>',
     unsafe_allow_html=True
     )    
