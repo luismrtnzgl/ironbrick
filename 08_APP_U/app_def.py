@@ -645,7 +645,10 @@ elif app == "Identificador de Sets":
         """,
         unsafe_allow_html=True
     )
-
+    st.markdown(
+        '[📥 Descarga un archivo de imágenes de prueba para evaluar el servicio](https://github.com/luismrtnzgl/ironbrick/raw/refs/heads/main/07_Camera/Test_image/Imagenes_muestra.zip)',
+        unsafe_allow_html=True
+    )
     st.markdown(
         """
         🎯 **Sube una imagen o usa la cámara para identificar un set de LEGO.**
