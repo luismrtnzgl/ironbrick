@@ -473,6 +473,7 @@ elif app == "Alertas de Telegram":
     )
 
     st.write("**Bienvenido a IronbrickML - Alertas de Inversión en LEGO**")
+    st.write("Tenemos el servidor detenido para evitar sobrecostes, si necesitas que lo encedamos para evaluar el servicio no tienes más que ponerte ne contacto con nosotros. Muchas gracias y disculpa las molestias.")
     st.write(
         "📊 IronbrickML analiza la rentabilidad de sets de LEGO utilizando modelos de predicción de inversión. "
         "Cada mes, recibirás una recomendación personalizada en Telegram con el set que mejor se ajuste a tu presupuesto y preferencias. "
