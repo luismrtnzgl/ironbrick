@@ -560,6 +560,12 @@ elif app == "Alertas de Telegram":
             'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity',
             'SizeCategory', 'PricePerPiece', 'PricePerMinifig', 'YearsOnMarket']
 
+    # 🛠️ Nueva comprobación para asegurar que existen las columnas necesarias
+    for feature in features:
+        if feature not in df_lego.columns:
+            df_lego[feature] = 0
+
+    # Predicción
     df_lego["PredictedInvestmentScore"] = modelo.predict(df_lego[features])
 
     # Transformamos los valores de revalorización en categorías
