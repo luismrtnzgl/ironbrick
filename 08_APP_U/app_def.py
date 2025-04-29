@@ -75,6 +75,33 @@ DB_URL = os.getenv("DATABASE_URL")
 def get_db_connection():
     return psycopg2.connect(DB_URL, sslmode="require")
 
+def inicializar_tablas():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS usuarios (
+        telegram_id TEXT PRIMARY KEY,
+        presupuesto_min INTEGER,
+        presupuesto_max INTEGER,
+        temas_favoritos TEXT
+    )
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS recomendaciones (
+        id SERIAL PRIMARY KEY,
+        telegram_id TEXT,
+        set_id TEXT
+    )
+    """)
+
+    conn.commit()
+    conn.close()
+
+# 🔥 Crear tablas automáticamente al arrancar
+inicializar_tablas()
+
 # Cargar modelo de predicción
 modelo_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/05_Streamlit/models/stacking_model.pkl"
 
