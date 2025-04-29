@@ -25,9 +25,6 @@ dataset_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/01_D
 def get_db_connection():
     return psycopg2.connect(DB_URL, sslmode="require")
 
-# Crear tablas si no existen
-inicializar_tablas()
-
 # Cargamos el modelo de predicción
 def load_model():
     modelo_path = "/tmp/stacking_model.pkl"
@@ -66,33 +63,6 @@ def preprocess_data(df):
     return df
 
 df_lego = load_data()
-
-# Inicializar tablas en PostgreSQL
-def inicializar_tablas():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    # Crear tabla de usuarios
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS usuarios (
-        telegram_id TEXT PRIMARY KEY,
-        presupuesto_min INTEGER,
-        presupuesto_max INTEGER,
-        temas_favoritos TEXT
-    )
-    """)
-
-    # Crear tabla de recomendaciones
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS recomendaciones (
-        id SERIAL PRIMARY KEY,
-        telegram_id TEXT,
-        set_id TEXT
-    )
-    """)
-
-    conn.commit()
-    conn.close()
 
 # Función para obtener el mejor set sin repetir recomendaciones
 def obtener_nueva_recomendacion(telegram_id, presupuesto_min, presupuesto_max, temas_favoritos):

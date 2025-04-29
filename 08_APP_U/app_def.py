@@ -75,9 +75,6 @@ DB_URL = os.getenv("DATABASE_URL")
 def get_db_connection():
     return psycopg2.connect(DB_URL, sslmode="require")
 
-# Crear tablas si no existen
-inicializar_tablas()
-
 # Cargar modelo de predicción
 modelo_url = "https://raw.githubusercontent.com/luismrtnzgl/ironbrick/main/05_Streamlit/models/stacking_model.pkl"
 
@@ -126,33 +123,6 @@ def preprocess_data(df):
     return df
 
 df_lego = load_data()
-
-# Inicializar tablas en PostgreSQL
-def inicializar_tablas():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    # Crear tabla de usuarios
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS usuarios (
-        telegram_id TEXT PRIMARY KEY,
-        presupuesto_min INTEGER,
-        presupuesto_max INTEGER,
-        temas_favoritos TEXT
-    )
-    """)
-
-    # Crear tabla de recomendaciones
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS recomendaciones (
-        id SERIAL PRIMARY KEY,
-        telegram_id TEXT,
-        set_id TEXT
-    )
-    """)
-
-    conn.commit()
-    conn.close()
 
 
 # ✅ Página principal por defecto
@@ -560,12 +530,6 @@ elif app == "Alertas de Telegram":
             'ResaleDemand', 'AnnualPriceIncrease', 'Exclusivity',
             'SizeCategory', 'PricePerPiece', 'PricePerMinifig', 'YearsOnMarket']
 
-    # 🛠️ Nueva comprobación para asegurar que existen las columnas necesarias
-    for feature in features:
-        if feature not in df_lego.columns:
-            df_lego[feature] = 0
-
-    # Predicción
     df_lego["PredictedInvestmentScore"] = modelo.predict(df_lego[features])
 
     # Transformamos los valores de revalorización en categorías
